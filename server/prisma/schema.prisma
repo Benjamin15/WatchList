@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Room {
+  id       Int      @id @default(autoincrement())
+  roomId   String   @unique @map("room_id")
+  name     String
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  items    ItemInRoom[]
+  
+  @@map("rooms")
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  title       String
+  type        String   // movie, tv, manga
+  externalId  String?  @map("external_id")
+  status      String   @default("a_voir") // a_voir, en_cours, vu
+  imageUrl    String?  @map("image_url")
+  releaseDate String?  @map("release_date")
+  description String?
+  note        Float?
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  rooms       ItemInRoom[]
+  
+  @@map("items")
+}
+
+model ItemInRoom {
+  roomId    Int      @map("room_id")
+  itemId    Int      @map("item_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  room      Room     @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  
+  @@id([roomId, itemId])
+  @@map("item_in_room")
+}
