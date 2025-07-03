@@ -15,22 +15,29 @@ WatchList est une application qui permet de créer et partager des listes de fil
 - **APIs externes**: TMDB (films/séries), MyAnimeList (manga)
 - **Tests**: Jest + Supertest (88.78% de couverture)
 
-### Frontend (Mobile) - À venir
-- **Technologie prévue**: React Native ou Flutter
-- **Localisation**: `./mobile/` (à créer)
+### Frontend (Mobile)
+- **Localisation**: `./mobile/`
+- **Technologie**: React Native + TypeScript
+- **Navigation**: React Navigation v6
+- **UI**: React Native Paper + Vector Icons
+- **State management**: React hooks + Context API
 
 ## Fonctionnalités
 
-✅ **Implémentées (Backend)**:
+✅ **Implémentées**:
+- **Backend**: API REST complète avec tests
+- **Mobile**: Application React Native fonctionnelle
 - Création de rooms sans authentification
 - Gestion des items (films, séries, manga)
 - Recherche mixte (locale + APIs externes)
-- Statuts de progression (à voir, en cours, vu)
-- API REST complète
+- Statuts de progression (à voir, en cours, vu, abandonné)
+- Navigation par onglets et filtres
+- Interface moderne et responsive
 
 🔄 **En développement**:
-- Application mobile
-- Interface utilisateur
+- Intégration complète backend ↔ mobile
+- Configuration des icônes natives
+- Tests de l'application mobile
 
 ## Démarrage rapide
 
@@ -46,6 +53,21 @@ npm start
 ```
 
 Le serveur sera disponible sur `http://localhost:3000`
+
+### Installation et lancement du mobile
+```bash
+cd mobile
+npm install
+
+# Pour iOS
+npx react-native run-ios
+
+# Pour Android (nécessite un émulateur/appareil)
+npx react-native run-android
+
+# Ou utiliser le script de démarrage
+./start.sh
+```
 
 ### Tests
 ```bash
