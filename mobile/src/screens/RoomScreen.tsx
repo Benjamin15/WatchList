@@ -288,7 +288,6 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
         <View style={styles.mediaContent}>
           <Text style={styles.title}>{item.media.title}</Text>
           <Text style={styles.meta}>{item.media.year} • {item.media.genre}</Text>
-          <Text style={styles.description}>{item.media.description}</Text>
           
           <View style={styles.footer}>
             <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
@@ -469,12 +468,6 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.placeholder,
-    marginBottom: SPACING.xs,
-  },
-  description: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
-    lineHeight: 18,
     marginBottom: SPACING.sm,
   },
   footer: {

@@ -200,9 +200,6 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
         <Text style={styles.resultMeta}>
           {item.year} • {item.genre}
         </Text>
-        <Text style={styles.resultDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
         
         <View style={styles.resultFooter}>
           <Text style={styles.resultRating}>
@@ -353,12 +350,6 @@ const styles = StyleSheet.create({
   resultMeta: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.placeholder,
-    marginBottom: SPACING.xs,
-  },
-  resultDescription: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
-    lineHeight: 16,
     marginBottom: SPACING.sm,
   },
   resultFooter: {
