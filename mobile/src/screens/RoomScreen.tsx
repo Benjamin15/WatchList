@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -14,6 +14,146 @@ type RoomScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'R
 interface RoomScreenProps {
   route: RoomScreenRouteProp;
 }
+
+// Composant pour les éléments de média avec animation
+const MediaItemCard = ({ 
+  item, 
+  onSwipe, 
+  statusOrder, 
+  renderMediaPoster 
+}: { 
+  item: WatchlistItem; 
+  onSwipe: (id: number, direction: 'left' | 'right') => void;
+  statusOrder: readonly string[];
+  renderMediaPoster: (item: WatchlistItem) => React.ReactNode;
+}) => {
+  const statusConfig = {
+    planned: { text: 'Prévu', color: MEDIA_STATUS.planned.color },
+    watching: { text: 'En cours', color: MEDIA_STATUS.watching.color },
+    completed: { text: 'Terminé', color: MEDIA_STATUS.completed.color },
+  };
+
+  const statusBadge = statusConfig[item.status as keyof typeof statusConfig];
+
+  const currentIndex = statusOrder.indexOf(item.status as any);
+  const canLeft = currentIndex > 0;
+  const canRight = currentIndex < statusOrder.length - 1;
+  
+  // Animation values - persistent avec useRef
+  const translateX = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+  const scale = useRef(new Animated.Value(1)).current;
+  
+  // Trigger swipe animation
+  const triggerSwipeAnimation = (direction: 'left' | 'right') => {
+    const targetX = direction === 'right' ? 300 : -300;
+    
+    // Animation de sortie
+    Animated.parallel([
+      Animated.timing(translateX, {
+        toValue: targetX,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(opacity, {
+        toValue: 0.3,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scale, {
+        toValue: 0.8,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      // Animation de retour
+      Animated.parallel([
+        Animated.spring(translateX, {
+          toValue: 0,
+          useNativeDriver: true,
+        }),
+        Animated.spring(opacity, {
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scale, {
+          toValue: 1,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
+
+  const panResponder = PanResponder.create({
+    onMoveShouldSetPanResponder: (evt, gestureState) => {
+      return Math.abs(gestureState.dx) > 20;
+    },
+    onPanResponderMove: (evt, gestureState) => {
+      translateX.setValue(gestureState.dx);
+      
+      // Scale effect based on drag distance
+      const dragPercent = Math.abs(gestureState.dx) / 100;
+      scale.setValue(Math.max(0.95, 1 - dragPercent * 0.05));
+      
+      // Opacity effect
+      opacity.setValue(Math.max(0.7, 1 - dragPercent * 0.3));
+    },
+    onPanResponderRelease: (evt, gestureState) => {
+      if (Math.abs(gestureState.dx) > 100) {
+        if (gestureState.dx > 0 && canRight) {
+          triggerSwipeAnimation('right');
+          setTimeout(() => onSwipe(item.id, 'right'), 100);
+        } else if (gestureState.dx < 0 && canLeft) {
+          triggerSwipeAnimation('left');
+          setTimeout(() => onSwipe(item.id, 'left'), 100);
+        } else {
+          // Reset animation if swipe is not valid
+          Animated.parallel([
+            Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
+            Animated.spring(opacity, { toValue: 1, useNativeDriver: true }),
+            Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
+          ]).start();
+        }
+      } else {
+        // Reset animation if swipe is not strong enough
+        Animated.parallel([
+          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
+          Animated.spring(opacity, { toValue: 1, useNativeDriver: true }),
+          Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
+        ]).start();
+      }
+    },
+  });
+
+  return (
+    <Animated.View 
+      style={[
+        styles.mediaItem,
+        {
+          transform: [
+            { translateX: translateX },
+            { scale: scale }
+          ],
+          opacity: opacity,
+        }
+      ]} 
+      {...panResponder.panHandlers}
+    >
+      {renderMediaPoster(item)}
+      
+      <View style={styles.mediaContent}>
+        <Text style={styles.title}>{item.media.title}</Text>
+        <Text style={styles.meta}>{item.media.year} {item.media.genre}</Text>
+        
+        <View style={styles.footer}>
+          <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
+            <Text style={styles.badgeText}>{statusBadge.text}</Text>
+          </View>
+        </View>
+      </View>
+    </Animated.View>
+  );
+};
 
 // Données mock pour les tests
 const mockWatchlistItems: WatchlistItem[] = [
@@ -249,55 +389,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   const renderMediaItem = (item: WatchlistItem) => {
-    const statusConfig = {
-      planned: { text: 'Prévu', color: MEDIA_STATUS.planned.color },
-      watching: { text: 'En cours', color: MEDIA_STATUS.watching.color },
-      completed: { text: 'Terminé', color: MEDIA_STATUS.completed.color },
-    };
-
-    const statusBadge = statusConfig[item.status as keyof typeof statusConfig];
-
-    const currentIndex = statusOrder.indexOf(item.status as any);
-    const canLeft = currentIndex > 0;
-    const canRight = currentIndex < statusOrder.length - 1;
-    
-    let swipeIndicator = '';
-    if (canLeft && canRight) swipeIndicator = '◀️▶️';
-    else if (canRight) swipeIndicator = '▶️';
-    else if (canLeft) swipeIndicator = '◀️';
-
-    const panResponder = PanResponder.create({
-      onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dx) > 20;
-      },
-      onPanResponderRelease: (evt, gestureState) => {
-        if (Math.abs(gestureState.dx) > 100) {
-          if (gestureState.dx > 0 && canRight) {
-            handleSwipe(item.id, 'right');
-          } else if (gestureState.dx < 0 && canLeft) {
-            handleSwipe(item.id, 'left');
-          }
-        }
-      },
-    });
-
-    return (
-      <View key={item.id} {...panResponder.panHandlers} style={styles.mediaItem}>
-        {renderMediaPoster(item)}
-        
-        <View style={styles.mediaContent}>
-          <Text style={styles.title}>{item.media.title}</Text>
-          <Text style={styles.meta}>{item.media.year} • {item.media.genre}</Text>
-          
-          <View style={styles.footer}>
-            <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
-              <Text style={styles.badgeText}>{statusBadge.text}</Text>
-            </View>
-            <Text style={styles.swipeIndicator}>{swipeIndicator}</Text>
-          </View>
-        </View>
-      </View>
-    );
+    return <MediaItemCard key={item.id} item={item} onSwipe={handleSwipe} statusOrder={statusOrder} renderMediaPoster={renderMediaPoster} />;
   };
 
   const renderEmptyState = () => (
@@ -484,10 +576,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontWeight: 'bold',
     color: COLORS.onPrimary,
-  },
-  swipeIndicator: {
-    fontSize: 16,
-    padding: SPACING.xs,
   },
   emptyState: {
     alignItems: 'center',
