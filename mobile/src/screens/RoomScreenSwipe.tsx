@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder } from 'react-native';
-import { RouteProp, useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
+import { RouteProp } from '@react-navigation/native';
 import { RootStackParamList, WatchlistItem } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import LoadingScreen from './LoadingScreen';
 
 type RoomScreenRouteProp = RouteProp<RootStackParamList, 'Room'>;
-type RoomScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Room'>;
 
 interface RoomScreenProps {
   route: RoomScreenRouteProp;
@@ -28,7 +26,7 @@ const mockWatchlistItems: WatchlistItem[] = [
       type: 'series',
       year: 1997,
       genre: 'Aventure, Shounen',
-      description: 'Les aventures de Monkey D. Luffy et de son équipage de pirates.',
+      description: 'Les aventures de Monkey D. Luffy et de son équipage de pirates à la recherche du trésor ultime.',
       posterUrl: undefined,
       rating: 9.0,
       tmdbId: 37854,
@@ -68,7 +66,7 @@ const mockWatchlistItems: WatchlistItem[] = [
       type: 'movie',
       year: 2010,
       genre: 'Science-Fiction, Thriller',
-      description: 'Un voleur qui s\'infiltre dans les rêves.',
+      description: 'Un voleur qui s\'infiltre dans les rêves se voit offrir une chance de retrouver sa vie d\'avant.',
       posterUrl: undefined,
       rating: 8.8,
       tmdbId: 27205,
@@ -80,33 +78,73 @@ const mockWatchlistItems: WatchlistItem[] = [
     id: 4,
     roomId: 1,
     mediaId: 4,
-    status: 'completed',
+    status: 'watching',
     addedAt: '2025-01-04T00:00:00Z',
     media: {
       id: 4,
+      title: 'Stranger Things',
+      type: 'series',
+      year: 2016,
+      genre: 'Drama, Fantasy',
+      description: 'Un groupe d\'enfants découvre des forces surnaturelles dans leur petite ville.',
+      posterUrl: undefined,
+      rating: 8.7,
+      tmdbId: 66732,
+      createdAt: '2025-01-04T00:00:00Z',
+      updatedAt: '2025-01-04T00:00:00Z',
+    },
+  },
+  {
+    id: 5,
+    roomId: 1,
+    mediaId: 5,
+    status: 'completed',
+    addedAt: '2025-01-05T00:00:00Z',
+    media: {
+      id: 5,
       title: 'Breaking Bad',
       type: 'series',
       year: 2008,
       genre: 'Crime, Drame',
-      description: 'Un professeur de chimie atteint d\'un cancer terminal.',
+      description: 'Un professeur de chimie atteint d\'un cancer terminal s\'associe avec un ancien élève.',
       posterUrl: undefined,
       rating: 9.5,
       tmdbId: 1396,
-      createdAt: '2025-01-04T00:00:00Z',
-      updatedAt: '2025-01-04T00:00:00Z',
+      createdAt: '2025-01-05T00:00:00Z',
+      updatedAt: '2025-01-05T00:00:00Z',
+    },
+  },
+  {
+    id: 6,
+    roomId: 1,
+    mediaId: 6,
+    status: 'completed',
+    addedAt: '2025-01-06T00:00:00Z',
+    media: {
+      id: 6,
+      title: 'Death Note',
+      type: 'manga',
+      year: 2003,
+      genre: 'Thriller, Surnaturel',
+      description: 'Un lycéen trouve un carnet de la mort et décide de créer un nouveau monde.',
+      posterUrl: undefined,
+      rating: 8.9,
+      tmdbId: undefined,
+      createdAt: '2025-01-06T00:00:00Z',
+      updatedAt: '2025-01-06T00:00:00Z',
     },
   },
 ];
 
 const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const { roomId } = route.params;
-  const navigation = useNavigation<RoomScreenNavigationProp>();
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState<'planned' | 'watching' | 'completed'>('planned');
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>(mockWatchlistItems);
 
+  // Ordre des statuts pour le swipe
   const statusOrder = ['planned', 'watching', 'completed'] as const;
 
   useEffect(() => {
@@ -152,6 +190,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       )
     );
 
+    // Afficher une notification
     const item = watchlistItems.find(item => item.id === itemId);
     if (item) {
       const statusLabels = {
@@ -160,7 +199,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
         completed: 'Terminé'
       };
       Alert.alert(
-        '✅ Statut modifié',
+        'Statut modifié',
         `"${item.media.title}" déplacé vers "${statusLabels[newStatus]}"`
       );
     }
@@ -170,33 +209,53 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     return watchlistItems.filter(item => item.status === currentTab);
   };
 
-  const renderMediaItem = (item: WatchlistItem) => {
-    const statusConfig = {
+  const canSwipeLeft = (item: WatchlistItem) => {
+    const currentIndex = statusOrder.indexOf(item.status as any);
+    return currentIndex > 0;
+  };
+
+  const canSwipeRight = (item: WatchlistItem) => {
+    const currentIndex = statusOrder.indexOf(item.status as any);
+    return currentIndex < statusOrder.length - 1;
+  };
+
+  const getStatusBadge = (status: string) => {
+    const config = {
       planned: { text: 'Prévu', color: MEDIA_STATUS.planned.color },
       watching: { text: 'En cours', color: MEDIA_STATUS.watching.color },
       completed: { text: 'Terminé', color: MEDIA_STATUS.completed.color },
+      dropped: { text: 'Abandonné', color: MEDIA_STATUS.dropped.color },
     };
 
-    const statusBadge = statusConfig[item.status as keyof typeof statusConfig];
+    return config[status as keyof typeof config] || config.planned;
+  };
 
-    const currentIndex = statusOrder.indexOf(item.status as any);
-    const canLeft = currentIndex > 0;
-    const canRight = currentIndex < statusOrder.length - 1;
+  const getSwipeIndicator = (item: WatchlistItem) => {
+    const canLeft = canSwipeLeft(item);
+    const canRight = canSwipeRight(item);
     
-    let swipeIndicator = '';
-    if (canLeft && canRight) swipeIndicator = '◀️▶️';
-    else if (canRight) swipeIndicator = '▶️';
-    else if (canLeft) swipeIndicator = '◀️';
+    if (canLeft && canRight) return '◀️▶️';
+    if (canRight) return '▶️';
+    if (canLeft) return '◀️';
+    return '';
+  };
+
+  const renderMediaItem = (item: WatchlistItem) => {
+    const statusBadge = getStatusBadge(item.status);
+    const swipeIndicator = getSwipeIndicator(item);
 
     const panResponder = PanResponder.create({
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return Math.abs(gestureState.dx) > 20;
+        return Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 20;
+      },
+      onPanResponderMove: (evt, gestureState) => {
+        // Vous pouvez ajouter ici la logique d'animation visuelle
       },
       onPanResponderRelease: (evt, gestureState) => {
         if (Math.abs(gestureState.dx) > 100) {
-          if (gestureState.dx > 0 && canRight) {
+          if (gestureState.dx > 0 && canSwipeRight(item)) {
             handleSwipe(item.id, 'right');
-          } else if (gestureState.dx < 0 && canLeft) {
+          } else if (gestureState.dx < 0 && canSwipeLeft(item)) {
             handleSwipe(item.id, 'left');
           }
         }
@@ -212,15 +271,24 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
           </Text>
         </View>
         
-        <View style={styles.mediaContent}>
-          <Text style={styles.title}>{item.media.title}</Text>
-          <Text style={styles.meta}>{item.media.year} • {item.media.genre}</Text>
-          <Text style={styles.description}>{item.media.description}</Text>
+        <View style={styles.content}>
+          <Text style={styles.title} numberOfLines={2}>
+            {item.media.title}
+          </Text>
+          
+          <Text style={styles.meta} numberOfLines={1}>
+            {item.media.year} • {item.media.genre}
+          </Text>
+          
+          <Text style={styles.description} numberOfLines={3}>
+            {item.media.description}
+          </Text>
           
           <View style={styles.footer}>
             <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
               <Text style={styles.badgeText}>{statusBadge.text}</Text>
             </View>
+            
             <Text style={styles.swipeIndicator}>{swipeIndicator}</Text>
           </View>
         </View>
@@ -240,6 +308,34 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     </View>
   );
 
+  const renderTabs = () => (
+    <View style={styles.tabs}>
+      {[
+        { key: 'planned', label: 'À regarder' },
+        { key: 'watching', label: 'En cours' },
+        { key: 'completed', label: 'Terminé' },
+      ].map((tab) => (
+        <TouchableOpacity
+          key={tab.key}
+          style={[
+            styles.tab,
+            currentTab === tab.key && styles.activeTab,
+          ]}
+          onPress={() => setCurrentTab(tab.key as any)}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              currentTab === tab.key && styles.activeTabText,
+            ]}
+          >
+            {tab.label}
+          </Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
   if (isLoading) {
     return <LoadingScreen message="Chargement de la room..." />;
   }
@@ -253,45 +349,15 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
         <Text style={styles.roomCode}>Code: {roomCode}</Text>
       </View>
 
-      <View style={styles.tabs}>
-        {[
-          { key: 'planned', label: 'À regarder' },
-          { key: 'watching', label: 'En cours' },
-          { key: 'completed', label: 'Terminé' },
-        ].map((tab) => (
-          <TouchableOpacity
-            key={tab.key}
-            style={[styles.tab, currentTab === tab.key && styles.activeTab]}
-            onPress={() => setCurrentTab(tab.key as any)}
-          >
-            <Text style={[styles.tabText, currentTab === tab.key && styles.activeTabText]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {renderTabs()}
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hint}>
-          <Text style={styles.hintText}>
-            💡 Glissez un média vers la gauche ou la droite pour changer son statut
-          </Text>
-        </View>
-        
         {filteredItems.length > 0 ? (
           filteredItems.map(renderMediaItem)
         ) : (
           renderEmptyState()
         )}
       </ScrollView>
-      
-      {/* Bouton flottant pour ajouter des médias */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => navigation.navigate('Search', { roomId })}
-      >
-        <Text style={styles.fabText}>+</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -345,19 +411,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: SPACING.md,
   },
-  hint: {
-    backgroundColor: COLORS.surface,
-    padding: SPACING.md,
-    borderRadius: 8,
-    marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  hintText: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
-    textAlign: 'center',
-  },
   mediaItem: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
@@ -379,7 +432,7 @@ const styles = StyleSheet.create({
   posterEmoji: {
     fontSize: 24,
   },
-  mediaContent: {
+  content: {
     flex: 1,
   },
   title: {
@@ -419,6 +472,8 @@ const styles = StyleSheet.create({
     padding: SPACING.xs,
   },
   emptyState: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: SPACING.xxl,
   },
@@ -437,27 +492,6 @@ const styles = StyleSheet.create({
     color: COLORS.placeholder,
     textAlign: 'center',
     paddingHorizontal: SPACING.lg,
-  },
-  fab: {
-    position: 'absolute',
-    bottom: SPACING.md,
-    right: SPACING.md,
-    width: 56,
-    height: 56,
-    backgroundColor: COLORS.primary,
-    borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-  },
-  fabText: {
-    fontSize: 24,
-    color: COLORS.onPrimary,
-    fontWeight: 'bold',
   },
 });
 

@@ -1,41 +1,16 @@
-/**
- * WatchList Mobile App
- * Application mobile collaborative de gestion de watchlist
- *
- * @format
- */
-
 import React from 'react';
-import { StatusBar } from 'react-native';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { PaperProvider } from 'react-native-paper';
-
-import { AppNavigator } from './src/navigation/AppNavigator';
-import { COLORS } from './src/constants';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import AppNavigator from './src/navigation/AppNavigator';
 
-function App(): React.JSX.Element {
-  console.log('App: Starting WatchList Mobile App');
-  
-  try {
-    console.log('App: Rendering components...');
-    return (
+export default function App() {
+  return (
+    <SafeAreaProvider>
       <ErrorBoundary>
-        <GestureHandlerRootView style={{ flex: 1 }} testID="app-container">
-          <PaperProvider>
-            <StatusBar
-              barStyle="light-content"
-              backgroundColor={COLORS.primary}
-            />
-            <AppNavigator />
-          </PaperProvider>
-        </GestureHandlerRootView>
+        <AppNavigator />
+        <StatusBar style="light" />
       </ErrorBoundary>
-    );
-  } catch (error) {
-    console.error('App: Error rendering app:', error);
-    throw error;
-  }
+    </SafeAreaProvider>
+  );
 }
-
-export default App;

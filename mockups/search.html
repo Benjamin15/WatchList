@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchList - Recherche</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #1E1E1E;
+            padding: 16px;
+            border-bottom: 1px solid #333333;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #6200EE;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .back-button:hover {
+            background-color: #333333;
+        }
+
+        .search-container {
+            margin-bottom: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #333333;
+            border-radius: 8px;
+            background-color: #262626;
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .search-input::placeholder {
+            color: #666666;
+        }
+
+        .search-btn {
+            padding: 12px 20px;
+            background-color: #6200EE;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-btn:hover {
+            background-color: #3700B3;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid #333333;
+            border-radius: 20px;
+            background-color: #1E1E1E;
+            color: #cccccc;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background-color: #6200EE;
+            color: #ffffff;
+            border-color: #6200EE;
+        }
+
+        .content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .search-results {
+            display: none;
+        }
+
+        .search-results.active {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            background-color: #1E1E1E;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #333333;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .result-item:hover {
+            background-color: #262626;
+            border-color: #6200EE;
+        }
+
+        .result-poster {
+            width: 60px;
+            height: 90px;
+            background-color: #333333;
+            border-radius: 4px;
+            margin-right: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #666666;
+        }
+
+        .result-info {
+            flex: 1;
+        }
+
+        .result-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .result-meta {
+            font-size: 14px;
+            color: #cccccc;
+            margin-bottom: 4px;
+        }
+
+        .result-description {
+            font-size: 12px;
+            color: #999999;
+            line-height: 1.4;
+            margin-bottom: 8px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .result-rating {
+            font-size: 14px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .add-btn {
+            background-color: #4CAF50;
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        .add-btn:hover {
+            background-color: #45a049;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: #666666;
+        }
+
+        .empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-message {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .empty-submessage {
+            font-size: 14px;
+        }
+
+        .loading-state {
+            text-align: center;
+            padding: 48px 16px;
+            color: #666666;
+            display: none;
+        }
+
+        .loading-state.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 2px solid #333333;
+            border-top: 2px solid #6200EE;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #1E1E1E;
+            padding: 8px;
+            border-top: 1px solid #333333;
+            display: flex;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            color: #666666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #6200EE;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .type-movie {
+            background-color: #E91E63;
+            color: #ffffff;
+        }
+
+        .type-series {
+            background-color: #9C27B0;
+            color: #ffffff;
+        }
+
+        .type-manga {
+            background-color: #FF5722;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>        <div class="header">
+            <button class="back-button" onclick="window.location.href='room.html'">← Retour</button>            <div class="search-container">
+                <input type="text" class="search-input" placeholder="Rechercher des films, séries, manga..." id="searchInput">
+            </div>
+        </div>
+
+    <div class="content">
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">🔍</div>
+            <div class="empty-message">Rechercher des médias</div>
+            <div class="empty-submessage">Tapez le nom d'un film, série ou manga pour commencer</div>
+        </div>
+
+        <div class="loading-state" id="loadingState">
+            <div class="spinner"></div>
+            <div class="empty-message">Recherche en cours...</div>
+        </div>
+
+        <div class="search-results" id="searchResults">
+            <!-- Les résultats seront ajoutés ici dynamiquement -->
+        </div>
+    </div>
+
+
+
+    <script>
+        const mockResults = [
+            {
+                title: "The Matrix",
+                type: "movie",
+                year: 1999,
+                genre: "Action, Science-Fiction",
+                description: "Un programmeur informatique découvre que sa réalité est une simulation et rejoint une rébellion contre les machines.",
+                rating: 8.7,
+                poster: "📽️"
+            },
+            {
+                title: "Stranger Things",
+                type: "series",
+                year: 2016,
+                genre: "Drama, Fantasy, Horror",
+                description: "Un groupe d'enfants découvre des forces surnaturelles et des expériences gouvernementales secrètes dans leur petite ville.",
+                rating: 8.7,
+                poster: "📺"
+            },
+            {
+                title: "Naruto",
+                type: "manga",
+                year: 1999,
+                genre: "Action, Aventure, Martial Arts",
+                description: "Les aventures de Naruto Uzumaki, un ninja adolescent qui recherche la reconnaissance et rêve de devenir le leader de son village.",
+                rating: 8.1,
+                poster: "📚"
+            },
+            {
+                title: "Interstellar",
+                type: "movie",
+                year: 2014,
+                genre: "Adventure, Drama, Science Fiction",
+                description: "Une équipe d'explorateurs voyage à travers un trou de ver dans l'espace pour assurer la survie de l'humanité.",
+                rating: 8.6,
+                poster: "📽️"
+            },
+            {
+                title: "Attack on Titan",
+                type: "manga",
+                year: 2009,
+                genre: "Action, Drama, Fantasy",
+                description: "L'humanité vit dans des villes entourées de murs géants pour se protéger des titans, des humanoïdes géants qui dévorent les humains.",
+                rating: 8.5,
+                poster: "📚"
+            }
+        ];
+
+        let currentFilter = 'all';
+        let currentResults = [];
+
+        function performSearch() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) return;
+
+            // Afficher l'état de chargement
+            document.getElementById('emptyState').style.display = 'none';
+            document.getElementById('searchResults').classList.remove('active');
+            document.getElementById('loadingState').classList.add('active');
+
+            // Simuler une recherche avec délai
+            setTimeout(() => {
+                const filteredResults = mockResults.filter(item => {
+                    return item.title.toLowerCase().includes(query.toLowerCase());
+                });
+
+                displayResults(filteredResults);
+                document.getElementById('loadingState').classList.remove('active');
+                document.getElementById('searchResults').classList.add('active');
+            }, 1000);
+        }
+
+        function displayResults(results) {
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '';
+
+            if (results.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">😔</div>
+                        <div class="empty-message">Aucun résultat trouvé</div>
+                        <div class="empty-submessage">Essayez avec d'autres mots-clés</div>
+                    </div>
+                `;
+                return;
+            }
+
+            results.forEach(item => {
+                const typeClass = `type-${item.type}`;
+                const typeLabel = item.type === 'movie' ? 'Film' : 
+                                 item.type === 'series' ? 'Série' : 'Manga';
+                
+                const resultElement = document.createElement('div');
+                resultElement.className = 'result-item';
+                resultElement.innerHTML = `
+                    <div class="result-poster">${item.poster}</div>
+                    <div class="result-info">
+                        <div class="result-title">
+                            <span class="type-badge ${typeClass}">${typeLabel}</span>
+                            ${item.title}
+                        </div>
+                        <div class="result-meta">${item.year} • ${item.genre}</div>
+                        <div class="result-description">${item.description}</div>
+                        <div class="result-rating">⭐ ${item.rating}/10</div>
+                        <button class="add-btn" onclick="addToWatchlist('${item.title}')">+ Ajouter</button>
+                    </div>
+                `;
+                container.appendChild(resultElement);
+            });
+        }
+
+        function addToWatchlist(title) {
+            alert(`"${title}" ajouté à votre watchlist !`);
+        }
+
+        // Gestion des filtres
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentFilter = this.dataset.type;
+                
+                // Relancer la recherche si il y a déjà des résultats
+                if (document.getElementById('searchResults').classList.contains('active')) {
+                    performSearch();
+                }
+            });
+        });
+
+        // Recherche en temps réel
+        document.getElementById('searchInput').addEventListener('input', function() {
+            if (this.value.trim().length > 0) {
+                performSearch();
+            } else {
+                // Afficher l'état vide si la recherche est effacée
+                document.getElementById('emptyState').style.display = 'block';
+                document.getElementById('searchResults').classList.remove('active');
+                document.getElementById('loadingState').classList.remove('active');
+            }
+        });
+
+        // Recherche avec Enter
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,41 +1,48 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { COLORS, SPACING, FONT_SIZES } from '../constants';
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error?: Error;
+  error: Error | null;
 }
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
+  onError?: (error: Error) => void;
 }
 
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    console.error('ErrorBoundary: Caught error:', error);
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary: Error details:', error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    if (this.props.onError) {
+      this.props.onError(error);
+    }
   }
 
   render() {
     if (this.state.hasError) {
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>Oops! Something went wrong</Text>
+          <Text style={styles.title}>Une erreur s'est produite</Text>
           <Text style={styles.message}>
-            {this.state.error?.message || 'An unexpected error occurred'}
+            {this.state.error?.message || 'Erreur inattendue'}
           </Text>
-          <Text style={styles.details}>
-            Please restart the app or check the console for more details.
-          </Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => this.setState({ hasError: false, error: null })}
+          >
+            <Text style={styles.buttonText}>Réessayer</Text>
+          </TouchableOpacity>
         </View>
       );
     }
@@ -49,26 +56,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
-    backgroundColor: '#1E1E1E',
+    backgroundColor: COLORS.background,
+    padding: SPACING.lg,
   },
   title: {
-    fontSize: 24,
+    fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
-    color: '#CF6679',
-    marginBottom: 16,
+    color: COLORS.error,
+    marginBottom: SPACING.md,
     textAlign: 'center',
   },
   message: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    marginBottom: 16,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.onBackground,
     textAlign: 'center',
+    marginBottom: SPACING.xl,
   },
-  details: {
-    fontSize: 14,
-    color: '#AAAAAA',
-    textAlign: 'center',
+  button: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: 8,
+  },
+  buttonText: {
+    color: COLORS.onPrimary,
+    fontSize: FONT_SIZES.md,
+    fontWeight: 'bold',
   },
 });
 

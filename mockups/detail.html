@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchList - Détail du média</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #1E1E1E;
+            padding: 16px;
+            border-bottom: 1px solid #333333;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .back-button {
+            background: none;
+            border: none;
+            color: #6200EE;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .back-button:hover {
+            background-color: #333333;
+        }
+
+        .header-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .hero-section {
+            position: relative;
+            height: 200px;
+            background: linear-gradient(135deg, #6200EE, #3700B3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+        }
+
+        .hero-poster {
+            width: 120px;
+            height: 180px;
+            background-color: #333333;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .media-info {
+            padding: 16px;
+        }
+
+        .media-header {
+            margin-bottom: 16px;
+        }
+
+        .media-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ffffff;
+        }
+
+        .media-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .meta-item {
+            font-size: 14px;
+            color: #cccccc;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 16px;
+            color: #FFD700;
+            font-weight: bold;
+        }
+
+        .type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .type-movie {
+            background-color: #E91E63;
+            color: #ffffff;
+        }
+
+        .type-series {
+            background-color: #9C27B0;
+            color: #ffffff;
+        }
+
+        .type-manga {
+            background-color: #FF5722;
+            color: #ffffff;
+        }
+
+        .description {
+            font-size: 14px;
+            color: #cccccc;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .action-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .button-primary {
+            background-color: #6200EE;
+            color: #ffffff;
+        }
+
+        .button-primary:hover {
+            background-color: #3700B3;
+        }
+
+        .button-secondary {
+            background-color: #1E1E1E;
+            color: #ffffff;
+            border: 1px solid #333333;
+        }
+
+        .button-secondary:hover {
+            background-color: #333333;
+        }
+
+        .status-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #ffffff;
+        }
+
+        .status-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .status-option {
+            padding: 8px 16px;
+            border: 1px solid #333333;
+            border-radius: 20px;
+            background-color: #1E1E1E;
+            color: #cccccc;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .status-option.active {
+            border-color: #6200EE;
+            background-color: #6200EE;
+            color: #ffffff;
+        }
+
+        .status-option:hover {
+            border-color: #6200EE;
+        }
+
+        .details-section {
+            background-color: #1E1E1E;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid #333333;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .detail-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .detail-label {
+            color: #cccccc;
+            font-size: 14px;
+        }
+
+        .detail-value {
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .genres {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .genre-tag {
+            background-color: #333333;
+            color: #ffffff;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #1E1E1E;
+            padding: 8px;
+            border-top: 1px solid #333333;
+            display: flex;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            color: #666666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #6200EE;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="back-button" onclick="goBack()">← Retour</button>
+        <div class="header-title">Détail du média</div>
+    </div>
+
+    <div class="content">
+        <div class="hero-section">
+            <div class="hero-poster">📽️</div>
+        </div>
+
+        <div class="media-info">
+            <div class="media-header">
+                <span class="type-badge type-movie">Film</span>
+                <div class="media-title">Inception</div>
+                <div class="media-meta">
+                    <span class="meta-item">2010</span>
+                    <span class="meta-item">148 min</span>
+                    <span class="meta-item">Science-Fiction, Thriller</span>
+                </div>
+                <div class="rating">
+                    <span>⭐</span>
+                    <span>8.8/10</span>
+                </div>
+            </div>
+
+            <div class="description">
+                Un voleur qui s'infiltre dans les rêves se voit offrir une chance de retrouver sa vie d'avant... mais pour cela, il doit accomplir l'impossible : l'inception. Au lieu de subtiliser un rêve, il doit faire l'inverse : implanter une idée. S'ils y parviennent, ce pourrait être le crime parfait, car comment prouver un crime qui n'existe que dans les méandres de l'esprit ?
+            </div>
+
+            <div class="actions">
+                <button class="action-button button-primary" onclick="addToWatchlist()">
+                    + Ajouter à ma liste
+                </button>
+                <button class="action-button button-secondary" onclick="shareMedia()">
+                    Partager
+                </button>
+            </div>
+
+            <div class="status-section">
+                <div class="section-title">Statut de visionnage</div>
+                <div class="status-options">
+                    <div class="status-option" onclick="setStatus('planned')">À voir</div>
+                    <div class="status-option active" onclick="setStatus('watching')">En cours</div>
+                    <div class="status-option" onclick="setStatus('completed')">Terminé</div>
+                    <div class="status-option" onclick="setStatus('dropped')">Abandonné</div>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <div class="section-title">Informations détaillées</div>
+                <div class="detail-row">
+                    <span class="detail-label">Réalisateur:</span>
+                    <span class="detail-value">Christopher Nolan</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Acteurs principaux:</span>
+                    <span class="detail-value">Leonardo DiCaprio, Marion Cotillard</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Date de sortie:</span>
+                    <span class="detail-value">16 juillet 2010</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Budget:</span>
+                    <span class="detail-value">160 millions $</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Box-office:</span>
+                    <span class="detail-value">836 millions $</span>
+                </div>
+            </div>
+
+            <div class="details-section">
+                <div class="section-title">Genres</div>
+                <div class="genres">
+                    <span class="genre-tag">Science-Fiction</span>
+                    <span class="genre-tag">Thriller</span>
+                    <span class="genre-tag">Action</span>
+                    <span class="genre-tag">Mystère</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="toast" class="toast"></div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+
+        function addToWatchlist() {
+            showToast('Ajouté à votre watchlist !', '#4CAF50');
+        }
+
+        function shareMedia() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Inception - WatchList',
+                    text: 'Regardez ce film sur WatchList',
+                    url: window.location.href
+                });
+            } else {
+                navigator.clipboard.writeText(window.location.href).then(() => {
+                    showToast('Lien copié !', '#2196F3');
+                });
+            }
+        }
+
+        function setStatus(status) {
+            // Désactiver tous les statuts
+            document.querySelectorAll('.status-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            
+            // Activer le statut sélectionné
+            event.target.classList.add('active');
+            
+            const statusLabels = {
+                'planned': 'À voir',
+                'watching': 'En cours',
+                'completed': 'Terminé',
+                'dropped': 'Abandonné'
+            };
+            
+            showToast(`Statut changé : ${statusLabels[status]}`, '#6200EE');
+        }
+
+        function showToast(message, color = '#4CAF50') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.style.backgroundColor = color;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

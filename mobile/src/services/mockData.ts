@@ -161,6 +161,9 @@ export const mockSearchResults: SearchResult[] = [
 // Fonction pour simuler des délais d'API
 export const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Storage dynamique pour les rooms créées
+const dynamicRooms: Room[] = [...mockRooms];
+
 // Service de test (sans API)
 export const mockApiService = {
   createRoom: async (name: string) => {
@@ -171,12 +174,14 @@ export const mockApiService = {
       room_id: Math.random().toString(36).substring(2, 8).toUpperCase(),
       created_at: new Date().toISOString(),
     };
+    // Ajouter la room créée au storage dynamique
+    dynamicRooms.push(newRoom);
     return newRoom;
   },
 
   joinRoom: async (code: string) => {
     await delay(1000);
-    const room = mockRooms.find(r => r.room_id === code);
+    const room = dynamicRooms.find(r => r.room_id === code);
     if (!room) {
       throw new Error('Room non trouvée');
     }
@@ -185,7 +190,7 @@ export const mockApiService = {
 
   getRoom: async (roomId: number) => {
     await delay(500);
-    const room = mockRooms.find(r => r.id === roomId);
+    const room = dynamicRooms.find(r => r.id === roomId);
     if (!room) {
       throw new Error('Room non trouvée');
     }

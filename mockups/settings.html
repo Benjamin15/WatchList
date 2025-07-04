@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchList - Paramètres</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background-color: #1E1E1E;
+            padding: 16px;
+            border-bottom: 1px solid #333333;
+            text-align: center;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #6200EE;
+        }
+
+        .content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .settings-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #ffffff;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #1E1E1E;
+            padding: 16px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+        }
+
+        .setting-info {
+            flex: 1;
+        }
+
+        .setting-name {
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .setting-description {
+            font-size: 14px;
+            color: #cccccc;
+        }
+
+        .setting-value {
+            font-size: 14px;
+            color: #03DAC6;
+            font-weight: bold;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #333333;
+            border-radius: 24px;
+            transition: 0.3s;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #ffffff;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        input:checked + .slider {
+            background-color: #6200EE;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .room-info {
+            background-color: #1E1E1E;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #333333;
+            margin-bottom: 16px;
+        }
+
+        .room-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #6200EE;
+        }
+
+        .room-detail {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .room-detail-label {
+            color: #cccccc;
+        }
+
+        .room-detail-value {
+            color: #03DAC6;
+            font-weight: bold;
+        }
+
+        .action-button {
+            width: 100%;
+            padding: 16px;
+            margin-bottom: 8px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .button-primary {
+            background-color: #6200EE;
+            color: #ffffff;
+        }
+
+        .button-primary:hover {
+            background-color: #3700B3;
+        }
+
+        .button-secondary {
+            background-color: #1E1E1E;
+            color: #ffffff;
+            border: 1px solid #333333;
+        }
+
+        .button-secondary:hover {
+            background-color: #333333;
+        }
+
+        .button-danger {
+            background-color: #F44336;
+            color: #ffffff;
+        }
+
+        .button-danger:hover {
+            background-color: #d32f2f;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .stat-item {
+            background-color: #1E1E1E;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #333333;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #6200EE;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #cccccc;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #1E1E1E;
+            padding: 8px;
+            border-top: 1px solid #333333;
+            display: flex;
+        }
+
+        .nav-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px;
+            color: #666666;
+            font-size: 12px;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .nav-item.active {
+            color: #6200EE;
+        }
+
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        .version-info {
+            text-align: center;
+            font-size: 12px;
+            color: #666666;
+            margin-top: 24px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .modal-content {
+            background-color: #1E1E1E;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            border: 1px solid #333333;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 16px;
+            color: #ffffff;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #cccccc;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal-button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        .modal-button-cancel {
+            background-color: #333333;
+            color: #ffffff;
+        }
+
+        .modal-button-confirm {
+            background-color: #F44336;
+            color: #ffffff;
+        }
+
+        .modal-button:hover {
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">Paramètres</div>
+    </div>
+
+    <div class="content">
+        <div class="settings-section">
+            <div class="section-title">Informations de la Room</div>
+            <div class="room-info">
+                <div class="room-name">Ma Watchlist</div>
+                <div class="room-detail">
+                    <span class="room-detail-label">Code de la room:</span>
+                    <span class="room-detail-value">ABC123</span>
+                </div>
+                <div class="room-detail">
+                    <span class="room-detail-label">Créée le:</span>
+                    <span class="room-detail-value">1 janvier 2025</span>
+                </div>
+                <div class="room-detail">
+                    <span class="room-detail-label">Membres:</span>
+                    <span class="room-detail-value">1 personne</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">4</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">En cours</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">1</div>
+                    <div class="stat-label">Terminé</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">2</div>
+                    <div class="stat-label">Prévu</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-title">Préférences</div>
+            
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-name">Notifications</div>
+                    <div class="setting-description">Recevoir des notifications pour les nouveaux ajouts</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-name">Mode sombre</div>
+                    <div class="setting-description">Interface en mode sombre</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-name">Synchronisation auto</div>
+                    <div class="setting-description">Synchroniser automatiquement avec le serveur</div>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-name">Qualité des images</div>
+                    <div class="setting-description">Qualité d'affichage des posters</div>
+                </div>
+                <div class="setting-value">Haute</div>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-title">Actions</div>
+            <button class="action-button button-primary" onclick="shareRoom()">
+                Partager la room
+            </button>
+            <button class="action-button button-secondary" onclick="exportData()">
+                Exporter les données
+            </button>
+            <button class="action-button button-secondary" onclick="importData()">
+                Importer des données
+            </button>
+        </div>
+
+        <div class="settings-section">
+            <div class="section-title">Zone de danger</div>
+            <button class="action-button button-danger" onclick="showDeleteModal()">
+                Supprimer la room
+            </button>
+        </div>
+
+        <div class="version-info">
+            <div>WatchList v1.0.0</div>
+            <div>Expo SDK 53</div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="window.location.href='room.html'">
+            <div class="nav-icon">🏠</div>
+            <div>Room</div>
+        </div>
+        <div class="nav-item" onclick="window.location.href='search.html'">
+            <div class="nav-icon">🔍</div>
+            <div>Recherche</div>
+        </div>
+        <div class="nav-item active">
+            <div class="nav-icon">⚙️</div>
+            <div>Paramètres</div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-title">Supprimer la room</div>
+            <div class="modal-text">
+                Êtes-vous sûr de vouloir supprimer cette room ? 
+                Cette action est irréversible et supprimera toutes les données associées.
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-button modal-button-cancel" onclick="hideDeleteModal()">
+                    Annuler
+                </button>
+                <button class="modal-button modal-button-confirm" onclick="deleteRoom()">
+                    Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function shareRoom() {
+            if (navigator.share) {
+                navigator.share({
+                    title: 'WatchList - Ma Watchlist',
+                    text: 'Rejoignez ma watchlist avec le code: ABC123',
+                    url: window.location.href
+                });
+            } else {
+                // Fallback pour les navigateurs qui ne supportent pas l'API de partage
+                const text = 'Rejoignez ma watchlist avec le code: ABC123';
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Code copié dans le presse-papiers !');
+                });
+            }
+        }
+
+        function exportData() {
+            alert('Exportation des données en cours...');
+            // Simuler l'exportation
+            setTimeout(() => {
+                alert('Données exportées avec succès !');
+            }, 1000);
+        }
+
+        function importData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    alert(`Importation du fichier "${file.name}" en cours...`);
+                    // Simuler l'importation
+                    setTimeout(() => {
+                        alert('Données importées avec succès !');
+                    }, 1000);
+                }
+            };
+            input.click();
+        }
+
+        function showDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'block';
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        function deleteRoom() {
+            alert('Room supprimée avec succès !');
+            hideDeleteModal();
+            // Rediriger vers l'accueil après suppression
+            setTimeout(() => {
+                window.location.href = 'home.html';
+            }, 1000);
+        }
+
+        // Fermer la modal en cliquant en dehors
+        window.onclick = function(event) {
+            const modal = document.getElementById('deleteModal');
+            if (event.target === modal) {
+                hideDeleteModal();
+            }
+        }
+    </script>
+</body>
+</html>

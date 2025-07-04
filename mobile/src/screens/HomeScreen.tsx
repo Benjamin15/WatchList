@@ -2,44 +2,45 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
-  StyleSheet,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
+  StyleSheet,
   Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
-
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
+import LoadingScreen from './LoadingScreen';
 
-type HomeScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+type HomeScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 
-const HomeScreen: React.FC = () => {
-  const navigation = useNavigation<HomeScreenNavigationProp>();
+interface HomeScreenProps {
+  navigation: HomeScreenNavigationProp;
+}
+
+const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [isJoining, setIsJoining] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleCreateRoom = async () => {
     if (!roomName.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer un nom pour la room');
+      Alert.alert('Erreur', 'Veuillez entrer un nom de room');
       return;
     }
 
-    setIsCreating(true);
+    setIsLoading(true);
     try {
       const room = await apiService.createRoom(roomName.trim());
       navigation.navigate('Room', { roomId: room.id });
-    } catch (error: any) {
-      Alert.alert('Erreur', error.message);
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de créer la room');
+      console.error('Error creating room:', error);
     } finally {
-      setIsCreating(false);
+      setIsLoading(false);
     }
   };
 
@@ -49,82 +50,65 @@ const HomeScreen: React.FC = () => {
       return;
     }
 
-    setIsJoining(true);
+    setIsLoading(true);
     try {
       const room = await apiService.joinRoom(roomCode.trim().toUpperCase());
       navigation.navigate('Room', { roomId: room.id });
-    } catch (error: any) {
-      Alert.alert('Erreur', error.message);
+    } catch (error) {
+      Alert.alert('Erreur', 'Room non trouvée');
+      console.error('Error joining room:', error);
     } finally {
-      setIsJoining(false);
+      setIsLoading(false);
     }
   };
 
+  if (isLoading) {
+    return <LoadingScreen message="Connexion en cours..." />;
+  }
+
   return (
-    <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoidingView}
-      >
-        <View style={styles.content}>
-          <View style={styles.header}>
-            <Text style={styles.title}>WatchList</Text>
-            <Text style={styles.subtitle}>
-              Partagez vos films, séries et mangas avec vos amis
-            </Text>
-          </View>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.content}>
+        <Text style={styles.title}>WatchList</Text>
+        <Text style={styles.subtitle}>Partagez vos listes de films, séries et mangas</Text>
 
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Créer une nouvelle room</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Nom de la room"
-              placeholderTextColor={COLORS.placeholder}
-              value={roomName}
-              onChangeText={setRoomName}
-              maxLength={50}
-            />
-            <TouchableOpacity
-              style={[styles.button, styles.primaryButton]}
-              onPress={handleCreateRoom}
-              disabled={isCreating}
-            >
-              <Text style={styles.primaryButtonText}>
-                {isCreating ? 'Création...' : 'Créer'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.divider}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>OU</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Rejoindre une room</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Code de la room"
-              placeholderTextColor={COLORS.placeholder}
-              value={roomCode}
-              onChangeText={setRoomCode}
-              maxLength={12}
-              autoCapitalize="characters"
-            />
-            <TouchableOpacity
-              style={[styles.button, styles.secondaryButton]}
-              onPress={handleJoinRoom}
-              disabled={isJoining}
-            >
-              <Text style={styles.secondaryButtonText}>
-                {isJoining ? 'Connexion...' : 'Rejoindre'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Créer une nouvelle room</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Nom de la room"
+            placeholderTextColor={COLORS.placeholder}
+            value={roomName}
+            onChangeText={setRoomName}
+            maxLength={50}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleCreateRoom}>
+            <Text style={styles.buttonText}>Créer</Text>
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+
+        <View style={styles.divider} />
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Rejoindre une room</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Code de la room (ex: ABC123)"
+            placeholderTextColor={COLORS.placeholder}
+            value={roomCode}
+            onChangeText={setRoomCode}
+            maxLength={12}
+            autoCapitalize="characters"
+          />
+          <TouchableOpacity style={styles.button} onPress={handleJoinRoom}>
+            <Text style={styles.buttonText}>Rejoindre</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -133,86 +117,58 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
   content: {
     flex: 1,
     padding: SPACING.lg,
     justifyContent: 'center',
   },
-  header: {
-    alignItems: 'center',
-    marginBottom: SPACING.xxl,
-  },
   title: {
     fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
     color: COLORS.primary,
+    textAlign: 'center',
     marginBottom: SPACING.sm,
   },
   subtitle: {
     fontSize: FONT_SIZES.md,
     color: COLORS.onBackground,
     textAlign: 'center',
-    lineHeight: 22,
+    marginBottom: SPACING.xxl,
   },
   section: {
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: COLORS.onBackground,
     marginBottom: SPACING.md,
   },
   input: {
+    backgroundColor: COLORS.surface,
+    borderRadius: 8,
+    padding: SPACING.md,
+    fontSize: FONT_SIZES.md,
+    color: COLORS.onSurface,
+    marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: SPACING.md,
-    fontSize: FONT_SIZES.md,
-    color: COLORS.onBackground,
-    backgroundColor: COLORS.surface,
-    marginBottom: SPACING.md,
   },
   button: {
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
     padding: SPACING.md,
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
   },
-  primaryButton: {
-    backgroundColor: COLORS.primary,
-  },
-  secondaryButton: {
-    backgroundColor: COLORS.secondary,
-  },
-  primaryButtonText: {
+  buttonText: {
     color: COLORS.onPrimary,
     fontSize: FONT_SIZES.md,
-    fontWeight: '600',
-  },
-  secondaryButtonText: {
-    color: COLORS.onSecondary,
-    fontSize: FONT_SIZES.md,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
   divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: SPACING.xl,
-  },
-  dividerLine: {
-    flex: 1,
     height: 1,
     backgroundColor: COLORS.border,
-  },
-  dividerText: {
-    marginHorizontal: SPACING.md,
-    color: COLORS.placeholder,
-    fontSize: FONT_SIZES.sm,
+    marginVertical: SPACING.xl,
   },
 });
 

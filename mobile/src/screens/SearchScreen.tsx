@@ -1,224 +1,203 @@
-import React, { useState, useEffect } from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TextInput,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-  Image,
-  ActivityIndicator,
-} from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import { MaterialIcons } from '@expo/vector-icons';
+import { RootStackParamList, SearchResult } from '../types';
+import { COLORS, SPACING, FONT_SIZES } from '../constants';
 
-import { RootStackParamList, SearchResult, MediaType } from '../types';
-import { COLORS, SPACING, FONT_SIZES, MEDIA_TYPES, IMAGE_CONFIG } from '../constants';
-import { apiService } from '../services/api';
-
+type SearchScreenRouteProp = RouteProp<RootStackParamList, 'Search'>;
 type SearchScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Search'>;
 
-const SearchScreen: React.FC = () => {
-  const navigation = useNavigation<SearchScreenNavigationProp>();
-  const route = useRoute();
-  const { roomId } = route.params as { roomId?: number };
+interface SearchScreenProps {
+  route: SearchScreenRouteProp;
+  navigation: SearchScreenNavigationProp;
+}
 
+// Données mock pour la recherche
+const mockSearchResults: SearchResult[] = [
+  {
+    id: 101,
+    title: 'Spider-Man: No Way Home',
+    type: 'movie',
+    year: 2021,
+    genre: 'Action, Adventure, Fantasy',
+    description: 'Peter Parker demande de l\'aide au Dr Strange pour restaurer son identité secrète.',
+    posterUrl: undefined,
+    rating: 8.4,
+    tmdbId: 634649,
+  },
+  {
+    id: 102,
+    title: 'Attack on Titan',
+    type: 'series',
+    year: 2013,
+    genre: 'Action, Drama, Fantasy',
+    description: 'L\'humanité lutte pour sa survie contre des géants mangeurs d\'hommes.',
+    posterUrl: undefined,
+    rating: 9.0,
+    tmdbId: 1429,
+  },
+  {
+    id: 103,
+    title: 'Demon Slayer',
+    type: 'manga',
+    year: 2016,
+    genre: 'Action, Supernatural',
+    description: 'Tanjiro devient un chasseur de démons pour sauver sa sœur.',
+    posterUrl: undefined,
+    rating: 8.7,
+    malId: 87216,
+  },
+  {
+    id: 104,
+    title: 'The Witcher',
+    type: 'series',
+    year: 2019,
+    genre: 'Fantasy, Adventure, Drama',
+    description: 'Geralt de Rivia, un chasseur de monstres, cherche sa destinée.',
+    posterUrl: undefined,
+    rating: 8.2,
+    tmdbId: 71912,
+  },
+  {
+    id: 105,
+    title: 'Dune',
+    type: 'movie',
+    year: 2021,
+    genre: 'Science Fiction, Adventure',
+    description: 'Paul Atreides mène une rébellion pour libérer sa planète désertique.',
+    posterUrl: undefined,
+    rating: 8.0,
+    tmdbId: 438631,
+  },
+];
+
+const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
+  const { roomId } = route.params;
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [typeFilter, setTypeFilter] = useState<MediaType>('all');
+  const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) {
-      setSearchResults([]);
+  const handleSearch = () => {
+    if (searchQuery.trim().length < 2) {
+      Alert.alert('Erreur', 'Veuillez entrer au moins 2 caractères pour effectuer une recherche.');
       return;
     }
 
-    setLoading(true);
-    try {
-      const results = await apiService.searchMedia(
-        query.trim(),
-        typeFilter === 'all' ? undefined : typeFilter
-      );
-      setSearchResults(results);
-    } catch (error: any) {
-      Alert.alert('Erreur', error.message);
-      setSearchResults([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const delayedSearch = setTimeout(() => {
-      handleSearch(searchQuery);
-    }, 500);
-
-    return () => clearTimeout(delayedSearch);
-  }, [searchQuery, typeFilter]);
-
-  const handleAddToWatchlist = async (media: SearchResult) => {
-    if (!roomId) return;
+    setIsSearching(true);
     
-    try {
-      await apiService.addToWatchlist(roomId, {
-        title: media.title,
-        type: media.type,
-        year: media.year,
-        genre: media.genre,
-        description: media.description,
-        posterUrl: media.posterUrl,
-        rating: media.rating,
-        tmdbId: media.tmdbId,
-        malId: media.malId,
-      });
-      Alert.alert('Succès', `"${media.title}" a été ajouté à la watchlist`);
-    } catch (error: any) {
-      Alert.alert('Erreur', error.message);
-    }
+    // Simuler une recherche avec un délai
+    setTimeout(() => {
+      const filteredResults = mockSearchResults.filter(item =>
+        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.genre?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setSearchResults(filteredResults);
+      setIsSearching(false);
+    }, 1000);
   };
 
-  const renderTypeFilter = () => (
-    <View style={styles.filterContainer}>
-      <FlatList
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        data={[
-          { key: 'all', label: 'Tous' },
-          { key: 'movie', label: 'Films' },
-          { key: 'series', label: 'Séries' },
-          { key: 'manga', label: 'Mangas' },
-        ]}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={[
-              styles.filterTab,
-              typeFilter === item.key && styles.activeFilterTab,
-            ]}
-            onPress={() => setTypeFilter(item.key as MediaType)}
-          >
-            <Text
-              style={[
-                styles.filterTabText,
-                typeFilter === item.key && styles.activeFilterTabText,
-              ]}
-            >
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        )}
-        keyExtractor={(item) => item.key}
-      />
-    </View>
-  );
-
-  const renderSearchResult = ({ item }: { item: SearchResult }) => (
-    <View style={styles.resultItem}>
-      <TouchableOpacity
-        style={styles.resultContent}
-        onPress={() =>
-          navigation.navigate('Detail', { media: item, roomId })
+  const handleAddToWatchlist = (media: SearchResult) => {
+    Alert.alert(
+      'Ajouter à la watchlist',
+      `Voulez-vous ajouter "${media.title}" à votre watchlist ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { 
+          text: 'Ajouter', 
+          onPress: () => {
+            // Ici on ajouterait le média à la watchlist via l'API
+            Alert.alert('✅ Ajouté', `"${media.title}" a été ajouté à votre watchlist !`);
+            navigation.goBack();
+          }
         }
-      >
-        <Image
-          source={{
-            uri: item.posterUrl || IMAGE_CONFIG.PLACEHOLDER_IMAGE,
-          }}
-          style={styles.poster}
-          resizeMode="cover"
-        />
-        <View style={styles.resultInfo}>
-          <Text style={styles.resultTitle} numberOfLines={2}>
-            {item.title}
+      ]
+    );
+  };
+
+  const renderSearchResult = (item: SearchResult) => (
+    <TouchableOpacity
+      key={item.id}
+      style={styles.resultItem}
+      onPress={() => handleAddToWatchlist(item)}
+    >
+      <View style={styles.resultPoster}>
+        <Text style={styles.resultEmoji}>
+          {item.type === 'movie' ? '🎬' : 
+           item.type === 'series' ? '📺' : '📚'}
+        </Text>
+      </View>
+      
+      <View style={styles.resultContent}>
+        <Text style={styles.resultTitle}>{item.title}</Text>
+        <Text style={styles.resultMeta}>
+          {item.year} • {item.genre}
+        </Text>
+        <Text style={styles.resultDescription} numberOfLines={2}>
+          {item.description}
+        </Text>
+        
+        <View style={styles.resultFooter}>
+          <Text style={styles.resultRating}>
+            ⭐ {item.rating}
           </Text>
-          <View style={styles.resultMetadata}>
-            <View
-              style={[
-                styles.typeChip,
-                { backgroundColor: MEDIA_TYPES[item.type].color },
-              ]}
-            >
-              <Text style={styles.typeChipText}>
-                {MEDIA_TYPES[item.type].label}
-              </Text>
-            </View>
-            {item.year && (
-              <Text style={styles.resultYear}>{item.year}</Text>
-            )}
+          <View style={styles.addButton}>
+            <Text style={styles.addButtonText}>+ Ajouter</Text>
           </View>
-          {item.genre && (
-            <Text style={styles.resultGenre} numberOfLines={1}>
-              {item.genre}
-            </Text>
-          )}
-          {item.rating && (
-            <View style={styles.ratingContainer}>
-              <MaterialIcons name="star" size={16} color={COLORS.secondary} />
-              <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
-            </View>
-          )}
         </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={() => handleAddToWatchlist(item)}
-      >
-        <MaterialIcons name="add" size={24} color={COLORS.primary} />
-      </TouchableOpacity>
-    </View>
+      </View>
+    </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <MaterialIcons name="search" size={20} color={COLORS.placeholder} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher films, séries, mangas..."
-            placeholderTextColor={COLORS.placeholder}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            autoCapitalize="none"
-          />
-          {loading && (
-            <ActivityIndicator size="small" color={COLORS.primary} />
-          )}
-        </View>
-        {renderTypeFilter()}
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Rechercher des films, séries, manga..."
+          placeholderTextColor={COLORS.placeholder}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onSubmitEditing={handleSearch}
+          returnKeyType="search"
+        />
+        <TouchableOpacity
+          style={styles.searchButton}
+          onPress={handleSearch}
+          disabled={isSearching}
+        >
+          <Text style={styles.searchButtonText}>
+            {isSearching ? '🔍' : '🔎'}
+          </Text>
+        </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={searchResults}
-        renderItem={renderSearchResult}
-        keyExtractor={(item) => `${item.id}-${item.type}`}
-        ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            {searchQuery ? (
-              <>
-                <Text style={styles.emptyText}>
-                  Aucun résultat trouvé
-                </Text>
-                <Text style={styles.emptySubtext}>
-                  Essayez avec d'autres mots-clés
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.emptyText}>
-                  Recherchez des médias
-                </Text>
-                <Text style={styles.emptySubtext}>
-                  Tapez le titre d'un film, série ou manga pour commencer
-                </Text>
-              </>
-            )}
+      <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
+        {searchResults.length > 0 ? (
+          <View>
+            <Text style={styles.resultsTitle}>
+              {searchResults.length} résultat{searchResults.length > 1 ? 's' : ''} trouvé{searchResults.length > 1 ? 's' : ''}
+            </Text>
+            {searchResults.map(renderSearchResult)}
           </View>
-        }
-        contentContainerStyle={styles.listContainer}
-      />
+        ) : searchQuery.length > 0 && !isSearching ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>🔍</Text>
+            <Text style={styles.emptyTitle}>Aucun résultat</Text>
+            <Text style={styles.emptyMessage}>
+              Essayez avec d'autres mots-clés
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>🎬</Text>
+            <Text style={styles.emptyTitle}>Rechercher des médias</Text>
+            <Text style={styles.emptyMessage}>
+              Tapez le nom d'un film, série ou manga pour commencer
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 };
@@ -229,140 +208,126 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   searchContainer: {
+    flexDirection: 'row',
+    padding: SPACING.md,
     backgroundColor: COLORS.surface,
-    paddingVertical: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  searchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  searchInput: {
+    flex: 1,
     backgroundColor: COLORS.background,
     borderRadius: 8,
     paddingHorizontal: SPACING.md,
-    marginHorizontal: SPACING.md,
-    marginBottom: SPACING.md,
-  },
-  searchInput: {
-    flex: 1,
-    paddingVertical: SPACING.md,
-    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.sm,
     fontSize: FONT_SIZES.md,
     color: COLORS.onBackground,
-  },
-  filterContainer: {
-    paddingHorizontal: SPACING.md,
-  },
-  filterTab: {
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     marginRight: SPACING.sm,
-    borderRadius: 16,
-    backgroundColor: COLORS.background,
+  },
+  searchButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 50,
+  },
+  searchButtonText: {
+    fontSize: 18,
+  },
+  resultsContainer: {
+    flex: 1,
+    padding: SPACING.md,
+  },
+  resultsTitle: {
+    fontSize: FONT_SIZES.lg,
+    fontWeight: 'bold',
+    color: COLORS.onBackground,
+    marginBottom: SPACING.md,
+  },
+  resultItem: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  activeFilterTab: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  filterTabText: {
-    color: COLORS.onBackground,
-    fontSize: FONT_SIZES.sm,
-  },
-  activeFilterTabText: {
-    color: COLORS.onPrimary,
-    fontWeight: '600',
-  },
-  listContainer: {
-    flexGrow: 1,
-    padding: SPACING.md,
-  },
-  resultItem: {
-    backgroundColor: COLORS.surface,
+  resultPoster: {
+    width: 50,
+    height: 75,
+    backgroundColor: COLORS.border,
     borderRadius: 8,
-    marginBottom: SPACING.md,
-    flexDirection: 'row',
-    overflow: 'hidden',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: SPACING.md,
+  },
+  resultEmoji: {
+    fontSize: 20,
   },
   resultContent: {
     flex: 1,
-    flexDirection: 'row',
-    padding: SPACING.md,
-  },
-  poster: {
-    width: 60,
-    height: 90,
-    borderRadius: 4,
-    marginRight: SPACING.md,
-  },
-  resultInfo: {
-    flex: 1,
   },
   resultTitle: {
-    color: COLORS.onSurface,
     fontSize: FONT_SIZES.md,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    color: COLORS.onSurface,
     marginBottom: SPACING.xs,
   },
-  resultMetadata: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: SPACING.xs,
-  },
-  typeChip: {
-    paddingHorizontal: SPACING.xs,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginRight: SPACING.xs,
-  },
-  typeChipText: {
-    color: COLORS.onPrimary,
-    fontSize: FONT_SIZES.xs,
-    fontWeight: '600',
-  },
-  resultYear: {
-    color: COLORS.placeholder,
+  resultMeta: {
     fontSize: FONT_SIZES.sm,
-  },
-  resultGenre: {
     color: COLORS.placeholder,
-    fontSize: FONT_SIZES.sm,
     marginBottom: SPACING.xs,
   },
-  ratingContainer: {
+  resultDescription: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.placeholder,
+    lineHeight: 16,
+    marginBottom: SPACING.sm,
+  },
+  resultFooter: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
   },
-  ratingText: {
-    color: COLORS.secondary,
+  resultRating: {
     fontSize: FONT_SIZES.sm,
-    marginLeft: SPACING.xs,
-    fontWeight: '600',
+    color: COLORS.onSurface,
   },
   addButton: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.md,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: SPACING.lg,
+  addButtonText: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.onPrimary,
+    fontWeight: 'bold',
   },
-  emptyText: {
-    color: COLORS.onBackground,
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: SPACING.xxl,
+  },
+  emptyIcon: {
+    fontSize: 48,
+    marginBottom: SPACING.md,
+  },
+  emptyTitle: {
     fontSize: FONT_SIZES.lg,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    color: COLORS.onBackground,
     marginBottom: SPACING.sm,
-    textAlign: 'center',
   },
-  emptySubtext: {
-    color: COLORS.placeholder,
+  emptyMessage: {
     fontSize: FONT_SIZES.md,
+    color: COLORS.placeholder,
     textAlign: 'center',
-    lineHeight: 20,
+    paddingHorizontal: SPACING.lg,
   },
 });
 
