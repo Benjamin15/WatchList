@@ -134,7 +134,7 @@ class ApiService {
         return 'planned';
       case 'en_cours':
         return 'watching';
-      case 'termine':
+      case 'vu':  // Backend utilise 'vu' et non 'termine'
         return 'completed';
       case 'abandonne':
         return 'dropped';
@@ -151,9 +151,11 @@ class ApiService {
       case 'watching':
         return 'en_cours';
       case 'completed':
-        return 'termine';
+        return 'vu';  // Backend utilise 'vu' et non 'termine'
       case 'dropped':
-        return 'abandonne';
+        // Note: Le backend ne supporte pas 'dropped', on utilise 'a_voir' comme fallback
+        // TODO: Ajouter le statut 'abandonne' au backend ou désactiver cette option mobile
+        return 'a_voir';
       default:
         return 'a_voir';
     }
@@ -235,10 +237,12 @@ class ApiService {
     }
     
     const backendStatus = this.transformStatusToBackend(status);
-    const response = await this.client.put<any>(
-      `/items/rooms/${roomId}/items/${itemId}/status`, 
-      { status: backendStatus }
-    );
+    const url = `/items/rooms/${roomId}/items/${itemId}/status`;
+    console.log('API: updateItemStatus URL:', this.client.defaults.baseURL + url);
+    console.log('API: updateItemStatus payload:', { status: backendStatus });
+    console.log('API: Mobile status:', status, '→ Backend status:', backendStatus);
+    
+    const response = await this.client.put<any>(url, { status: backendStatus });
     
     // Transformer la réponse vers le format attendu
     return {
