@@ -22,7 +22,7 @@ type RoomScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Room'>;
 const RoomScreen: React.FC = () => {
   const navigation = useNavigation<RoomScreenNavigationProp>();
   const route = useRoute();
-  const { roomId } = route.params as { roomId: number };
+  const { roomId } = route.params as { roomId?: number };
 
   const [watchlist, setWatchlist] = useState<WatchlistItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,6 +31,11 @@ const RoomScreen: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<StatusType>('all');
 
   const loadWatchlist = useCallback(async () => {
+    if (!roomId) {
+      setLoading(false);
+      return;
+    }
+    
     try {
       const response = await apiService.getWatchlist(roomId, {
         type: typeFilter,
@@ -57,7 +62,7 @@ const RoomScreen: React.FC = () => {
   };
 
   const handleStatusChange = async (item: WatchlistItem, newStatus: StatusType) => {
-    if (newStatus === 'all') return;
+    if (newStatus === 'all' || !roomId) return;
 
     try {
       await apiService.updateWatchlistItem(roomId, item.id, { status: newStatus });
@@ -83,6 +88,8 @@ const RoomScreen: React.FC = () => {
           text: 'Supprimer',
           style: 'destructive',
           onPress: async () => {
+            if (!roomId) return;
+            
             try {
               await apiService.removeFromWatchlist(roomId, item.id);
               setWatchlist(prevList =>
@@ -243,6 +250,14 @@ const RoomScreen: React.FC = () => {
     return (
       <View style={styles.loadingContainer} testID="loading-indicator">
         <Text style={styles.loadingText}>Chargement...</Text>
+      </View>
+    );
+  }
+
+  if (!roomId) {
+    return (
+      <View style={[styles.container, styles.errorContainer]}>
+        <Text style={styles.errorText}>Erreur: ID de room manquant</Text>
       </View>
     );
   }
@@ -422,6 +437,17 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.md,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+  },
+  errorText: {
+    color: COLORS.error,
+    fontSize: FONT_SIZES.lg,
+    textAlign: 'center',
   },
 });
 

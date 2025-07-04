@@ -160,8 +160,8 @@ jest.mock('./src/services/api', () => {
   const mockRoom = {
     id: 1,
     name: 'Test Room',
-    code: 'ABCD1234',
-    createdAt: new Date().toISOString(),
+    room_id: 'ABCD1234',
+    created_at: new Date().toISOString(),
     members: [],
   };
 
@@ -201,8 +201,8 @@ jest.mock('./src/services/api', () => {
         const newRoom = {
           id: currentId++,
           name: name.trim(),
-          code: `ABCD${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
-          createdAt: new Date().toISOString(),
+          room_id: `ABCD${Math.random().toString(36).substr(2, 4).toUpperCase()}`,
+          created_at: new Date().toISOString(),
           members: [],
         };
         rooms.push(newRoom);
@@ -213,7 +213,7 @@ jest.mock('./src/services/api', () => {
         if (!code || !code.trim()) {
           return Promise.reject(new Error('Room code is required'));
         }
-        const room = rooms.find(r => r.code === code.trim().toUpperCase());
+        const room = rooms.find(r => r.room_id === code.trim().toUpperCase());
         if (!room) {
           return Promise.reject(new Error('Room not found'));
         }

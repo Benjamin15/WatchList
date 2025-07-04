@@ -109,9 +109,8 @@ export const mockData = {
   room: {
     id: 1,
     name: 'Test Room',
-    code: 'ABCD1234',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    room_id: 'ABCD1234',
+    created_at: new Date().toISOString(),
   },
   
   media: {

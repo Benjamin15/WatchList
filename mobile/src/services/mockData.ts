@@ -6,16 +6,14 @@ export const mockRooms: Room[] = [
   {
     id: 1,
     name: 'Ma Watchlist',
-    code: 'ABC123',
-    createdAt: '2025-01-01T00:00:00Z',
-    updatedAt: '2025-01-01T00:00:00Z',
+    room_id: 'ABC123',
+    created_at: '2025-01-01T00:00:00Z',
   },
   {
     id: 2,
     name: 'Watchlist Famille',
-    code: 'FAM456',
-    createdAt: '2025-01-02T00:00:00Z',
-    updatedAt: '2025-01-02T00:00:00Z',
+    room_id: 'FAM456',
+    created_at: '2025-01-02T00:00:00Z',
   },
 ];
 
@@ -170,16 +168,15 @@ export const mockApiService = {
     const newRoom: Room = {
       id: Date.now(),
       name,
-      code: Math.random().toString(36).substring(2, 8).toUpperCase(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      room_id: Math.random().toString(36).substring(2, 8).toUpperCase(),
+      created_at: new Date().toISOString(),
     };
     return newRoom;
   },
 
   joinRoom: async (code: string) => {
     await delay(1000);
-    const room = mockRooms.find(r => r.code === code);
+    const room = mockRooms.find(r => r.room_id === code);
     if (!room) {
       throw new Error('Room non trouvée');
     }

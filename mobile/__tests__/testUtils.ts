@@ -27,9 +27,8 @@ export const mockMedia = {
 export const mockRoom = {
   id: 1,
   name: 'Test Room',
-  code: 'ABC123',
-  createdAt: '2023-01-01T00:00:00Z',
-  updatedAt: '2023-01-01T00:00:00Z',
+  room_id: 'ABC123',
+  created_at: '2023-01-01T00:00:00Z',
 };
 
 export const mockWatchlistItem = {
@@ -175,16 +174,14 @@ export const testDataGenerators = {
     rating: Math.round((Math.random() * 10) * 10) / 10,
     tmdbId: Math.floor(Math.random() * 10000),
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
     ...overrides,
   }),
 
   generateRandomRoom: (overrides = {}) => ({
     id: Math.floor(Math.random() * 1000),
     name: `Test Room ${Math.floor(Math.random() * 100)}`,
-    code: Math.random().toString(36).substr(2, 6).toUpperCase(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    room_id: Math.random().toString(36).substr(2, 6).toUpperCase(),
+    created_at: new Date().toISOString(),
     ...overrides,
   }),
 

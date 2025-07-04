@@ -51,7 +51,7 @@ const SettingsScreen: React.FC = () => {
     if (!room) return;
 
     try {
-      await Clipboard.setString(room.code);
+      await Clipboard.setString(room.room_id);
       Alert.alert('Copié', 'Code de la room copié dans le presse-papier');
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de copier le code');
@@ -63,7 +63,7 @@ const SettingsScreen: React.FC = () => {
 
     try {
       await Share.share({
-        message: `Rejoins ma watchlist ! Code : ${room.code}`,
+        message: `Rejoins ma watchlist ! Code : ${room.room_id}`,
         title: `Rejoindre la room "${room.name}"`,
       });
     } catch (error) {
@@ -101,7 +101,7 @@ const SettingsScreen: React.FC = () => {
           </View>
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Code :</Text>
-            <Text style={styles.infoValue}>{room.code}</Text>
+            <Text style={styles.infoValue}>{room.room_id}</Text>
             <TouchableOpacity onPress={handleCopyRoomCode} style={styles.copyButton}>
               <MaterialIcons name="content-copy" size={16} color={COLORS.primary} />
             </TouchableOpacity>
@@ -109,7 +109,7 @@ const SettingsScreen: React.FC = () => {
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>Créée le :</Text>
             <Text style={styles.infoValue}>
-              {new Date(room.createdAt).toLocaleDateString('fr-FR')}
+              {new Date(room.created_at).toLocaleDateString('fr-FR')}
             </Text>
           </View>
         </View>

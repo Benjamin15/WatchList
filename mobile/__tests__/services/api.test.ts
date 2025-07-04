@@ -23,15 +23,15 @@ describe('API Service', () => {
 
       expect(result).toHaveProperty('id');
       expect(result).toHaveProperty('name', roomName);
-      expect(result).toHaveProperty('code');
-      expect(result.code).toMatch(/^[A-Z0-9]{8}$/);
+      expect(result).toHaveProperty('room_id');
+      expect(result.room_id).toMatch(/^[A-Z0-9]{8}$/);
     });
 
     it('generates unique room codes', async () => {
       const room1 = await apiService.createRoom('Room 1');
       const room2 = await apiService.createRoom('Room 2');
 
-      expect(room1.code).not.toBe(room2.code);
+      expect(room1.room_id).not.toBe(room2.room_id);
     });
 
     it('handles empty room name', async () => {
@@ -45,11 +45,11 @@ describe('API Service', () => {
       const createdRoom = await apiService.createRoom('Test Room');
       
       // Essayer de la rejoindre
-      const result = await apiService.joinRoom(createdRoom.code);
+      const result = await apiService.joinRoom(createdRoom.room_id);
 
       expect(result).toHaveProperty('id', createdRoom.id);
       expect(result).toHaveProperty('name', createdRoom.name);
-      expect(result).toHaveProperty('code', createdRoom.code);
+      expect(result).toHaveProperty('room_id', createdRoom.room_id);
     });
 
     it('handles invalid room code', async () => {

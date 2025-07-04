@@ -23,7 +23,7 @@ type SearchScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Searc
 const SearchScreen: React.FC = () => {
   const navigation = useNavigation<SearchScreenNavigationProp>();
   const route = useRoute();
-  const { roomId } = route.params as { roomId: number };
+  const { roomId } = route.params as { roomId?: number };
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
@@ -60,6 +60,8 @@ const SearchScreen: React.FC = () => {
   }, [searchQuery, typeFilter]);
 
   const handleAddToWatchlist = async (media: SearchResult) => {
+    if (!roomId) return;
+    
     try {
       await apiService.addToWatchlist(roomId, {
         title: media.title,

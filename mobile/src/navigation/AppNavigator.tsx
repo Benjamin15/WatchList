@@ -5,7 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialIcons } from '@expo/vector-icons';
 
 import { COLORS } from '../constants';
-import { RootStackParamList } from '../types';
+import { RootStackParamList, TabParamList } from '../types';
 
 // Screens
 import HomeScreen from '../screens/HomeScreen';
@@ -15,7 +15,7 @@ import DetailScreen from '../screens/DetailScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 
 const Stack = createStackNavigator<RootStackParamList>();
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<TabParamList>();
 
 // Navigation principale avec tabs (dans une room)
 function MainTabNavigator({ route }: { route: any }) {
@@ -71,6 +71,7 @@ function MainTabNavigator({ route }: { route: any }) {
       <Tab.Screen
         name="SettingsTab"
         component={SettingsScreen}
+        initialParams={{ roomId }}
         options={{
           tabBarLabel: 'Paramètres',
         }}

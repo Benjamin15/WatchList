@@ -81,9 +81,8 @@ describe('HomeScreen', () => {
     const mockRoom = { 
       id: 1, 
       name: 'Test Room', 
-      code: 'ABCD1234',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      room_id: 'ABCD1234',
+      created_at: new Date().toISOString(),
     };
     mockedApiService.createRoom.mockResolvedValue(mockRoom);
 
@@ -104,9 +103,8 @@ describe('HomeScreen', () => {
     const mockRoom = { 
       id: 1, 
       name: 'Test Room', 
-      code: 'ABCD1234',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      room_id: 'ABCD1234',
+      created_at: new Date().toISOString(),
     };
     mockedApiService.joinRoom.mockResolvedValue(mockRoom);
 
@@ -159,9 +157,8 @@ describe('HomeScreen', () => {
     const mockRoom = { 
       id: 1, 
       name: 'Test Room', 
-      code: 'ABCD1234',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      room_id: 'ABCD1234',
+      created_at: new Date().toISOString(),
     };
     mockedApiService.createRoom.mockResolvedValue(mockRoom);
 
@@ -182,9 +179,8 @@ describe('HomeScreen', () => {
     const mockRoom = { 
       id: 1, 
       name: 'Test Room', 
-      code: 'ABCD1234',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      room_id: 'ABCD1234',
+      created_at: new Date().toISOString(),
     };
     mockedApiService.joinRoom.mockResolvedValue(mockRoom);
 

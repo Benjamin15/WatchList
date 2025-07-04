@@ -18,10 +18,9 @@ export interface Media {
 // Types pour les rooms
 export interface Room {
   id: number;
+  room_id: string;  // Correspond à la structure de l'API
   name: string;
-  code: string;
-  createdAt: string;
-  updatedAt: string;
+  created_at: string;
 }
 
 // Types pour les éléments de watchlist
@@ -58,7 +57,13 @@ export type RootStackParamList = {
   Room: { roomId: number };
   Search: { roomId: number };
   Detail: { media: Media | SearchResult; roomId?: number };
-  Settings: undefined;
+  Settings: { roomId: number };
+};
+
+export type TabParamList = {
+  RoomTab: { roomId: number };
+  SearchTab: { roomId: number };
+  SettingsTab: { roomId: number };
 };
 
 // Types pour les réponses API

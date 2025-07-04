@@ -109,7 +109,7 @@ const HomeScreen: React.FC = () => {
               placeholderTextColor={COLORS.placeholder}
               value={roomCode}
               onChangeText={setRoomCode}
-              maxLength={6}
+              maxLength={12}
               autoCapitalize="characters"
             />
             <TouchableOpacity
