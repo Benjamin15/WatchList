@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, SearchResult } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { apiService } from '../services/api';
 
 type SearchScreenRouteProp = RouteProp<RootStackParamList, 'Search'>;
-type SearchScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Search'>;
+type SearchScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Search'>;
 
 interface SearchScreenProps {
   route: SearchScreenRouteProp;
@@ -78,7 +79,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (searchQuery.trim().length < 2) {
       Alert.alert('Erreur', 'Veuillez entrer au moins 2 caractères pour effectuer une recherche.');
       return;
@@ -86,18 +87,30 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
 
     setIsSearching(true);
     
-    // Simuler une recherche avec un délai
-    setTimeout(() => {
+    try {
+      // Utiliser l'API réelle pour la recherche
+      const results = await apiService.searchMedia(searchQuery);
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error searching media:', error);
+      
+      // En cas d'erreur, utiliser les données mock comme fallback
       const filteredResults = mockSearchResults.filter(item =>
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.genre?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setSearchResults(filteredResults);
+      
+      Alert.alert(
+        'Mode hors ligne',
+        'Recherche effectuée avec les données locales. Vérifiez votre connexion pour accéder à plus de résultats.'
+      );
+    } finally {
       setIsSearching(false);
-    }, 1000);
+    }
   };
 
-  const handleAddToWatchlist = (media: SearchResult) => {
+  const handleAddToWatchlist = async (media: SearchResult) => {
     Alert.alert(
       'Ajouter à la watchlist',
       `Voulez-vous ajouter "${media.title}" à votre watchlist ?`,
@@ -105,10 +118,34 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
         { text: 'Annuler', style: 'cancel' },
         { 
           text: 'Ajouter', 
-          onPress: () => {
-            // Ici on ajouterait le média à la watchlist via l'API
-            Alert.alert('✅ Ajouté', `"${media.title}" a été ajouté à votre watchlist !`);
-            navigation.goBack();
+          onPress: async () => {
+            try {
+              setIsSearching(true);
+              
+              // Ajouter le média à la room via l'API
+              await apiService.addItemToRoom(roomId, {
+                title: media.title,
+                type: media.type,
+                year: media.year,
+                genre: media.genre,
+                description: media.description,
+                posterUrl: media.posterUrl,
+                rating: media.rating,
+                tmdbId: media.tmdbId,
+                malId: media.malId,
+              });
+              
+              Alert.alert('✅ Ajouté', `"${media.title}" a été ajouté à votre watchlist !`);
+              navigation.goBack();
+            } catch (error) {
+              console.error('Error adding media to watchlist:', error);
+              Alert.alert(
+                'Erreur',
+                'Impossible d\'ajouter le média à la watchlist. Veuillez réessayer.'
+              );
+            } finally {
+              setIsSearching(false);
+            }
           }
         }
       ]

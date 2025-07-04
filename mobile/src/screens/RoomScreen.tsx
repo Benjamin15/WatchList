@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder } from 'react-native';
-import { RouteProp, useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, WatchlistItem } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
@@ -105,13 +105,20 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState<'planned' | 'watching' | 'completed'>('planned');
-  const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>(mockWatchlistItems);
+  const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
 
   const statusOrder = ['planned', 'watching', 'completed'] as const;
 
   useEffect(() => {
     loadRoomData();
   }, [roomId]);
+
+  // Utiliser useFocusEffect pour recharger les données quand on revient sur cet écran
+  useFocusEffect(
+    useCallback(() => {
+      loadWatchlistItems();
+    }, [roomId])
+  );
 
   const loadRoomData = async () => {
     try {
@@ -121,6 +128,17 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de charger les données de la room');
       console.error('Error loading room:', error);
+    }
+  };
+
+  const loadWatchlistItems = async () => {
+    try {
+      const items = await apiService.getRoomItems(roomId);
+      setWatchlistItems(items);
+    } catch (error) {
+      console.error('Error loading watchlist items:', error);
+      // En cas d'erreur, utiliser les données mock comme fallback
+      setWatchlistItems(mockWatchlistItems);
     } finally {
       setIsLoading(false);
     }
@@ -145,23 +163,43 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     }
   };
 
-  const updateItemStatus = (itemId: number, newStatus: 'planned' | 'watching' | 'completed') => {
-    setWatchlistItems(prevItems =>
-      prevItems.map(item =>
-        item.id === itemId ? { ...item, status: newStatus } : item
-      )
-    );
+  const updateItemStatus = async (itemId: number, newStatus: 'planned' | 'watching' | 'completed') => {
+    try {
+      // Mise à jour optimiste de l'interface
+      setWatchlistItems(prevItems =>
+        prevItems.map(item =>
+          item.id === itemId ? { ...item, status: newStatus } : item
+        )
+      );
 
-    const item = watchlistItems.find(item => item.id === itemId);
-    if (item) {
-      const statusLabels = {
-        planned: 'À regarder',
-        watching: 'En cours',
-        completed: 'Terminé'
-      };
+      // Appel API pour persister le changement
+      await apiService.updateItemStatus(roomId, itemId, newStatus);
+
+      const item = watchlistItems.find(item => item.id === itemId);
+      if (item) {
+        const statusLabels = {
+          planned: 'À regarder',
+          watching: 'En cours',
+          completed: 'Terminé'
+        };
+        Alert.alert(
+          '✅ Statut modifié',
+          `"${item.media.title}" déplacé vers "${statusLabels[newStatus]}"`
+        );
+      }
+    } catch (error) {
+      console.error('Error updating item status:', error);
+      
+      // Rollback en cas d'erreur
+      setWatchlistItems(prevItems =>
+        prevItems.map(item =>
+          item.id === itemId ? { ...item, status: item.status } : item
+        )
+      );
+      
       Alert.alert(
-        '✅ Statut modifié',
-        `"${item.media.title}" déplacé vers "${statusLabels[newStatus]}"`
+        'Erreur',
+        'Impossible de modifier le statut. Veuillez réessayer.'
       );
     }
   };

@@ -78,15 +78,190 @@ class ApiService {
     return response.data;
   }
 
-  async getRoom(roomId: number): Promise<Room> {
+  async getRoom(roomId: number | string): Promise<Room> {
     if (USE_MOCK_DATA) {
-      return mockApiService.getRoom(roomId);
+      return mockApiService.getRoom(typeof roomId === 'string' ? parseInt(roomId) : roomId);
     }
     
-    const response = await this.client.get<ApiResponse<Room>>(
-      `${API_ENDPOINTS.ROOMS}/${roomId}`
+    const response = await this.client.get<Room>(`/rooms/${roomId}`);
+    return response.data;
+  }
+
+  // === WATCHLIST ITEMS ===
+
+  async getRoomItems(roomId: number | string): Promise<WatchlistItem[]> {
+    if (USE_MOCK_DATA) {
+      const result = await mockApiService.getWatchlist(typeof roomId === 'string' ? parseInt(roomId) : roomId);
+      return result.data;
+    }
+    
+    const response = await this.client.get<{room: any, items: any[]}>(`/rooms/${roomId}/items`);
+    
+    // Transformer les données de l'API backend vers le format attendu par l'application mobile
+    const transformedItems: WatchlistItem[] = response.data.items.map(item => ({
+      id: item.id,
+      roomId: response.data.room.id,
+      mediaId: item.id,
+      status: this.transformStatus(item.status),
+      addedAt: item.added_to_room_at || item.created_at,
+      media: {
+        id: item.id,
+        title: item.title,
+        type: item.type,
+        year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
+        genre: undefined, // L'API backend ne semble pas retourner le genre
+        description: item.description,
+        posterUrl: item.image_url,
+        rating: item.note,
+        tmdbId: item.external_id,
+        createdAt: item.created_at,
+        updatedAt: item.created_at,
+      },
+    }));
+    
+    return transformedItems;
+  }
+
+  // Méthode pour transformer les statuts de l'API backend vers l'application mobile
+  private transformStatus(backendStatus: string): 'planned' | 'watching' | 'completed' | 'dropped' {
+    switch (backendStatus) {
+      case 'a_voir':
+        return 'planned';
+      case 'en_cours':
+        return 'watching';
+      case 'termine':
+        return 'completed';
+      case 'abandonne':
+        return 'dropped';
+      default:
+        return 'planned';
+    }
+  }
+
+  // Méthode pour transformer les statuts de l'application mobile vers l'API backend
+  private transformStatusToBackend(mobileStatus: 'planned' | 'watching' | 'completed' | 'dropped'): string {
+    switch (mobileStatus) {
+      case 'planned':
+        return 'a_voir';
+      case 'watching':
+        return 'en_cours';
+      case 'completed':
+        return 'termine';
+      case 'dropped':
+        return 'abandonne';
+      default:
+        return 'a_voir';
+    }
+  }
+
+  async addItemToRoom(roomId: number | string, mediaData: Partial<Media>): Promise<WatchlistItem> {
+    if (USE_MOCK_DATA) {
+      // Simuler l'ajout pour les mocks
+      const newItem: WatchlistItem = {
+        id: Date.now(),
+        roomId: typeof roomId === 'string' ? parseInt(roomId) : roomId,
+        mediaId: Date.now(),
+        status: 'planned',
+        addedAt: new Date().toISOString(),
+        media: {
+          id: Date.now(),
+          title: mediaData.title || 'Nouveau média',
+          type: mediaData.type || 'movie',
+          year: mediaData.year,
+          genre: mediaData.genre,
+          description: mediaData.description,
+          posterUrl: mediaData.posterUrl,
+          rating: mediaData.rating,
+          tmdbId: mediaData.tmdbId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      return Promise.resolve(newItem);
+    }
+    
+    const response = await this.client.post<any>(`/items/rooms/${roomId}/items`, mediaData);
+    
+    // Transformer la réponse vers le format attendu
+    return {
+      id: response.data.id,
+      roomId: typeof roomId === 'string' ? parseInt(roomId) : roomId,
+      mediaId: response.data.id,
+      status: this.transformStatus(response.data.status),
+      addedAt: response.data.created_at,
+      media: {
+        id: response.data.id,
+        title: response.data.title,
+        type: response.data.type,
+        year: response.data.release_date ? new Date(response.data.release_date).getFullYear() : mediaData.year,
+        genre: mediaData.genre, // Utiliser les données envoyées car l'API ne les retourne pas
+        description: response.data.description,
+        posterUrl: response.data.image_url,
+        rating: response.data.note,
+        tmdbId: response.data.external_id,
+        createdAt: response.data.created_at,
+        updatedAt: response.data.created_at,
+      },
+    };
+  }
+
+  async updateItemStatus(
+    roomId: number | string, 
+    itemId: number, 
+    status: 'planned' | 'watching' | 'completed' | 'dropped'
+  ): Promise<WatchlistItem> {
+    if (USE_MOCK_DATA) {
+      // Simuler la mise à jour pour les mocks
+      const mockItem: WatchlistItem = {
+        id: itemId,
+        roomId: typeof roomId === 'string' ? parseInt(roomId) : roomId,
+        mediaId: itemId,
+        status,
+        addedAt: new Date().toISOString(),
+        media: {
+          id: itemId,
+          title: 'Média mis à jour',
+          type: 'movie',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      };
+      return Promise.resolve(mockItem);
+    }
+    
+    const backendStatus = this.transformStatusToBackend(status);
+    const response = await this.client.put<any>(
+      `/items/rooms/${roomId}/items/${itemId}/status`, 
+      { status: backendStatus }
     );
-    return response.data.data;
+    
+    // Transformer la réponse vers le format attendu
+    return {
+      id: response.data.id,
+      roomId: typeof roomId === 'string' ? parseInt(roomId) : roomId,
+      mediaId: response.data.id,
+      status: this.transformStatus(response.data.status),
+      addedAt: response.data.created_at,
+      media: {
+        id: response.data.id,
+        title: response.data.title,
+        type: response.data.type,
+        description: response.data.description,
+        posterUrl: response.data.image_url,
+        rating: response.data.note,
+        tmdbId: response.data.external_id,
+        createdAt: response.data.created_at,
+        updatedAt: response.data.created_at,
+      },
+    };
+  }
+
+  async removeItemFromRoom(roomId: number | string, itemId: number): Promise<void> {
+    if (USE_MOCK_DATA) {
+      return Promise.resolve();
+    }
+    
+    await this.client.delete(`/items/rooms/${roomId}/items/${itemId}`);
   }
 
   // === WATCHLIST ===
@@ -189,16 +364,26 @@ class ApiService {
       return mockApiService.searchMedia(query, type);
     }
     
-    const params = new URLSearchParams();
-    params.append('q', query);
-    if (type) {
-      params.append('type', type);
-    }
-
-    const response = await this.client.get<ApiResponse<SearchResult[]>>(
-      `${API_ENDPOINTS.SEARCH}?${params.toString()}`
+    // Utiliser l'endpoint d'autocomplete du serveur
+    const searchType = type || 'all';
+    const response = await this.client.get<SearchResult[]>(
+      `/search/autocomplete/${searchType}/${encodeURIComponent(query)}`
     );
-    return response.data.data;
+    return response.data;
+  }
+
+  async autocompleteSearch(
+    type: 'movie' | 'series' | 'manga',
+    query: string
+  ): Promise<SearchResult[]> {
+    if (USE_MOCK_DATA) {
+      return mockApiService.searchMedia(query, type);
+    }
+    
+    const response = await this.client.get<SearchResult[]>(
+      `/search/autocomplete/${type}/${encodeURIComponent(query)}`
+    );
+    return response.data;
   }
 
   // === MEDIA ===
