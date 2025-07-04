@@ -83,7 +83,9 @@ class ApiService {
       return mockApiService.getRoom(typeof roomId === 'string' ? parseInt(roomId) : roomId);
     }
     
-    const response = await this.client.get<Room>(`/rooms/${roomId}`);
+    const url = `/rooms/${roomId}`;
+    console.log('API: getRoom URL:', this.client.defaults.baseURL + url);
+    const response = await this.client.get<Room>(url);
     return response.data;
   }
 
@@ -95,7 +97,9 @@ class ApiService {
       return result.data;
     }
     
-    const response = await this.client.get<{room: any, items: any[]}>(`/rooms/${roomId}/items`);
+    const url = `/rooms/${roomId}/items`;
+    console.log('API: getRoomItems URL:', this.client.defaults.baseURL + url);
+    const response = await this.client.get<{room: any, items: any[]}>(url);
     
     // Transformer les données de l'API backend vers le format attendu par l'application mobile
     const transformedItems: WatchlistItem[] = response.data.items.map(item => ({
@@ -119,6 +123,7 @@ class ApiService {
       },
     }));
     
+    console.log('API: Transformed items:', transformedItems);
     return transformedItems;
   }
 

@@ -54,17 +54,17 @@ export type StatusType = 'all' | 'watching' | 'completed' | 'planned' | 'dropped
 // Types pour la navigation
 export type RootStackParamList = {
   Home: undefined;
-  Room: { roomId: number };
-  Search: { roomId: number };
-  Detail: { media: Media | SearchResult; roomId?: number };
-  Settings: { roomId: number };
+  Room: { roomId: string };  // Changé de number à string pour utiliser room_id
+  Search: { roomId: string }; // Changé de number à string pour cohérence
+  Detail: { media: Media | SearchResult; roomId?: string }; // Changé de number à string pour cohérence
+  Settings: { roomId: string }; // Changé de number à string pour cohérence
   Loading: undefined;
 };
 
 export type TabParamList = {
-  RoomTab: { roomId: number };
-  SearchTab: { roomId: number };
-  SettingsTab: { roomId: number };
+  RoomTab: { roomId: string }; // Changé de number à string pour cohérence
+  SearchTab: { roomId: string }; // Changé de number à string pour cohérence
+  SettingsTab: { roomId: string }; // Changé de number à string pour cohérence
 };
 
 // Types pour les réponses API

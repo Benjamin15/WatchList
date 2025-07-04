@@ -34,11 +34,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
     try {
+      console.log('Creating room with name:', roomName.trim());
       const room = await apiService.createRoom(roomName.trim());
-      navigation.navigate('Room', { roomId: room.id });
+      console.log('Room created successfully:', room);
+      console.log('Navigating to Room with roomId:', room.room_id);
+      navigation.navigate('Room', { roomId: room.room_id });
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de créer la room');
       console.error('Error creating room:', error);
+      Alert.alert('Erreur', 'Impossible de créer la room');
     } finally {
       setIsLoading(false);
     }
@@ -52,11 +55,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
     setIsLoading(true);
     try {
+      console.log('Joining room with code:', roomCode.trim().toUpperCase());
       const room = await apiService.joinRoom(roomCode.trim().toUpperCase());
-      navigation.navigate('Room', { roomId: room.id });
+      console.log('Room joined successfully:', room);
+      console.log('Navigating to Room with roomId:', room.room_id);
+      navigation.navigate('Room', { roomId: room.room_id });
     } catch (error) {
-      Alert.alert('Erreur', 'Room non trouvée');
       console.error('Error joining room:', error);
+      Alert.alert('Erreur', 'Room non trouvée');
     } finally {
       setIsLoading(false);
     }

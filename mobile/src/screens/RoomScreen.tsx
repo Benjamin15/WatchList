@@ -122,22 +122,27 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
   const loadRoomData = async () => {
     try {
+      console.log('Loading room data for roomId:', roomId);
       const room = await apiService.getRoom(roomId);
+      console.log('Room loaded successfully:', room);
       setRoomName(room.name);
       setRoomCode(room.room_id);
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de charger les données de la room');
       console.error('Error loading room:', error);
+      Alert.alert('Erreur', 'Impossible de charger les données de la room');
     }
   };
 
   const loadWatchlistItems = async () => {
     try {
+      console.log('Loading watchlist items for roomId:', roomId);
       const items = await apiService.getRoomItems(roomId);
+      console.log('Watchlist items loaded successfully:', items);
       setWatchlistItems(items);
     } catch (error) {
       console.error('Error loading watchlist items:', error);
       // En cas d'erreur, utiliser les données mock comme fallback
+      console.log('Using mock data as fallback');
       setWatchlistItems(mockWatchlistItems);
     } finally {
       setIsLoading(false);
