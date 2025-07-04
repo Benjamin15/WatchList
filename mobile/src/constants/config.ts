@@ -8,7 +8,8 @@ export const USE_MOCK_DATA = false; // Changer à true pour utiliser les donnée
 export const getApiBaseUrl = () => {
   if (DEV_MODE) {
     // Pour le développement local
-    return 'http://localhost:3000/api';
+    // Utiliser l'IP locale pour les appareils physiques via Expo Go
+    return 'http://192.168.0.200:3000/api';
   } else {
     // Pour la production
     return 'https://your-production-api.com/api';

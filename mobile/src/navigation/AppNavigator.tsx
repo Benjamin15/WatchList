@@ -2,7 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { COLORS } from '../constants';
 import { RootStackParamList } from '../types';
@@ -26,7 +26,7 @@ function MainTabNavigator({ route }: { route: any }) {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarIcon: ({ focused, color, size }) => {
-          let iconName = '';
+          let iconName: keyof typeof MaterialIcons.glyphMap;
 
           switch (route.name) {
             case 'RoomTab':
@@ -38,9 +38,11 @@ function MainTabNavigator({ route }: { route: any }) {
             case 'SettingsTab':
               iconName = 'settings';
               break;
+            default:
+              iconName = 'help';
           }
 
-          return <Icon name={iconName} size={size} color={color} />;
+          return <MaterialIcons name={iconName} size={size} color={color} />;
         },
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.placeholder,

@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { RootStackParamList, Media, SearchResult } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_TYPES, MEDIA_STATUS, IMAGE_CONFIG } from '../constants';
@@ -92,7 +92,7 @@ const DetailScreen: React.FC = () => {
         )}
         {media.rating && (
           <View style={styles.ratingContainer}>
-            <Icon name="star" size={20} color={COLORS.secondary} />
+            <MaterialIcons name="star" size={20} color={COLORS.secondary} />
             <Text style={styles.ratingText}>{media.rating.toFixed(1)}/10</Text>
           </View>
         )}
@@ -135,7 +135,7 @@ const DetailScreen: React.FC = () => {
         onPress={handleAddToWatchlist}
         disabled={adding}
       >
-        <Icon
+        <MaterialIcons
           name="add"
           size={24}
           color={COLORS.onPrimary}

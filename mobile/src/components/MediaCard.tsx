@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { Media, SearchResult } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_TYPES, IMAGE_CONFIG } from '../constants';
@@ -68,7 +68,7 @@ const MediaCard: React.FC<MediaCardProps> = ({
           )}
           {showRating && media.rating && (
             <View style={styles.ratingContainer}>
-              <Icon name="star" size={16} color={COLORS.secondary} />
+              <MaterialIcons name="star" size={16} color={COLORS.secondary} />
               <Text style={styles.ratingText}>{media.rating.toFixed(1)}</Text>
             </View>
           )}
@@ -78,8 +78,9 @@ const MediaCard: React.FC<MediaCardProps> = ({
         <TouchableOpacity
           style={styles.actionButton}
           onPress={onActionPress}
+          testID="action-button"
         >
-          <Icon name={actionIcon} size={24} color={actionColor || COLORS.primary} />
+          <MaterialIcons name={actionIcon as any} size={24} color={actionColor || COLORS.primary} />
         </TouchableOpacity>
       )}
     </View>

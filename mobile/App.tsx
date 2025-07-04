@@ -15,7 +15,7 @@ import { COLORS } from './src/constants';
 
 function App(): React.JSX.Element {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1 }} testID="app-container">
       <PaperProvider>
         <StatusBar
           barStyle="light-content"

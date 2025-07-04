@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { RootStackParamList, SearchResult, MediaType } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_TYPES, IMAGE_CONFIG } from '../constants';
@@ -153,7 +153,7 @@ const SearchScreen: React.FC = () => {
           )}
           {item.rating && (
             <View style={styles.ratingContainer}>
-              <Icon name="star" size={16} color={COLORS.secondary} />
+              <MaterialIcons name="star" size={16} color={COLORS.secondary} />
               <Text style={styles.ratingText}>{item.rating.toFixed(1)}</Text>
             </View>
           )}
@@ -163,7 +163,7 @@ const SearchScreen: React.FC = () => {
         style={styles.addButton}
         onPress={() => handleAddToWatchlist(item)}
       >
-        <Icon name="add" size={24} color={COLORS.primary} />
+        <MaterialIcons name="add" size={24} color={COLORS.primary} />
       </TouchableOpacity>
     </View>
   );
@@ -172,7 +172,7 @@ const SearchScreen: React.FC = () => {
     <View style={styles.container}>
       <View style={styles.searchContainer}>
         <View style={styles.searchInputContainer}>
-          <Icon name="search" size={20} color={COLORS.placeholder} />
+          <MaterialIcons name="search" size={20} color={COLORS.placeholder} />
           <TextInput
             style={styles.searchInput}
             placeholder="Rechercher films, séries, mangas..."

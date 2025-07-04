@@ -1,0 +1,2 @@
+// This is a mock asset file for testing purposes
+module.exports = 'mocked-asset-path';

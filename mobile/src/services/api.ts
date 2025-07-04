@@ -62,10 +62,10 @@ class ApiService {
       return mockApiService.createRoom(name);
     }
     
-    const response = await this.client.post<ApiResponse<Room>>(API_ENDPOINTS.ROOMS, {
+    const response = await this.client.post<Room>(API_ENDPOINTS.ROOMS, {
       name,
     });
-    return response.data.data;
+    return response.data;
   }
 
   async joinRoom(code: string): Promise<Room> {
@@ -73,10 +73,9 @@ class ApiService {
       return mockApiService.joinRoom(code);
     }
     
-    const response = await this.client.post<ApiResponse<Room>>(API_ENDPOINTS.JOIN_ROOM, {
-      code,
-    });
-    return response.data.data;
+    // Temporaire: utiliser l'endpoint GET avec le room_id
+    const response = await this.client.get<Room>(`${API_ENDPOINTS.ROOMS}/${code}`);
+    return response.data;
   }
 
   async getRoom(roomId: number): Promise<Room> {

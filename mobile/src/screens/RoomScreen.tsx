@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { RootStackParamList, WatchlistItem, MediaType, StatusType } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS, MEDIA_TYPES, IMAGE_CONFIG } from '../constants';
@@ -227,13 +227,13 @@ const RoomScreen: React.FC = () => {
             handleStatusChange(item, nextStatus);
           }}
         >
-          <Icon name="refresh" size={20} color={COLORS.primary} />
+          <MaterialIcons name="refresh" size={20} color={COLORS.primary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.actionButton}
           onPress={() => handleRemoveItem(item)}
         >
-          <Icon name="delete" size={20} color={COLORS.error} />
+          <MaterialIcons name="delete" size={20} color={COLORS.error} />
         </TouchableOpacity>
       </View>
     </View>
@@ -241,7 +241,7 @@ const RoomScreen: React.FC = () => {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.loadingContainer} testID="loading-indicator">
         <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
@@ -262,6 +262,7 @@ const RoomScreen: React.FC = () => {
             tintColor={COLORS.primary}
           />
         }
+        testID="room-scroll-view"
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>

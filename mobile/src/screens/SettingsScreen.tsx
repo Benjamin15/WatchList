@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
-import Icon from 'react-native-vector-icons/MaterialIcons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 import { RootStackParamList, Room } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
@@ -103,7 +103,7 @@ const SettingsScreen: React.FC = () => {
             <Text style={styles.infoLabel}>Code :</Text>
             <Text style={styles.infoValue}>{room.code}</Text>
             <TouchableOpacity onPress={handleCopyRoomCode} style={styles.copyButton}>
-              <Icon name="content-copy" size={16} color={COLORS.primary} />
+              <MaterialIcons name="content-copy" size={16} color={COLORS.primary} />
             </TouchableOpacity>
           </View>
           <View style={styles.infoRow}>
@@ -124,16 +124,16 @@ const SettingsScreen: React.FC = () => {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Actions</Text>
         <TouchableOpacity style={styles.actionButton} onPress={handleShareRoom}>
-          <Icon name="share" size={20} color={COLORS.primary} />
+          <MaterialIcons name="share" size={20} color={COLORS.primary} />
           <Text style={styles.actionButtonText}>Partager la room</Text>
-          <Icon name="chevron-right" size={20} color={COLORS.placeholder} />
+          <MaterialIcons name="chevron-right" size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.actionButton} onPress={handleLeaveRoom}>
-          <Icon name="exit-to-app" size={20} color={COLORS.error} />
+          <MaterialIcons name="exit-to-app" size={20} color={COLORS.error} />
           <Text style={[styles.actionButtonText, { color: COLORS.error }]}>
             Quitter la room
           </Text>
-          <Icon name="chevron-right" size={20} color={COLORS.placeholder} />
+          <MaterialIcons name="chevron-right" size={20} color={COLORS.placeholder} />
         </TouchableOpacity>
       </View>
     );
@@ -143,14 +143,14 @@ const SettingsScreen: React.FC = () => {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Général</Text>
       <TouchableOpacity style={styles.actionButton}>
-        <Icon name="info" size={20} color={COLORS.primary} />
+        <MaterialIcons name="info" size={20} color={COLORS.primary} />
         <Text style={styles.actionButtonText}>À propos</Text>
-        <Icon name="chevron-right" size={20} color={COLORS.placeholder} />
+        <MaterialIcons name="chevron-right" size={20} color={COLORS.placeholder} />
       </TouchableOpacity>
       <TouchableOpacity style={styles.actionButton}>
-        <Icon name="help" size={20} color={COLORS.primary} />
+        <MaterialIcons name="help" size={20} color={COLORS.primary} />
         <Text style={styles.actionButtonText}>Aide</Text>
-        <Icon name="chevron-right" size={20} color={COLORS.placeholder} />
+        <MaterialIcons name="chevron-right" size={20} color={COLORS.placeholder} />
       </TouchableOpacity>
     </View>
   );
