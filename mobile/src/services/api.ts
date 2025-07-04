@@ -369,12 +369,44 @@ class ApiService {
       return mockApiService.searchMedia(query, type);
     }
     
-    // Utiliser l'endpoint d'autocomplete du serveur
-    const searchType = type || 'all';
-    const response = await this.client.get<SearchResult[]>(
-      `/search/autocomplete/${searchType}/${encodeURIComponent(query)}`
-    );
-    return response.data;
+    // Transformer les types de l'application mobile vers l'API backend
+    let searchType = 'movie'; // valeur par défaut
+    if (type) {
+      switch (type) {
+        case 'movie':
+          searchType = 'movie';
+          break;
+        case 'series':
+          searchType = 'tv'; // Backend utilise 'tv' au lieu de 'series'
+          break;
+        case 'manga':
+          searchType = 'manga';
+          break;
+        default:
+          searchType = 'movie';
+      }
+    }
+    
+    const url = `/search/autocomplete/${searchType}/${encodeURIComponent(query)}`;
+    console.log('API: searchMedia URL:', this.client.defaults.baseURL + url);
+    
+    const response = await this.client.get<{query: string, type: string, results: any[]}>(url);
+    
+    // Transformer les résultats vers le format attendu par l'application mobile
+    const transformedResults: SearchResult[] = response.data.results.map(item => ({
+      id: parseInt(item.external_id.replace('tmdb_', '')) || 0,
+      title: item.title,
+      type: item.type === 'tv' ? 'series' : item.type, // Transformer 'tv' en 'series'
+      year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
+      genre: undefined, // L'API ne retourne pas le genre dans cette réponse
+      description: item.description,
+      posterUrl: item.image_url,
+      rating: undefined, // L'API ne retourne pas le rating dans cette réponse
+      tmdbId: parseInt(item.external_id.replace('tmdb_', '')) || undefined,
+    }));
+    
+    console.log('API: Transformed search results:', transformedResults);
+    return transformedResults;
   }
 
   async autocompleteSearch(
@@ -385,10 +417,8 @@ class ApiService {
       return mockApiService.searchMedia(query, type);
     }
     
-    const response = await this.client.get<SearchResult[]>(
-      `/search/autocomplete/${type}/${encodeURIComponent(query)}`
-    );
-    return response.data;
+    // Utiliser la méthode searchMedia qui gère déjà la transformation des types
+    return this.searchMedia(query, type);
   }
 
   // === MEDIA ===
