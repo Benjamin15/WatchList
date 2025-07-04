@@ -26,18 +26,22 @@ WatchList est une application qui permet de créer et partager des listes de fil
 
 ✅ **Implémentées**:
 - **Backend**: API REST complète avec tests
-- **Mobile**: Application React Native fonctionnelle
+- **Mobile**: Application React Native fonctionnelle avec images
 - Création de rooms sans authentification
 - Gestion des items (films, séries, manga)
 - Recherche mixte (locale + APIs externes)
 - Statuts de progression (à voir, en cours, vu, abandonné)
 - Navigation par onglets et filtres
 - Interface moderne et responsive
+- **🖼️ Images réelles** : Affiches/posters au lieu d'emojis
+- **Fallback robuste** : Système de fallback emoji si image indisponible
+- **Intégration TMDB** : Images haute qualité pour films/séries
+- **Swipe statut** : Déplacement des médias entre sections par swipe
 
 🔄 **En développement**:
-- Intégration complète backend ↔ mobile
-- Configuration des icônes natives
-- Tests de l'application mobile
+- Cache d'images pour améliorer les performances
+- Optimisation de la qualité d'affichage
+- Gestion offline des images
 
 ## Démarrage rapide
 
@@ -58,27 +62,32 @@ Le serveur sera disponible sur `http://localhost:3000`
 ```bash
 cd mobile
 npm install
+npm start
 
-# Pour iOS
-npx react-native run-ios
-
-# Pour Android (nécessite un émulateur/appareil)
-npx react-native run-android
-
-# Ou utiliser le script de démarrage
-./start.sh
+# Ou utiliser Expo
+npx expo start
 ```
 
 ### Tests
 ```bash
 cd server
 npm test
+
+# Test d'intégration backend/mobile
+./test-integration.sh
+
+# Test d'intégration des images
+./test-images.sh
 ```
 
 ## Documentation
 
 - [Backend API Documentation](./server/API.md)
 - [Backend Setup](./server/README.md)
+- [🖼️ Image Integration](./IMAGE_INTEGRATION.md)
+- [📱 Guide de Test Images](./GUIDE_TEST_IMAGES.md)
+- [Integration Complete](./INTEGRATION_COMPLETE.md)
+- [Integration Test Guide](./INTEGRATION_TEST_GUIDE.md)
 
 ## Structure du projet
 
