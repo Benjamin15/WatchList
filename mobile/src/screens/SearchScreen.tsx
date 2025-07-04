@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { Image } from 'expo-image';
 import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, SearchResult } from '../types';
@@ -78,6 +79,40 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+
+  const handleImageError = (itemId: number) => {
+    setImageErrors(prev => new Set([...prev, itemId]));
+  };
+
+  const renderSearchPoster = (item: SearchResult) => {
+    const hasImageError = imageErrors.has(item.id);
+    const posterUrl = item.posterUrl;
+    
+    // Si on a une URL d'image et qu'il n'y a pas d'erreur, afficher l'image
+    if (posterUrl && !hasImageError) {
+      return (
+        <View style={styles.resultPoster}>
+          <Image
+            source={{ uri: posterUrl }}
+            style={styles.posterImage}
+            onError={() => handleImageError(item.id)}
+            contentFit="cover"
+          />
+        </View>
+      );
+    }
+
+    // Sinon, afficher le fallback emoji
+    return (
+      <View style={styles.resultPoster}>
+        <Text style={styles.resultEmoji}>
+          {item.type === 'movie' ? '🎬' : 
+           item.type === 'series' ? '📺' : '📚'}
+        </Text>
+      </View>
+    );
+  };
 
   const handleSearch = async () => {
     if (searchQuery.trim().length < 2) {
@@ -158,12 +193,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
       style={styles.resultItem}
       onPress={() => handleAddToWatchlist(item)}
     >
-      <View style={styles.resultPoster}>
-        <Text style={styles.resultEmoji}>
-          {item.type === 'movie' ? '🎬' : 
-           item.type === 'series' ? '📺' : '📚'}
-        </Text>
-      </View>
+      {renderSearchPoster(item)}
       
       <View style={styles.resultContent}>
         <Text style={styles.resultTitle}>{item.title}</Text>
@@ -302,6 +332,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
+    overflow: 'hidden',
+  },
+  posterImage: {
+    width: '100%',
+    height: '100%',
   },
   resultEmoji: {
     fontSize: 20,

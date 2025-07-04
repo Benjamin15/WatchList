@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder } from 'react-native';
+import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList, WatchlistItem } from '../types';
@@ -106,8 +107,42 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState<'planned' | 'watching' | 'completed'>('planned');
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
 
   const statusOrder = ['planned', 'watching', 'completed'] as const;
+
+  const handleImageError = (itemId: number) => {
+    setImageErrors(prev => new Set([...prev, itemId]));
+  };
+
+  const renderMediaPoster = (item: WatchlistItem) => {
+    const hasImageError = imageErrors.has(item.id);
+    const posterUrl = item.media.posterUrl;
+    
+    // Si on a une URL d'image et qu'il n'y a pas d'erreur, afficher l'image
+    if (posterUrl && !hasImageError) {
+      return (
+        <View style={styles.poster}>
+          <Image
+            source={{ uri: posterUrl }}
+            style={styles.posterImage}
+            onError={() => handleImageError(item.id)}
+            contentFit="cover"
+          />
+        </View>
+      );
+    }
+
+    // Sinon, afficher le fallback emoji
+    return (
+      <View style={styles.poster}>
+        <Text style={styles.posterEmoji}>
+          {item.media.type === 'movie' ? '🎬' : 
+           item.media.type === 'series' ? '📺' : '📚'}
+        </Text>
+      </View>
+    );
+  };
 
   useEffect(() => {
     loadRoomData();
@@ -248,12 +283,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
     return (
       <View key={item.id} {...panResponder.panHandlers} style={styles.mediaItem}>
-        <View style={styles.poster}>
-          <Text style={styles.posterEmoji}>
-            {item.media.type === 'movie' ? '🎬' : 
-             item.media.type === 'series' ? '📺' : '📚'}
-          </Text>
-        </View>
+        {renderMediaPoster(item)}
         
         <View style={styles.mediaContent}>
           <Text style={styles.title}>{item.media.title}</Text>
@@ -418,6 +448,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: SPACING.md,
+    overflow: 'hidden',
+  },
+  posterImage: {
+    width: '100%',
+    height: '100%',
   },
   posterEmoji: {
     fontSize: 24,
