@@ -161,6 +161,20 @@ class ApiService {
     }
   }
 
+  // Méthode helper pour extraire l'ID TMDB depuis external_id
+  private extractTmdbId(externalId: string | null): number | undefined {
+    if (!externalId || typeof externalId !== 'string') {
+      return undefined;
+    }
+    
+    if (externalId.startsWith('tmdb_')) {
+      const id = parseInt(externalId.replace('tmdb_', ''));
+      return isNaN(id) ? undefined : id;
+    }
+    
+    return undefined;
+  }
+
   async addItemToRoom(roomId: number | string, mediaData: Partial<Media>): Promise<WatchlistItem> {
     if (USE_MOCK_DATA) {
       // Simuler l'ajout pour les mocks
@@ -397,17 +411,20 @@ class ApiService {
     const response = await this.client.get<{query: string, type: string, results: any[]}>(url);
     
     // Transformer les résultats vers le format attendu par l'application mobile
-    const transformedResults: SearchResult[] = response.data.results.map(item => ({
-      id: parseInt(item.external_id.replace('tmdb_', '')) || 0,
-      title: item.title,
-      type: item.type === 'tv' ? 'series' : item.type, // Transformer 'tv' en 'series'
-      year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
-      genre: undefined, // L'API ne retourne pas le genre dans cette réponse
-      description: item.description,
-      posterUrl: item.image_url,
-      rating: undefined, // L'API ne retourne pas le rating dans cette réponse
-      tmdbId: parseInt(item.external_id.replace('tmdb_', '')) || undefined,
-    }));
+    const transformedResults: SearchResult[] = response.data.results.map(item => {
+      const tmdbId = this.extractTmdbId(item.external_id);
+      return {
+        id: tmdbId || 0,
+        title: item.title,
+        type: item.type === 'tv' ? 'series' : item.type, // Transformer 'tv' en 'series'
+        year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
+        genre: undefined, // L'API ne retourne pas le genre dans cette réponse
+        description: item.description,
+        posterUrl: item.image_url,
+        rating: undefined, // L'API ne retourne pas le rating dans cette réponse
+        tmdbId: tmdbId,
+      };
+    });
     
     console.log('API: Transformed search results:', transformedResults);
     return transformedResults;
