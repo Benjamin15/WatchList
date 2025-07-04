@@ -58,6 +58,7 @@ export type RootStackParamList = {
   Search: { roomId: number };
   Detail: { media: Media | SearchResult; roomId?: number };
   Settings: { roomId: number };
+  Loading: undefined;
 };
 
 export type TabParamList = {

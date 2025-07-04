@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { MaterialIcons } from '@expo/vector-icons';
+import { View, Text, ActivityIndicator } from 'react-native';
 
 import { COLORS } from '../constants';
 import { RootStackParamList, TabParamList } from '../types';
@@ -17,9 +18,21 @@ import SettingsScreen from '../screens/SettingsScreen';
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<TabParamList>();
 
+// Component de chargement
+function LoadingScreen() {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: COLORS.background }}>
+      <ActivityIndicator size="large" color={COLORS.primary} />
+      <Text style={{ color: COLORS.onSurface, marginTop: 16 }}>Chargement...</Text>
+    </View>
+  );
+}
+
 // Navigation principale avec tabs (dans une room)
 function MainTabNavigator({ route }: { route: any }) {
   const { roomId } = route.params;
+
+  console.log('MainTabNavigator: roomId =', roomId);
 
   return (
     <Tab.Navigator
@@ -82,49 +95,69 @@ function MainTabNavigator({ route }: { route: any }) {
 
 // Navigation principale de l'application
 export function AppNavigator() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerStyle: {
-            backgroundColor: COLORS.surface,
-          },
-          headerTintColor: COLORS.onSurface,
-          headerTitleStyle: {
-            fontWeight: 'bold',
-          },
+  console.log('AppNavigator: Starting navigation...');
+  
+  try {
+    console.log('AppNavigator: Creating NavigationContainer...');
+    return (
+      <NavigationContainer
+        fallback={<LoadingScreen />}
+        onStateChange={(state) => {
+          console.log('AppNavigator: Navigation state changed', state);
         }}
       >
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{
-            title: 'WatchList',
+        <Stack.Navigator
+          screenOptions={{
             headerStyle: {
-              backgroundColor: COLORS.primary,
+              backgroundColor: COLORS.surface,
             },
-            headerTintColor: COLORS.onPrimary,
+            headerTintColor: COLORS.onSurface,
+            headerTitleStyle: {
+              fontWeight: 'bold',
+            },
           }}
-        />
-        <Stack.Screen
-          name="Room"
-          component={MainTabNavigator}
-          options={({ route }) => ({
-            title: `Room ${(route.params as any)?.roomId}`,
-            headerShown: false,
-          })}
-        />
-        <Stack.Screen
-          name="Detail"
-          component={DetailScreen}
-          options={{
-            title: 'Détails',
-            presentation: 'modal',
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
+        >
+          <Stack.Screen
+            name="Home"
+            component={HomeScreen}
+            options={{
+              title: 'WatchList',
+              headerStyle: {
+                backgroundColor: COLORS.primary,
+              },
+              headerTintColor: COLORS.onPrimary,
+            }}
+          />
+          <Stack.Screen
+            name="Room"
+            component={MainTabNavigator}
+            options={({ route }) => ({
+              title: `Room ${(route.params as any)?.roomId}`,
+              headerShown: false,
+            })}
+          />
+          <Stack.Screen
+            name="Detail"
+            component={DetailScreen}
+            options={{
+              title: 'Détails',
+              presentation: 'modal',
+            }}
+          />
+          <Stack.Screen
+            name="Loading"
+            component={LoadingScreen}
+            options={{
+              headerShown: false,
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  } catch (error) {
+    console.error('AppNavigator: Error creating navigation:', error);
+    return <LoadingScreen />;
+  }
 }
 
 export default AppNavigator;
