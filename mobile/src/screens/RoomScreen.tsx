@@ -20,12 +20,14 @@ const MediaItemCard = ({
   item, 
   onSwipe, 
   statusOrder, 
-  renderMediaPoster 
+  renderMediaPoster,
+  currentTab
 }: { 
   item: WatchlistItem; 
   onSwipe: (id: number, direction: 'left' | 'right') => void;
   statusOrder: readonly string[];
   renderMediaPoster: (item: WatchlistItem) => React.ReactNode;
+  currentTab: string;
 }) => {
   const statusConfig = {
     planned: { text: 'Prévu', color: MEDIA_STATUS.planned.color },
@@ -39,46 +41,96 @@ const MediaItemCard = ({
   const canLeft = currentIndex > 0;
   const canRight = currentIndex < statusOrder.length - 1;
   
+  // Déterminer les directions autorisées selon l'onglet actuel
+  const isSwipeAllowed = (direction: 'left' | 'right') => {
+    // Dans "À regarder" (planned), on peut seulement glisser à droite
+    if (currentTab === 'planned') {
+      return direction === 'right' && canRight;
+    }
+    // Dans "Terminé" (completed), on peut seulement glisser à gauche
+    if (currentTab === 'completed') {
+      return direction === 'left' && canLeft;
+    }
+    // Dans "En cours" (watching), on peut glisser dans les deux directions
+    if (currentTab === 'watching') {
+      return (direction === 'left' && canLeft) || (direction === 'right' && canRight);
+    }
+    return false;
+  };
+  
   // Animation values - persistent avec useRef
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
   const scale = useRef(new Animated.Value(1)).current;
   
+  // Seuil pour valider le swipe (plus accessible)
+  const SWIPE_THRESHOLD = 80;
+  
+  // Reset animation avec spring plus fluide
+  const resetAnimation = () => {
+    Animated.parallel([
+      Animated.spring(translateX, { 
+        toValue: 0, 
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }),
+      Animated.spring(opacity, { 
+        toValue: 1, 
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }),
+      Animated.spring(scale, { 
+        toValue: 1, 
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }),
+    ]).start();
+  };
+  
   // Trigger swipe animation
   const triggerSwipeAnimation = (direction: 'left' | 'right') => {
-    const targetX = direction === 'right' ? 300 : -300;
+    const targetX = direction === 'right' ? 350 : -350;
     
-    // Animation de sortie
+    // Animation de sortie plus fluide
     Animated.parallel([
       Animated.timing(translateX, {
         toValue: targetX,
-        duration: 300,
+        duration: 250,
         useNativeDriver: true,
       }),
       Animated.timing(opacity, {
-        toValue: 0.3,
-        duration: 300,
+        toValue: 0.2,
+        duration: 250,
         useNativeDriver: true,
       }),
       Animated.timing(scale, {
-        toValue: 0.8,
-        duration: 300,
+        toValue: 0.75,
+        duration: 250,
         useNativeDriver: true,
       }),
     ]).start(() => {
-      // Animation de retour
+      // Animation de retour plus rapide
       Animated.parallel([
         Animated.spring(translateX, {
           toValue: 0,
           useNativeDriver: true,
+          tension: 120,
+          friction: 9,
         }),
         Animated.spring(opacity, {
           toValue: 1,
           useNativeDriver: true,
+          tension: 120,
+          friction: 9,
         }),
         Animated.spring(scale, {
           toValue: 1,
           useNativeDriver: true,
+          tension: 120,
+          friction: 9,
         }),
       ]).start();
     });
@@ -86,42 +138,56 @@ const MediaItemCard = ({
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (evt, gestureState) => {
-      return Math.abs(gestureState.dx) > 20;
+      return Math.abs(gestureState.dx) > 10;
+    },
+    onPanResponderGrant: () => {
+      // Petit feedback visuel au début du geste
+      Animated.spring(scale, {
+        toValue: 0.98,
+        useNativeDriver: true,
+        tension: 150,
+        friction: 10,
+      }).start();
     },
     onPanResponderMove: (evt, gestureState) => {
+      const direction = gestureState.dx > 0 ? 'right' : 'left';
+      
+      // Limiter le mouvement selon les règles de l'onglet
+      if (!isSwipeAllowed(direction)) {
+        // Résistance progressive si le mouvement n'est pas autorisé
+        const resistance = Math.sign(gestureState.dx) * Math.min(Math.abs(gestureState.dx) * 0.2, 30);
+        translateX.setValue(resistance);
+        return;
+      }
+      
+      // Mouvement fluide pour les directions autorisées
       translateX.setValue(gestureState.dx);
       
-      // Scale effect based on drag distance
-      const dragPercent = Math.abs(gestureState.dx) / 100;
-      scale.setValue(Math.max(0.95, 1 - dragPercent * 0.05));
+      // Effets visuels progressifs
+      const dragPercent = Math.min(Math.abs(gestureState.dx) / 150, 1);
       
-      // Opacity effect
-      opacity.setValue(Math.max(0.7, 1 - dragPercent * 0.3));
+      // Scale effect plus subtil
+      scale.setValue(Math.max(0.96, 1 - dragPercent * 0.04));
+      
+      // Opacity effect plus subtil
+      opacity.setValue(Math.max(0.8, 1 - dragPercent * 0.2));
     },
     onPanResponderRelease: (evt, gestureState) => {
-      if (Math.abs(gestureState.dx) > 100) {
-        if (gestureState.dx > 0 && canRight) {
-          triggerSwipeAnimation('right');
-          setTimeout(() => onSwipe(item.id, 'right'), 100);
-        } else if (gestureState.dx < 0 && canLeft) {
-          triggerSwipeAnimation('left');
-          setTimeout(() => onSwipe(item.id, 'left'), 100);
-        } else {
-          // Reset animation if swipe is not valid
-          Animated.parallel([
-            Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
-            Animated.spring(opacity, { toValue: 1, useNativeDriver: true }),
-            Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
-          ]).start();
-        }
+      const direction = gestureState.dx > 0 ? 'right' : 'left';
+      const distance = Math.abs(gestureState.dx);
+      
+      if (distance > SWIPE_THRESHOLD && isSwipeAllowed(direction)) {
+        // Swipe valide
+        triggerSwipeAnimation(direction);
+        setTimeout(() => onSwipe(item.id, direction), 50);
       } else {
-        // Reset animation if swipe is not strong enough
-        Animated.parallel([
-          Animated.spring(translateX, { toValue: 0, useNativeDriver: true }),
-          Animated.spring(opacity, { toValue: 1, useNativeDriver: true }),
-          Animated.spring(scale, { toValue: 1, useNativeDriver: true }),
-        ]).start();
+        // Swipe annulé - retour à la position initiale
+        resetAnimation();
       }
+    },
+    onPanResponderTerminate: () => {
+      // En cas d'interruption, retour à la position initiale
+      resetAnimation();
     },
   });
 
@@ -149,6 +215,18 @@ const MediaItemCard = ({
           <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
             <Text style={styles.badgeText}>{statusBadge.text}</Text>
           </View>
+          {/* Indicateur visuel discret de la direction possible */}
+          {currentTab === 'planned' && canRight && (
+            <Text style={styles.swipeHint}>→</Text>
+          )}
+          {currentTab === 'completed' && canLeft && (
+            <Text style={styles.swipeHint}>←</Text>
+          )}
+          {currentTab === 'watching' && (
+            <Text style={styles.swipeHint}>
+              {canLeft && canRight ? '← →' : canLeft ? '←' : canRight ? '→' : ''}
+            </Text>
+          )}
         </View>
       </View>
     </Animated.View>
@@ -389,7 +467,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   const renderMediaItem = (item: WatchlistItem) => {
-    return <MediaItemCard key={item.id} item={item} onSwipe={handleSwipe} statusOrder={statusOrder} renderMediaPoster={renderMediaPoster} />;
+    return <MediaItemCard key={item.id} item={item} onSwipe={handleSwipe} statusOrder={statusOrder} renderMediaPoster={renderMediaPoster} currentTab={currentTab} />;
   };
 
   const renderEmptyState = () => (
@@ -576,6 +654,12 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xs,
     fontWeight: 'bold',
     color: COLORS.onPrimary,
+  },
+  swipeHint: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.placeholder,
+    fontWeight: '600',
+    marginLeft: SPACING.xs,
   },
   emptyState: {
     alignItems: 'center',
