@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { Image } from 'expo-image';
 import { RouteProp } from '@react-navigation/native';
@@ -80,6 +80,65 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [currentSearchQuery, setCurrentSearchQuery] = useState('');
+
+  // Fonction de recherche avec debounce
+  const performSearch = useCallback(async (query: string) => {
+    if (query.trim().length < 2) {
+      setSearchResults([]);
+      setCurrentSearchQuery('');
+      return;
+    }
+
+    // Éviter les recherches redondantes
+    if (currentSearchQuery === query) {
+      return;
+    }
+
+    const searchQuery = query.trim();
+    setCurrentSearchQuery(searchQuery);
+    setIsSearching(true);
+    
+    try {
+      console.log('SearchScreen: Performing search for:', searchQuery);
+      // Utiliser l'API réelle pour la recherche
+      const results = await apiService.searchMedia(searchQuery);
+      console.log('SearchScreen: Search results received:', results.length);
+      
+      // Vérifier si c'est toujours la recherche actuelle
+      if (currentSearchQuery === searchQuery || searchQuery === query.trim()) {
+        setSearchResults(results);
+      }
+    } catch (error) {
+      console.error('Error searching media:', error);
+      
+      // Vérifier si c'est toujours la recherche actuelle  
+      if (currentSearchQuery === searchQuery || searchQuery === query.trim()) {
+        // En cas d'erreur, utiliser les données mock comme fallback
+        const filteredResults = mockSearchResults.filter(item =>
+          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          item.genre?.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+        setSearchResults(filteredResults);
+        
+        Alert.alert(
+          'Mode hors ligne',
+          'Recherche effectuée avec les données locales. Vérifiez votre connexion pour accéder à plus de résultats.'
+        );
+      }
+    } finally {
+      setIsSearching(false);
+    }
+  }, [currentSearchQuery]);
+
+  // Debounce hook pour éviter de surcharger l'API
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 500); // Délai de 500ms pour éviter trop de requêtes
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, performSearch]);
 
   const handleImageError = (itemId: number) => {
     setImageErrors(prev => new Set([...prev, itemId]));
@@ -112,37 +171,6 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
         </Text>
       </View>
     );
-  };
-
-  const handleSearch = async () => {
-    if (searchQuery.trim().length < 2) {
-      Alert.alert('Erreur', 'Veuillez entrer au moins 2 caractères pour effectuer une recherche.');
-      return;
-    }
-
-    setIsSearching(true);
-    
-    try {
-      // Utiliser l'API réelle pour la recherche
-      const results = await apiService.searchMedia(searchQuery);
-      setSearchResults(results);
-    } catch (error) {
-      console.error('Error searching media:', error);
-      
-      // En cas d'erreur, utiliser les données mock comme fallback
-      const filteredResults = mockSearchResults.filter(item =>
-        item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.genre?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setSearchResults(filteredResults);
-      
-      Alert.alert(
-        'Mode hors ligne',
-        'Recherche effectuée avec les données locales. Vérifiez votre connexion pour accéder à plus de résultats.'
-      );
-    } finally {
-      setIsSearching(false);
-    }
   };
 
   const handleAddToWatchlist = async (media: SearchResult) => {
@@ -218,33 +246,41 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Rechercher des films, séries, manga..."
+          placeholder="Tapez pour rechercher (min. 2 caractères)..."
           placeholderTextColor={COLORS.placeholder}
           value={searchQuery}
           onChangeText={setSearchQuery}
-          onSubmitEditing={handleSearch}
           returnKeyType="search"
+          autoCapitalize="none"
+          autoCorrect={false}
         />
         <TouchableOpacity
           style={styles.searchButton}
-          onPress={handleSearch}
           disabled={isSearching}
         >
           <Text style={styles.searchButtonText}>
-            {isSearching ? '🔍' : '🔎'}
+            {isSearching ? '⏳' : '🔎'}
           </Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.resultsContainer} showsVerticalScrollIndicator={false}>
-        {searchResults.length > 0 ? (
+        {isSearching ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyIcon}>⏳</Text>
+            <Text style={styles.emptyTitle}>Recherche en cours...</Text>
+            <Text style={styles.emptyMessage}>
+              Veuillez patienter
+            </Text>
+          </View>
+        ) : searchResults.length > 0 ? (
           <View>
             <Text style={styles.resultsTitle}>
               {searchResults.length} résultat{searchResults.length > 1 ? 's' : ''} trouvé{searchResults.length > 1 ? 's' : ''}
             </Text>
             {searchResults.map(renderSearchResult)}
           </View>
-        ) : searchQuery.length > 0 && !isSearching ? (
+        ) : searchQuery.length > 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>🔍</Text>
             <Text style={styles.emptyTitle}>Aucun résultat</Text>

@@ -24,6 +24,19 @@ class ItemController {
         note 
       } = req.body;
 
+      console.log('ItemController: Adding item to room:', roomId);
+      console.log('ItemController: Request body:', JSON.stringify(req.body, null, 2));
+      console.log('ItemController: Extracted fields:', {
+        item_id,
+        external_id,
+        title,
+        type,
+        description,
+        image_url,
+        release_date,
+        note
+      });
+
       // Check if room exists
       const room = await this.prisma.room.findUnique({
         where: { roomId }
@@ -136,8 +149,13 @@ class ItemController {
       const { roomId, itemId } = req.params;
       const { status } = req.body;
 
+      console.log('ItemController: Updating item status');
+      console.log('ItemController: roomId:', roomId, 'itemId:', itemId);
+      console.log('ItemController: New status:', status);
+
       const validStatuses = ['a_voir', 'en_cours', 'vu'];
       if (!validStatuses.includes(status)) {
+        console.log('ItemController: Invalid status:', status);
         return res.status(400).json({ error: 'Invalid status' });
       }
 
@@ -147,8 +165,11 @@ class ItemController {
       });
 
       if (!room) {
+        console.log('ItemController: Room not found:', roomId);
         return res.status(404).json({ error: 'Room not found' });
       }
+
+      console.log('ItemController: Room found:', room.id);
 
       // Check if item is in the room
       const itemInRoom = await this.prisma.itemInRoom.findUnique({
@@ -161,14 +182,19 @@ class ItemController {
       });
 
       if (!itemInRoom) {
+        console.log('ItemController: Item not found in room. Room ID:', room.id, 'Item ID:', parseInt(itemId));
         return res.status(404).json({ error: 'Item not found in room' });
       }
+
+      console.log('ItemController: Item found in room, updating status...');
 
       // Update item status
       const updatedItem = await this.prisma.item.update({
         where: { id: parseInt(itemId) },
         data: { status }
       });
+
+      console.log('ItemController: Item status updated successfully');
 
       res.json({
         id: updatedItem.id,

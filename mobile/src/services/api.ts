@@ -201,7 +201,20 @@ class ApiService {
       return Promise.resolve(newItem);
     }
     
-    const response = await this.client.post<any>(`/items/rooms/${roomId}/items`, mediaData);
+    // Mapper les champs du mobile vers le format serveur
+    const serverData = {
+      title: mediaData.title,
+      type: mediaData.type === 'series' ? 'tv' : mediaData.type, // Transformer 'series' en 'tv'
+      external_id: mediaData.tmdbId ? `tmdb_${mediaData.tmdbId}` : undefined,
+      description: mediaData.description,
+      image_url: mediaData.posterUrl, // Mapper posterUrl vers image_url
+      release_date: mediaData.year ? `${mediaData.year}-01-01` : undefined,
+      note: mediaData.rating,
+    };
+    
+    console.log('API: Adding item to room with data:', serverData);
+    
+    const response = await this.client.post<any>(`/rooms/${roomId}/items`, serverData);
     
     // Transformer la réponse vers le format attendu
     return {
@@ -251,7 +264,7 @@ class ApiService {
     }
     
     const backendStatus = this.transformStatusToBackend(status);
-    const url = `/items/rooms/${roomId}/items/${itemId}/status`;
+    const url = `/rooms/${roomId}/items/${itemId}/status`;
     console.log('API: updateItemStatus URL:', this.client.defaults.baseURL + url);
     console.log('API: updateItemStatus payload:', { status: backendStatus });
     console.log('API: Mobile status:', status, '→ Backend status:', backendStatus);
@@ -284,7 +297,7 @@ class ApiService {
       return Promise.resolve();
     }
     
-    await this.client.delete(`/items/rooms/${roomId}/items/${itemId}`);
+    await this.client.delete(`/rooms/${roomId}/items/${itemId}`);
   }
 
   // === WATCHLIST ===
@@ -387,25 +400,8 @@ class ApiService {
       return mockApiService.searchMedia(query, type);
     }
     
-    // Transformer les types de l'application mobile vers l'API backend
-    let searchType = 'movie'; // valeur par défaut
-    if (type) {
-      switch (type) {
-        case 'movie':
-          searchType = 'movie';
-          break;
-        case 'series':
-          searchType = 'tv'; // Backend utilise 'tv' au lieu de 'series'
-          break;
-        case 'manga':
-          searchType = 'manga';
-          break;
-        default:
-          searchType = 'movie';
-      }
-    }
-    
-    const url = `/search/autocomplete/${searchType}/${encodeURIComponent(query)}`;
+    // Nouvelle API unifiée - cherche dans tous les types
+    const url = `/search/autocomplete/${encodeURIComponent(query)}`;
     console.log('API: searchMedia URL:', this.client.defaults.baseURL + url);
     
     const response = await this.client.get<{query: string, type: string, results: any[]}>(url);
@@ -413,15 +409,18 @@ class ApiService {
     // Transformer les résultats vers le format attendu par l'application mobile
     const transformedResults: SearchResult[] = response.data.results.map(item => {
       const tmdbId = this.extractTmdbId(item.external_id);
+      // Générer un ID unique pour l'affichage, même si tmdbId est undefined
+      const displayId = tmdbId || Math.floor(Math.random() * 1000000);
+      
       return {
-        id: tmdbId || 0,
+        id: displayId,
         title: item.title,
         type: item.type === 'tv' ? 'series' : item.type, // Transformer 'tv' en 'series'
         year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
         genre: undefined, // L'API ne retourne pas le genre dans cette réponse
         description: item.description,
         posterUrl: item.image_url,
-        rating: undefined, // L'API ne retourne pas le rating dans cette réponse
+        rating: item.rating || undefined,
         tmdbId: tmdbId,
       };
     });

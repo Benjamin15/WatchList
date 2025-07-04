@@ -1,67 +1,45 @@
 const { PrismaClient } = require('@prisma/client');
 const TMDBService = require('./tmdbService');
-const MALService = require('./malService');
 
 class SearchService {
   constructor() {
     this.prisma = new PrismaClient();
     this.tmdbService = new TMDBService();
-    this.malService = new MALService();
   }
 
   /**
-   * Search for items locally in the database
-   * @param {string} type - Type of content (movie, tv, manga)
+   * Search for items externally via TMDB (movies and TV shows)
    * @param {string} query - Search query
-   * @returns {Promise<Array>} Array of local results
+   * @returns {Promise<Array>} Array of external results sorted by popularity then rating
    */
-  async searchLocal(type, query) {
+  async searchExternal(query) {
     try {
-      const items = await this.prisma.item.findMany({
-        where: {
-          type: type,
-          title: {
-            contains: query
-          }
-        },
-        take: 10
+      const [movieResults, tvResults] = await Promise.all([
+        this.tmdbService.searchMovies(query),
+        this.tmdbService.searchTVShows(query)
+      ]);
+
+      // Combine movies and TV shows
+      const allResults = [...(movieResults || []), ...(tvResults || [])];
+      
+      // Sort by popularity (descending) then by rating (descending)
+      const sortedResults = allResults.sort((a, b) => {
+        // First sort by popularity (descending)
+        if (b.popularity !== a.popularity) {
+          return b.popularity - a.popularity;
+        }
+        
+        // If popularity is the same, sort by rating (descending)
+        if (b.rating !== a.rating) {
+          return b.rating - a.rating;
+        }
+        
+        // If both are the same, sort by vote count (descending)
+        return (b.vote_count || 0) - (a.vote_count || 0);
       });
 
-      return items.map(item => ({
-        item_id: item.id,
-        title: item.title,
-        type: item.type,
-        external_id: item.externalId,
-        description: item.description,
-        image_url: item.imageUrl,
-        release_date: item.releaseDate,
-        note: item.note,
-        in_database: true
-      }));
-    } catch (error) {
-      console.error('Local search error:', error.message);
-      return [];
-    }
-  }
-
-  /**
-   * Search for items externally via APIs
-   * @param {string} type - Type of content (movie, tv, manga)
-   * @param {string} query - Search query
-   * @returns {Promise<Array>} Array of external results
-   */
-  async searchExternal(type, query) {
-    try {
-      switch (type) {
-        case 'movie':
-          return await this.tmdbService.searchMovies(query);
-        case 'tv':
-          return await this.tmdbService.searchTVShows(query);
-        case 'manga':
-          return await this.malService.searchManga(query);
-        default:
-          return [];
-      }
+      // Return first 10 results, now sorted by popularity and rating
+      return sortedResults.slice(0, 10);
     } catch (error) {
       console.error('External search error:', error.message);
       return [];
@@ -69,32 +47,26 @@ class SearchService {
   }
 
   /**
-   * Combined search: local first, then external
-   * @param {string} type - Type of content (movie, tv, manga)
+   * Search only on TMDB (no local cache)
    * @param {string} query - Search query
-   * @returns {Promise<Array>} Array of combined results
+   * @returns {Promise<Array>} Array of TMDB results sorted by popularity and rating
    */
-  async searchAutocomplete(type, query) {
+  async searchAutocomplete(query) {
     try {
-      // Search locally first
-      const localResults = await this.searchLocal(type, query);
+      console.log('SearchService: Searching on TMDB only for:', query);
       
-      // If we have enough local results, return them
-      if (localResults.length >= 5) {
-        return localResults.slice(0, 10);
-      }
-
-      // Otherwise, supplement with external results
-      const externalResults = await this.searchExternal(type, query);
+      // Get external results from TMDB (already sorted by popularity and rating)
+      const externalResults = await this.searchExternal(query);
+      console.log('SearchService: TMDB results:', externalResults.length);
       
-      // Filter out external results that already exist locally
-      const filteredExternalResults = (externalResults || []).filter(external => 
-        !localResults.some(local => local.external_id === external.external_id)
-      );
-
-      // Combine and limit results
-      const combined = [...localResults, ...filteredExternalResults];
-      return combined.slice(0, 10);
+      // Return TMDB results directly (already limited to 10 and sorted)
+      const finalResults = externalResults;
+      
+      console.log('SearchService: Final results count:', finalResults.length);
+      console.log('SearchService: Final results types:', finalResults.map(r => r.type));
+      console.log('SearchService: Final results popularity:', finalResults.map(r => ({ title: r.title, popularity: r.popularity, rating: r.rating })));
+      
+      return finalResults;
     } catch (error) {
       console.error('Autocomplete search error:', error.message);
       return [];

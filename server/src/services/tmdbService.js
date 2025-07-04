@@ -28,6 +28,9 @@ class TMDBService {
         description: movie.overview,
         image_url: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
         release_date: movie.release_date,
+        popularity: movie.popularity || 0,
+        rating: movie.vote_average || 0,
+        vote_count: movie.vote_count || 0,
         in_database: false
       }));
     } catch (error) {
@@ -43,6 +46,9 @@ class TMDBService {
    */
   async searchTVShows(query) {
     try {
+      console.log('TMDBService: Searching TV shows for:', query);
+      console.log('TMDBService: API Key available:', !!this.apiKey);
+      
       const response = await axios.get(`${this.baseUrl}/search/tv`, {
         params: {
           api_key: this.apiKey,
@@ -51,6 +57,9 @@ class TMDBService {
         }
       });
 
+      console.log('TMDBService: TV API response status:', response.status);
+      console.log('TMDBService: TV results count:', response.data.results?.length || 0);
+
       return response.data.results.map(show => ({
         external_id: `tmdb_${show.id}`,
         title: show.name,
@@ -58,10 +67,14 @@ class TMDBService {
         description: show.overview,
         image_url: show.poster_path ? `https://image.tmdb.org/t/p/w500${show.poster_path}` : null,
         release_date: show.first_air_date,
+        popularity: show.popularity || 0,
+        rating: show.vote_average || 0,
+        vote_count: show.vote_count || 0,
         in_database: false
       }));
     } catch (error) {
       console.error('TMDB TV search error:', error.message);
+      console.error('TMDB TV search error details:', error.response?.data);
       return [];
     }
   }
