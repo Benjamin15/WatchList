@@ -42,6 +42,7 @@ const MediaDetailScreen: React.FC = () => {
     'status' in media ? media.status || 'planned' : 'planned'
   );
   const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [watchlistItem, setWatchlistItem] = useState<any>(null);
   
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -98,6 +99,7 @@ const MediaDetailScreen: React.FC = () => {
   
   useEffect(() => {
     loadMediaDetails();
+    checkIfInWatchlist();
     // Animation d'entrée
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -152,6 +154,22 @@ const MediaDetailScreen: React.FC = () => {
     }
   };
   
+  const checkIfInWatchlist = async () => {
+    try {
+      if (!roomId || !tmdbId) return;
+      
+      const result = await apiService.checkItemInRoom(roomId, tmdbId);
+      setIsInWatchlist(result.isInWatchlist);
+      
+      if (result.item) {
+        setWatchlistItem(result.item);
+        setCurrentStatus(result.item.status);
+      }
+    } catch (error) {
+      console.error('[MediaDetailScreen] Erreur vérification watchlist:', error);
+    }
+  };
+  
   const handleAddToWatchlist = async () => {
     try {
       if (!roomId) {
@@ -186,15 +204,21 @@ const MediaDetailScreen: React.FC = () => {
   
   const handleStatusChange = async (newStatus: string) => {
     try {
-      if (!roomId || !media.id) {
+      if (!roomId || !watchlistItem) {
         Alert.alert('Erreur', 'Impossible de changer le statut');
         return;
       }
       
-      await apiService.updateItemStatus(roomId, media.id, newStatus as 'watching' | 'completed' | 'planned' | 'dropped');
+      await apiService.updateItemStatus(roomId, watchlistItem.id, newStatus as 'watching' | 'completed' | 'planned' | 'dropped');
       setCurrentStatus(newStatus);
       
-      Alert.alert('Succès', 'Statut mis à jour !');
+      // Mettre à jour l'item local
+      setWatchlistItem({
+        ...watchlistItem,
+        status: newStatus
+      });
+      
+      console.log(`[MediaDetailScreen] Statut mis à jour: ${newStatus}`);
     } catch (err) {
       console.error('[MediaDetailScreen] Erreur mise à jour statut:', err);
       Alert.alert('Erreur', 'Impossible de mettre à jour le statut');
@@ -369,32 +393,37 @@ const MediaDetailScreen: React.FC = () => {
                 <Text style={styles.addButtonText}>Ajouter à ma liste</Text>
               </TouchableOpacity>
             ) : (
-              <View style={styles.statusContainer}>
-                <Text style={styles.statusLabel}>Statut :</Text>
-                <TouchableOpacity
-                  style={styles.statusButton}
-                  onPress={() => {
-                    Alert.alert(
-                      'Changer le statut',
-                      'Sélectionnez un nouveau statut',
-                      [
-                        { text: 'À regarder', onPress: () => handleStatusChange('planned') },
-                        { text: 'En cours', onPress: () => handleStatusChange('watching') },
-                        { text: 'Terminé', onPress: () => handleStatusChange('completed') },
-                        { text: 'Abandonné', onPress: () => handleStatusChange('dropped') },
-                        { text: 'Annuler', style: 'cancel' }
-                      ]
-                    );
-                  }}
-                >
-                  <Text style={styles.statusText}>
-                    {currentStatus === 'planned' ? 'À regarder' :
-                     currentStatus === 'watching' ? 'En cours' :
-                     currentStatus === 'completed' ? 'Terminé' :
-                     currentStatus === 'dropped' ? 'Abandonné' : currentStatus}
-                  </Text>
-                  <Ionicons name="chevron-down" size={16} color="#007AFF" />
-                </TouchableOpacity>
+              <View style={styles.statusSection}>
+                <Text style={styles.statusSectionTitle}>Statut dans ma liste</Text>
+                <View style={styles.statusOptions}>
+                  {[
+                    { key: 'planned', label: 'À regarder', icon: 'bookmark-outline', color: '#FF9500' },
+                    { key: 'watching', label: 'En cours', icon: 'play-circle-outline', color: '#007AFF' },
+                    { key: 'completed', label: 'Terminé', icon: 'checkmark-circle-outline', color: '#34C759' },
+                    { key: 'dropped', label: 'Abandonné', icon: 'close-circle-outline', color: '#FF3B30' }
+                  ].map((statusOption) => (
+                    <TouchableOpacity
+                      key={statusOption.key}
+                      style={[
+                        styles.statusOption,
+                        currentStatus === statusOption.key && [styles.statusOptionActive, { borderColor: statusOption.color }]
+                      ]}
+                      onPress={() => handleStatusChange(statusOption.key)}
+                    >
+                      <Ionicons 
+                        name={statusOption.icon as any} 
+                        size={20} 
+                        color={currentStatus === statusOption.key ? statusOption.color : '#666'} 
+                      />
+                      <Text style={[
+                        styles.statusOptionText,
+                        currentStatus === statusOption.key && [styles.statusOptionTextActive, { color: statusOption.color }]
+                      ]}>
+                        {statusOption.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
               </View>
             )}
           </View>
@@ -686,6 +715,45 @@ const styles = StyleSheet.create({
   detailValue: {
     color: '#ccc',
     flex: 1,
+  },
+  statusSection: {
+    marginBottom: 20,
+  },
+  statusSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: 'white',
+    marginBottom: 12,
+  },
+  statusOptions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  statusOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#444',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    marginBottom: 8,
+    minWidth: '48%',
+  },
+  statusOptionActive: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderWidth: 2,
+  },
+  statusOptionText: {
+    color: '#ccc',
+    marginLeft: 8,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  statusOptionTextActive: {
+    fontWeight: '600',
   },
 });
 

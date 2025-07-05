@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Pressable, Text } from 'react-native';
 import { RootStackParamList } from '../types';
 import HomeScreen from '../screens/HomeScreen';
 import RoomScreen from '../screens/RoomScreen';
@@ -37,8 +38,42 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen
           name="Room"
           component={RoomScreen}
-          options={({ route }) => ({
+          options={({ route, navigation }) => ({
             title: route.params?.roomName || 'Room',
+            headerRight: () => (
+              <Pressable
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                  borderRadius: 20,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: 'rgba(0, 0, 0, 0.1)',
+                }}
+                onPress={() => {
+                  // Fonction de partage depuis les paramètres de route
+                  const { roomId, roomName } = route.params || {};
+                  if (roomId && roomName) {
+                    import('react-native').then(({ Share, Alert }) => {
+                      const shareContent = {
+                        title: 'Rejoignez ma WatchList !',
+                        message: `🎬 Rejoignez ma room "${roomName}" !\n\nCode d'accès : ${roomId}\n\nPartagez et découvrez des films et séries ensemble ! 🍿`,
+                        url: `watchlist://room/${roomId}`,
+                      };
+                      
+                      Share.share(shareContent).catch((error) => {
+                        console.error('Erreur lors du partage:', error);
+                        Alert.alert('Erreur', 'Impossible de partager la room');
+                      });
+                    });
+                  }
+                }}
+              >
+                <Text style={{ fontSize: 18 }}>📤</Text>
+              </Pressable>
+            ),
           })}
         />
         <Stack.Screen

@@ -134,6 +134,24 @@ class ApiService {
     return transformedItems;
   }
 
+  // Méthode pour vérifier si un média est déjà dans la watchlist
+  async checkItemInRoom(roomId: number | string, tmdbId: number): Promise<{ isInWatchlist: boolean, item?: WatchlistItem }> {
+    try {
+      const items = await this.getRoomItems(roomId);
+      
+      // Chercher le média par TMDB ID
+      const existingItem = items.find(item => item.media.tmdbId === tmdbId);
+      
+      return {
+        isInWatchlist: !!existingItem,
+        item: existingItem
+      };
+    } catch (error) {
+      console.error('[API] Erreur lors de la vérification du média dans la room:', error);
+      return { isInWatchlist: false };
+    }
+  }
+
   // Méthode pour transformer les statuts de l'API backend vers l'application mobile
   private transformStatus(backendStatus: string): 'planned' | 'watching' | 'completed' | 'dropped' {
     switch (backendStatus) {

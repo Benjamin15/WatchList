@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated, Share } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated } from 'react-native';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -484,28 +484,6 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     navigation.navigate('Detail', { media: item.media, roomId });
   };
 
-  // Fonction pour partager la room
-  const handleShareRoom = async () => {
-    try {
-      const shareContent = {
-        title: 'Rejoignez ma WatchList !',
-        message: `🎬 Rejoignez ma room "${roomName}" !\n\nCode d'accès : ${roomCode}\n\nPartagez et découvrez des films et séries ensemble ! 🍿`,
-        url: `watchlist://room/${roomCode}`, // Deep link pour ouvrir directement la room
-      };
-
-      const result = await Share.share(shareContent);
-      
-      if (result.action === Share.sharedAction) {
-        console.log('Room partagée avec succès');
-      } else if (result.action === Share.dismissedAction) {
-        console.log('Partage annulé');
-      }
-    } catch (error) {
-      console.error('Erreur lors du partage:', error);
-      Alert.alert('Erreur', 'Impossible de partager la room');
-    }
-  };
-
   const renderMediaPoster = (item: WatchlistItem) => {
     const hasImageError = imageErrors.has(item.id);
     const posterUrl = item.media.posterUrl;
@@ -685,15 +663,6 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.shareButton}
-          onPress={handleShareRoom}
-        >
-          <Text style={styles.shareButtonIcon}>📤</Text>
-        </TouchableOpacity>
-      </View>
-
       <View style={styles.tabs}>
         {[
           { key: 'planned', label: 'À regarder' },
@@ -742,13 +711,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    backgroundColor: COLORS.surface,
-    padding: SPACING.md,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-    alignItems: 'flex-end',
-  },
   tabs: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
@@ -775,24 +737,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: SPACING.md,
-  },
-  shareButton: {
-    width: 40,
-    height: 40,
-    backgroundColor: COLORS.surface,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-  },
-  shareButtonIcon: {
-    fontSize: 18,
   },
   hint: {
     backgroundColor: COLORS.surface,
