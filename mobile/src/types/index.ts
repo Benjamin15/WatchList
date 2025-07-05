@@ -54,7 +54,7 @@ export type StatusType = 'all' | 'watching' | 'completed' | 'planned' | 'dropped
 // Types pour la navigation
 export type RootStackParamList = {
   Home: undefined;
-  Room: { roomId: string };  // Changé de number à string pour utiliser room_id
+  Room: { roomId: string; roomName?: string };  // Ajout du roomName optionnel
   Search: { roomId: string }; // Changé de number à string pour cohérence
   Detail: { media: Media | SearchResult; roomId?: string }; // Changé de number à string pour cohérence
   Settings: { roomId: string }; // Changé de number à string pour cohérence

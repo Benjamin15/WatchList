@@ -38,7 +38,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       const room = await apiService.createRoom(roomName.trim());
       console.log('Room created successfully:', room);
       console.log('Navigating to Room with roomId:', room.room_id);
-      navigation.navigate('Room', { roomId: room.room_id });
+      navigation.navigate('Room', { roomId: room.room_id, roomName: room.name });
     } catch (error) {
       console.error('Error creating room:', error);
       Alert.alert('Erreur', 'Impossible de créer la room');
@@ -59,7 +59,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       const room = await apiService.joinRoom(roomCode.trim().toUpperCase());
       console.log('Room joined successfully:', room);
       console.log('Navigating to Room with roomId:', room.room_id);
-      navigation.navigate('Room', { roomId: room.room_id });
+      navigation.navigate('Room', { roomId: room.room_id, roomName: room.name });
     } catch (error) {
       console.error('Error joining room:', error);
       Alert.alert('Erreur', 'Room non trouvée');

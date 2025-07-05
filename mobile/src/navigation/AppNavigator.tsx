@@ -37,9 +37,9 @@ const AppNavigator: React.FC = () => {
         <Stack.Screen
           name="Room"
           component={RoomScreen}
-          options={{
-            title: 'Room',
-          }}
+          options={({ route }) => ({
+            title: route.params?.roomName || 'Room',
+          })}
         />
         <Stack.Screen
           name="Search"
