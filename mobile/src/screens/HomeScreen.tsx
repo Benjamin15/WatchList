@@ -181,14 +181,16 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <View style={styles.divider} />
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Rooms récentes</Text>
-              {roomsHistory.map((item) => (
+              {roomsHistory.map((item, index) => (
                 <TouchableOpacity
                   key={item.room_id}
                   style={styles.historyItem}
                   onPress={() => handleJoinFromHistory(item)}
                 >
                   <View style={styles.historyContent}>
-                    <Text style={styles.historyRoomName}>{item.name}</Text>
+                    <Text style={styles.historyRoomName}>
+                      {item.name || `Room ${index + 1}`}
+                    </Text>
                     <Text style={styles.historyRoomCode}>Code: {item.room_id}</Text>
                     <Text style={styles.historyLastJoined}>
                       Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR')}
@@ -278,6 +280,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.onSurface,
     marginBottom: SPACING.xs,
+    minHeight: 24, // Hauteur minimale pour éviter que le texte disparaisse
   },
   historyRoomCode: {
     fontSize: FONT_SIZES.sm,

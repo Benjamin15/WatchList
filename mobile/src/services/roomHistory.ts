@@ -34,30 +34,35 @@ class RoomHistoryService {
       const history = await this.getRoomsHistory();
       const now = new Date().toISOString();
       
+      // S'assurer que le nom n'est pas vide
+      const roomName = room.name?.trim() || `Room ${room.room_id}`;
+      
       // Vérifier si la room existe déjà
       const existingIndex = history.findIndex(item => item.room_id === room.room_id);
       
       if (existingIndex >= 0) {
-        // Mettre à jour la date de dernière connexion
+        // Mettre à jour la date de dernière connexion et le nom
         history[existingIndex].last_joined = now;
-        history[existingIndex].name = room.name; // Mettre à jour le nom au cas où il aurait changé
+        history[existingIndex].name = roomName;
+        console.log('[RoomHistoryService] Room mise à jour:', roomName);
       } else {
         // Ajouter la nouvelle room
         const newRoomHistory: RoomHistory = {
           id: room.id,
           room_id: room.room_id,
-          name: room.name,
+          name: roomName,
           created_at: room.created_at,
           last_joined: now
         };
         history.unshift(newRoomHistory);
+        console.log('[RoomHistoryService] Nouvelle room ajoutée:', roomName);
       }
       
       // Limiter à 10 rooms maximum dans l'historique
       const limitedHistory = history.slice(0, 10);
       
       await AsyncStorage.setItem(ROOMS_HISTORY_KEY, JSON.stringify(limitedHistory));
-      console.log('[RoomHistoryService] Room ajoutée à l\'historique:', room.name);
+      console.log('[RoomHistoryService] Historique sauvegardé avec', limitedHistory.length, 'rooms');
     } catch (error) {
       console.error('[RoomHistoryService] Erreur ajout historique:', error);
     }
