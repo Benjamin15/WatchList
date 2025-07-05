@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated, Share } from 'react-native';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -65,11 +65,12 @@ const MediaItemCard = ({
   const opacity = useRef(new Animated.Value(1)).current;
   const scale = useRef(new Animated.Value(1)).current;
   
-  // Seuils pour le swipe (ultra accessibles)
-  const SWIPE_THRESHOLD = 40; // Encore réduit de 50 à 40
-  const SWIPE_VELOCITY_THRESHOLD = 0.3; // Encore réduit de 0.5 à 0.3
-  const VISUAL_FEEDBACK_THRESHOLD = 20; // Réduit de 30 à 20 pour feedback plus précoce
-  const RESISTANCE_THRESHOLD = 60; // Limite de résistance pour directions non autorisées
+  // Seuils pour le swipe (ultra-ultra accessibles)
+  const SWIPE_THRESHOLD = 25; // Réduit drastiquement de 40 à 25
+  const SWIPE_VELOCITY_THRESHOLD = 0.15; // Réduit drastiquement de 0.3 à 0.15
+  const VISUAL_FEEDBACK_THRESHOLD = 10; // Réduit de 20 à 10 pour feedback immédiat
+  const RESISTANCE_THRESHOLD = 80; // Augmenté de 60 à 80 pour plus de tolérance
+  const ACTIVATION_THRESHOLD = 1; // Nouveau seuil ultra-bas pour activation
   
   // Reset animation avec spring plus fluide et plus rapide
   const resetAnimation = () => {
@@ -143,66 +144,68 @@ const MediaItemCard = ({
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (evt, gestureState) => {
-      // Condition encore plus permissive pour activer le pan responder
+      // Condition ultra-permissive pour activer le pan responder
       const horizontalMovement = Math.abs(gestureState.dx);
       const verticalMovement = Math.abs(gestureState.dy);
       
-      // Activer si mouvement horizontal > 2px ET (mouvement horizontal > 50% du vertical OU mouvement horizontal > 5px)
-      const shouldSet = horizontalMovement > 2 && (horizontalMovement > verticalMovement * 0.5 || horizontalMovement > 5);
+      // Activer si mouvement horizontal > 1px ET (mouvement horizontal > 30% du vertical OU mouvement horizontal > 3px)
+      const shouldSet = horizontalMovement > ACTIVATION_THRESHOLD && 
+        (horizontalMovement > verticalMovement * 0.3 || horizontalMovement > 3);
       
       console.log('[PanResponder] onMoveShouldSetPanResponder:', { 
         dx: gestureState.dx, 
         dy: gestureState.dy, 
         horizontalMovement,
         verticalMovement,
-        shouldSet 
+        shouldSet,
+        activationThreshold: ACTIVATION_THRESHOLD
       });
       return shouldSet;
     },
     onPanResponderGrant: () => {
       console.log('[PanResponder] onPanResponderGrant - Geste commencé');
-      // Feedback visuel immédiat plus marqué avec vibration tactile
+      // Feedback visuel immédiat ultra-marqué
       Animated.spring(scale, {
-        toValue: 0.98,
+        toValue: 0.99,
         useNativeDriver: true,
-        tension: 300,
-        friction: 10,
+        tension: 400,
+        friction: 12,
       }).start();
     },
     onPanResponderMove: (evt, gestureState) => {
       const direction = gestureState.dx > 0 ? 'right' : 'left';
       const distance = Math.abs(gestureState.dx);
       
-      // Limiter le mouvement selon les règles de l'onglet avec résistance progressive
+      // Limiter le mouvement selon les règles de l'onglet avec résistance très douce
       if (!isSwipeAllowed(direction)) {
-        // Résistance progressive plus douce avec limite
-        const resistance = Math.sign(gestureState.dx) * Math.min(Math.abs(gestureState.dx) * 0.25, RESISTANCE_THRESHOLD);
+        // Résistance progressive ultra-douce avec limite étendue
+        const resistance = Math.sign(gestureState.dx) * Math.min(Math.abs(gestureState.dx) * 0.2, RESISTANCE_THRESHOLD);
         translateX.setValue(resistance);
         
-        // Feedback visuel de résistance
+        // Feedback visuel de résistance très subtil
         const resistancePercent = Math.min(Math.abs(resistance) / RESISTANCE_THRESHOLD, 1);
-        scale.setValue(1 - resistancePercent * 0.02);
-        opacity.setValue(1 - resistancePercent * 0.1);
+        scale.setValue(1 - resistancePercent * 0.01);
+        opacity.setValue(1 - resistancePercent * 0.05);
         return;
       }
       
       // Mouvement fluide pour les directions autorisées
       translateX.setValue(gestureState.dx);
       
-      // Effets visuels progressifs avec feedback de validation plus précoce
-      const dragPercent = Math.min(distance / 100, 1);
+      // Effets visuels progressifs avec feedback de validation ultra-précoce
+      const dragPercent = Math.min(distance / 80, 1); // Réduit de 100 à 80
       const willValidate = distance > VISUAL_FEEDBACK_THRESHOLD;
       
-      // Scale effect avec feedback de validation plus marqué
+      // Scale effect avec feedback de validation ultra-marqué
       const targetScale = willValidate ? 
-        Math.max(0.90, 1 - dragPercent * 0.10) : // Plus marqué si va valider
-        Math.max(0.97, 1 - dragPercent * 0.03);  // Plus subtil sinon
+        Math.max(0.85, 1 - dragPercent * 0.15) : // Beaucoup plus marqué si va valider
+        Math.max(0.98, 1 - dragPercent * 0.02);  // Très subtil sinon
       scale.setValue(targetScale);
       
-      // Opacity effect avec feedback de validation plus marqué
+      // Opacity effect avec feedback de validation ultra-marqué
       const targetOpacity = willValidate ?
-        Math.max(0.65, 1 - dragPercent * 0.35) :  // Plus transparent si va valider
-        Math.max(0.90, 1 - dragPercent * 0.10);   // Moins transparent sinon
+        Math.max(0.5, 1 - dragPercent * 0.5) :   // Beaucoup plus transparent si va valider
+        Math.max(0.95, 1 - dragPercent * 0.05);  // Très subtil sinon
       opacity.setValue(targetOpacity);
     },
     onPanResponderRelease: (evt, gestureState) => {
@@ -223,14 +226,15 @@ const MediaItemCard = ({
       
       // Valider le swipe si:
       // 1. Direction autorisée ET
-      // 2. (Distance > seuil OU vélocité > seuil OU distance > seuil très bas avec vélocité minimum)
+      // 2. (Distance > seuil ultra-bas OU vélocité > seuil ultra-bas OU distance > 15px avec vélocité minimum)
       const isValidSwipe = isSwipeAllowed(direction) && 
         (distance > SWIPE_THRESHOLD || 
          velocity > SWIPE_VELOCITY_THRESHOLD || 
-         (distance > 25 && velocity > 0.1)); // Seuil très bas pour gestes lents mais intentionnels
+         (distance > 15 && velocity > 0.05) || // Seuil ultra-bas pour gestes très lents
+         (distance > 20 && velocity > 0.01)); // Seuil extrêmement bas pour gestes très intentionnels
       
       if (isValidSwipe) {
-        // Swipe valide - feedback haptique
+        // Swipe valide
         console.log('[PanResponder] Swipe valide - déclenchement animation');
         triggerSwipeAnimation(direction);
         setTimeout(() => onSwipe(item.id, direction), 50);
@@ -260,19 +264,19 @@ const MediaItemCard = ({
       ]} 
       {...panResponder.panHandlers}
     >
-      {/* Indicateurs de swipe à gauche et à droite avec seuils plus bas */}
+      {/* Indicateurs de swipe à gauche et à droite avec seuils ultra-bas */}
       <Animated.View style={[
         styles.swipeIndicatorLeft,
         {
           opacity: translateX.interpolate({
-            inputRange: [-60, -15, 0],
-            outputRange: [1, 0.3, 0],
+            inputRange: [-40, -8, 0],
+            outputRange: [1, 0.2, 0],
             extrapolate: 'clamp',
           }),
           transform: [{
             scale: translateX.interpolate({
-              inputRange: [-60, -15, 0],
-              outputRange: [1.2, 0.8, 0.5],
+              inputRange: [-40, -8, 0],
+              outputRange: [1.3, 0.7, 0.4],
               extrapolate: 'clamp',
             })
           }]
@@ -293,14 +297,14 @@ const MediaItemCard = ({
         styles.swipeIndicatorRight,
         {
           opacity: translateX.interpolate({
-            inputRange: [0, 15, 60],
-            outputRange: [0, 0.3, 1],
+            inputRange: [0, 8, 40],
+            outputRange: [0, 0.2, 1],
             extrapolate: 'clamp',
           }),
           transform: [{
             scale: translateX.interpolate({
-              inputRange: [0, 15, 60],
-              outputRange: [0.5, 0.8, 1.2],
+              inputRange: [0, 8, 40],
+              outputRange: [0.4, 0.7, 1.3],
               extrapolate: 'clamp',
             })
           }]
@@ -331,6 +335,20 @@ const MediaItemCard = ({
           <View style={styles.footer}>
             <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
               <Text style={styles.badgeText}>{statusBadge.text}</Text>
+            </View>
+            {/* Indicateur visuel permanent plus visible */}
+            <View style={styles.swipeHintContainer}>
+              {currentTab === 'planned' && canRight && (
+                <Text style={styles.swipeHintPermanent}>👉 Glisser</Text>
+              )}
+              {currentTab === 'completed' && canLeft && (
+                <Text style={styles.swipeHintPermanent}>👈 Glisser</Text>
+              )}
+              {currentTab === 'watching' && (
+                <Text style={styles.swipeHintPermanent}>
+                  {canLeft && canRight ? '👈 👉 Glisser' : canLeft ? '👈 Glisser' : canRight ? '👉 Glisser' : ''}
+                </Text>
+              )}
             </View>
             {/* Indicateur visuel discret de la direction possible */}
             {currentTab === 'planned' && canRight && (
@@ -464,6 +482,28 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   // Fonction pour naviguer vers les détails du média
   const handleViewMediaDetails = (item: WatchlistItem) => {
     navigation.navigate('Detail', { media: item.media, roomId });
+  };
+
+  // Fonction pour partager la room
+  const handleShareRoom = async () => {
+    try {
+      const shareContent = {
+        title: 'Rejoignez ma WatchList !',
+        message: `🎬 Rejoignez ma room "${roomName}" !\n\nCode d'accès : ${roomCode}\n\nPartagez et découvrez des films et séries ensemble ! 🍿`,
+        url: `watchlist://room/${roomCode}`, // Deep link pour ouvrir directement la room
+      };
+
+      const result = await Share.share(shareContent);
+      
+      if (result.action === Share.sharedAction) {
+        console.log('Room partagée avec succès');
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Partage annulé');
+      }
+    } catch (error) {
+      console.error('Erreur lors du partage:', error);
+      Alert.alert('Erreur', 'Impossible de partager la room');
+    }
   };
 
   const renderMediaPoster = (item: WatchlistItem) => {
@@ -646,8 +686,19 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.roomTitle}>{roomName}</Text>
-        <Text style={styles.roomCode}>Code: {roomCode}</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.roomTitle}>{roomName}</Text>
+            <Text style={styles.roomCode}>Code: {roomCode}</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.shareButton}
+            onPress={handleShareRoom}
+          >
+            <Text style={styles.shareButtonIcon}>📤</Text>
+            <Text style={styles.shareButtonText}>Partager</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.tabs}>
@@ -703,7 +754,16 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+  },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    width: '100%',
+  },
+  headerLeft: {
+    flex: 1,
+    alignItems: 'flex-start',
   },
   roomTitle: {
     fontSize: FONT_SIZES.xl,
@@ -741,6 +801,29 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: SPACING.md,
+  },
+  shareButton: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    paddingVertical: SPACING.sm,
+    paddingHorizontal: SPACING.md,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  shareButtonIcon: {
+    fontSize: FONT_SIZES.lg,
+    marginRight: SPACING.xs,
+  },
+  shareButtonText: {
+    color: COLORS.onPrimary,
+    fontSize: FONT_SIZES.md,
+    fontWeight: 'bold',
   },
   hint: {
     backgroundColor: COLORS.surface,
@@ -918,6 +1001,19 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 70,
     lineHeight: 12,
+  },
+  swipeHintContainer: {
+    marginLeft: 'auto',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
+  swipeHintPermanent: {
+    fontSize: 10,
+    color: COLORS.primary,
+    fontWeight: '600',
+    opacity: 0.8,
   },
 });
 
