@@ -152,7 +152,10 @@ const MediaDetailScreen: React.FC = () => {
       setIsInWatchlist(true);
       setCurrentStatus('planned');
       
-      Alert.alert('Succès', 'Média ajouté à votre watchlist !');
+      console.log(`[MediaDetailScreenFixed] Média ajouté à la watchlist: ${media.title}`);
+      
+      // Retourner à l'écran précédent après l'ajout
+      navigation.goBack();
     } catch (err) {
       console.error('[MediaDetailScreen] Erreur ajout watchlist:', err);
       Alert.alert('Erreur', 'Impossible d\'ajouter le média à la watchlist');

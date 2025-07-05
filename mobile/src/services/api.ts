@@ -220,7 +220,7 @@ class ApiService {
     const serverData = {
       title: mediaData.title,
       type: mediaData.type === 'series' ? 'tv' : mediaData.type, // Transformer 'series' en 'tv'
-      external_id: mediaData.tmdbId ? `tmdb_${mediaData.tmdbId}` : undefined,
+      external_id: mediaData.tmdbId ? `tmdb_${mediaData.type === 'series' ? 'tv' : mediaData.type}_${mediaData.tmdbId}` : undefined,
       description: mediaData.description,
       image_url: mediaData.posterUrl, // Mapper posterUrl vers image_url
       release_date: mediaData.year ? `${mediaData.year}-01-01` : undefined,
@@ -247,7 +247,7 @@ class ApiService {
         description: response.data.description,
         posterUrl: response.data.image_url,
         rating: response.data.note,
-        tmdbId: response.data.external_id,
+        tmdbId: this.extractTmdbId(response.data.external_id), // Utiliser extractTmdbId pour convertir le format
         createdAt: response.data.created_at,
         updatedAt: response.data.created_at,
       },

@@ -353,7 +353,17 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const statusOrder = ['planned', 'watching', 'completed'] as const;
 
   const handleImageError = (itemId: number) => {
+    console.log(`[RoomScreen] Image error for item ${itemId}`);
     setImageErrors(prev => new Set([...prev, itemId]));
+  };
+
+  const retryImage = (itemId: number) => {
+    console.log(`[RoomScreen] Retrying image for item ${itemId}`);
+    setImageErrors(prev => {
+      const newSet = new Set(prev);
+      newSet.delete(itemId);
+      return newSet;
+    });
   };
 
   // Fonction pour naviguer vers les détails du média
@@ -364,6 +374,12 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const renderMediaPoster = (item: WatchlistItem) => {
     const hasImageError = imageErrors.has(item.id);
     const posterUrl = item.media.posterUrl;
+    
+    // Debug logs
+    console.log(`[RoomScreen] renderMediaPoster for ${item.media.title}:`);
+    console.log(`  - posterUrl: ${posterUrl}`);
+    console.log(`  - hasImageError: ${hasImageError}`);
+    console.log(`  - item.id: ${item.id}`);
     
     // Si on a une URL d'image et qu'il n'y a pas d'erreur, afficher l'image
     if (posterUrl && !hasImageError) {
@@ -379,13 +395,21 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       );
     }
 
-    // Sinon, afficher le fallback emoji
+    // Sinon, afficher le fallback emoji avec option de réessayer
     return (
       <View style={styles.poster}>
         <Text style={styles.posterEmoji}>
           {item.media.type === 'movie' ? '🎬' : 
            item.media.type === 'series' ? '📺' : '📚'}
         </Text>
+        {hasImageError && posterUrl && (
+          <TouchableOpacity 
+            style={styles.retryButton}
+            onPress={() => retryImage(item.id)}
+          >
+            <Text style={styles.retryText}>↻</Text>
+          </TouchableOpacity>
+        )}
       </View>
     );
   };
@@ -420,6 +444,8 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       const items = await apiService.getRoomItems(roomId);
       console.log('Watchlist items loaded successfully:', items);
       setWatchlistItems(items);
+      // Réinitialiser les erreurs d'image quand on recharge les données
+      setImageErrors(new Set());
     } catch (error) {
       console.error('Error loading watchlist items:', error);
       // En cas d'erreur, utiliser les données mock comme fallback
@@ -461,6 +487,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       // Appel API pour persister le changement
       await apiService.updateItemStatus(roomId, itemId, newStatus);
 
+      // Log du changement sans modal
       const item = watchlistItems.find(item => item.id === itemId);
       if (item) {
         const statusLabels = {
@@ -468,10 +495,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
           watching: 'En cours',
           completed: 'Terminé'
         };
-        Alert.alert(
-          '✅ Statut modifié',
-          `"${item.media.title}" déplacé vers "${statusLabels[newStatus]}"`
-        );
+        console.log(`[RoomScreen] Statut modifié: "${item.media.title}" déplacé vers "${statusLabels[newStatus]}"`);
       }
     } catch (error) {
       console.error('Error updating item status:', error);
@@ -741,6 +765,22 @@ const styles = StyleSheet.create({
   touchableContent: {
     flexDirection: 'row',
     flex: 1,
+  },
+  retryButton: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryText: {
+    color: COLORS.onPrimary,
+    fontSize: 12,
+    fontWeight: 'bold',
   },
 });
 
