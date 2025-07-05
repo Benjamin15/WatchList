@@ -21,7 +21,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { RootStackParamList, Media, SearchResult, MediaDetails, Trailer } from '../types';
 import { apiService } from '../services/api';
-import { extractTmdbId, extractMediaType } from '../utils/helpers';
+import { extractTmdbId } from '../utils/helpers';
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,10 +47,9 @@ const MediaDetailScreen: React.FC = () => {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(50)).current;
   
-  // Extraction du TMDB ID et du type
+  // Extraction du TMDB ID
   const tmdbId = extractTmdbId(media);
-  const tmdbMediaType = extractMediaType(media);
-  const mediaType = tmdbMediaType === 'tv' ? 'series' : 'movie';
+  const mediaType = media.type === 'series' ? 'series' : 'movie';
   
   // Fonction helper pour obtenir une propriété avec fallback
   const getProperty = (key: string): any => {
@@ -62,27 +61,6 @@ const MediaDetailScreen: React.FC = () => {
   const safeText = (value: any): string => {
     if (value === null || value === undefined) return '';
     return String(value);
-  };
-  
-  // Helper pour le rendu sécurisé des genres
-  const safeRenderGenres = (genres: any): string => {
-    if (!genres) return '';
-    
-    try {
-      if (Array.isArray(genres)) {
-        return genres.slice(0, 2).map((g: any) => {
-          if (typeof g === 'string') return g;
-          if (g && typeof g === 'object' && g.name) return String(g.name);
-          return String(g);
-        }).filter(Boolean).join(', ');
-      }
-      
-      if (typeof genres === 'string') return genres;
-      return String(genres);
-    } catch (err) {
-      console.error('[MediaDetailScreen] Erreur rendu genres:', err);
-      return '';
-    }
   };
   
   // Helper pour obtenir des propriétés complexes
@@ -335,7 +313,7 @@ const MediaDetailScreen: React.FC = () => {
                 
                 {mediaDetails?.genres && (
                   <Text style={styles.genre}>
-                    {safeRenderGenres(mediaDetails.genres)}
+                    {mediaDetails.genres.slice(0, 2).map(g => g.name).join(', ')}
                   </Text>
                 )}
                 

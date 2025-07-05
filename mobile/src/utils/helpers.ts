@@ -45,6 +45,30 @@ export const extractTmdbId = (media: any): number | null => {
   return null;
 };
 
+// Helper pour extraire le type de média depuis l'external_id
+export const extractMediaType = (media: any): 'movie' | 'tv' => {
+  console.log('[extractMediaType] Media reçu:', JSON.stringify(media, null, 2));
+  
+  // Si on a un external_id avec le nouveau format
+  if (media.external_id && typeof media.external_id === 'string') {
+    const newFormatMatch = media.external_id.match(/^tmdb_(movie|tv)_(\d+)$/);
+    if (newFormatMatch) {
+      const type = newFormatMatch[1] as 'movie' | 'tv';
+      console.log('[extractMediaType] Type extrait du nouveau format:', type);
+      return type;
+    }
+  }
+  
+  // Fallback sur le type du média avec conversion
+  if (media.type === 'series' || media.type === 'tv') {
+    console.log('[extractMediaType] Type converti:', 'tv');
+    return 'tv';
+  }
+  
+  console.log('[extractMediaType] Type par défaut:', 'movie');
+  return 'movie';
+};
+
 // Helper pour formater la durée en heures et minutes
 export const formatRuntime = (minutes: number): string => {
   if (!minutes) return '';
