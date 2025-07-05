@@ -209,6 +209,34 @@ const MediaDetailScreen: React.FC = () => {
         return;
       }
       
+      // Si le statut est "abandonné", demander confirmation avant de supprimer
+      if (newStatus === 'dropped') {
+        Alert.alert(
+          'Supprimer de la liste',
+          'Marquer ce média comme "abandonné" le retirera définitivement de votre liste. Continuer ?',
+          [
+            { text: 'Annuler', style: 'cancel' },
+            { 
+              text: 'Supprimer', 
+              style: 'destructive',
+              onPress: async () => {
+                try {
+                  await apiService.removeItemFromRoom(roomId, watchlistItem.id);
+                  console.log(`[MediaDetailScreen] Média supprimé: ${watchlistItem.media.title}`);
+                  
+                  // Retourner à l'écran précédent après suppression
+                  navigation.goBack();
+                } catch (err) {
+                  console.error('[MediaDetailScreen] Erreur suppression:', err);
+                  Alert.alert('Erreur', 'Impossible de supprimer le média de la liste');
+                }
+              }
+            }
+          ]
+        );
+        return;
+      }
+      
       await apiService.updateItemStatus(roomId, watchlistItem.id, newStatus as 'watching' | 'completed' | 'planned' | 'dropped');
       setCurrentStatus(newStatus);
       
@@ -400,7 +428,7 @@ const MediaDetailScreen: React.FC = () => {
                     { key: 'planned', label: 'À regarder', icon: 'bookmark-outline', color: '#FF9500' },
                     { key: 'watching', label: 'En cours', icon: 'play-circle-outline', color: '#007AFF' },
                     { key: 'completed', label: 'Terminé', icon: 'checkmark-circle-outline', color: '#34C759' },
-                    { key: 'dropped', label: 'Abandonné', icon: 'close-circle-outline', color: '#FF3B30' }
+                    { key: 'dropped', label: 'Supprimer', icon: 'trash-outline', color: '#FF3B30' }
                   ].map((statusOption) => (
                     <TouchableOpacity
                       key={statusOption.key}
