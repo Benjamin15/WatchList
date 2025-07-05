@@ -689,7 +689,6 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>
             <Text style={styles.roomTitle}>{roomName}</Text>
-            <Text style={styles.roomCode}>Code: {roomCode}</Text>
           </View>
           <TouchableOpacity 
             style={styles.shareButton}
@@ -769,10 +768,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.primary,
     marginBottom: SPACING.xs,
-  },
-  roomCode: {
-    fontSize: FONT_SIZES.md,
-    color: COLORS.secondary,
   },
   tabs: {
     flexDirection: 'row',
