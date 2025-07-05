@@ -14,8 +14,7 @@ import {
   StatusBar,
   Share
 } from 'react-native';
-import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { useRoute, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,19 +25,11 @@ import { extractTmdbId } from '../utils/helpers';
 
 const { width, height } = Dimensions.get('window');
 
-type MediaDetailScreenRouteProp = RouteProp<RootStackParamList, 'Detail'>;
-type MediaDetailScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Detail'>;
-
-interface MediaDetailScreenProps {
-  route: MediaDetailScreenRouteProp;
-  navigation: MediaDetailScreenNavigationProp;
-}
-
-const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
-  const route = useRoute<MediaDetailScreenRouteProp>();
-  const navigation = useNavigation<MediaDetailScreenNavigationProp>();
+const MediaDetailScreen: React.FC = () => {
+  const route = useRoute();
+  const navigation = useNavigation();
   
-  const { media, roomId } = route.params;
+  const { media, roomId } = route.params as { media: Media | SearchResult; roomId?: string };
   
   // États
   const [mediaDetails, setMediaDetails] = useState<MediaDetails | null>(null);
@@ -59,6 +50,29 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
   // Extraction du TMDB ID
   const tmdbId = extractTmdbId(media);
   const mediaType = media.type === 'series' ? 'series' : 'movie';
+  
+  // Fonction helper pour obtenir une propriété avec fallback
+  const getProperty = (key: string): any => {
+    if (!mediaDetails) return null;
+    return mediaDetails[key as keyof MediaDetails];
+  };
+  
+  // Fonction helper pour le rendu sécurisé du texte
+  const safeText = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  };
+  
+  // Helper pour obtenir des propriétés complexes
+  const getComplexProperty = (key: string): any => {
+    if (mediaDetails && (key in mediaDetails)) {
+      return (mediaDetails as any)[key];
+    }
+    if (key in media) {
+      return (media as any)[key];
+    }
+    return null;
+  };
   
   useEffect(() => {
     loadMediaDetails();
@@ -157,28 +171,20 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
       
       Alert.alert('Succès', 'Statut mis à jour !');
     } catch (err) {
-      console.error('[MediaDetailScreen] Erreur changement statut:', err);
-      Alert.alert('Erreur', 'Impossible de changer le statut');
+      console.error('[MediaDetailScreen] Erreur mise à jour statut:', err);
+      Alert.alert('Erreur', 'Impossible de mettre à jour le statut');
     }
   };
   
   const handleShare = async () => {
     try {
-      const message = `Découvre ${mediaDetails?.title || media.title} sur notre WatchList !`;
-      await Share.share({
-        message,
-        url: mediaDetails?.homepage || '',
+      const result = await Share.share({
+        message: `Regarde ce film : ${safeText(mediaDetails?.title || media.title)}`,
+        title: safeText(mediaDetails?.title || media.title),
       });
     } catch (err) {
       console.error('[MediaDetailScreen] Erreur partage:', err);
     }
-  };
-  
-  const formatRuntime = (minutes: number) => {
-    if (!minutes) return '';
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
   };
   
   const renderTrailerCarousel = () => {
@@ -207,72 +213,23 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
                 styles.trailerTabText,
                 index === activeTrailerIndex && styles.activeTrailerTabText
               ]}>
-                {trailer.name.length > 20 ? `${trailer.name.slice(0, 20)}...` : trailer.name}
+                {trailer.name}
               </Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
         
-        {/* Lecteur de trailer */}
-        {showTrailer && trailers[activeTrailerIndex] && (
+        {/* Player des trailers */}
+        {trailers[activeTrailerIndex] && (
           <View style={styles.trailerPlayer}>
             <WebView
-              source={{
-                uri: `https://www.youtube.com/embed/${trailers[activeTrailerIndex].key}?autoplay=1&rel=0`
-              }}
+              source={{ uri: `https://www.youtube.com/embed/${trailers[activeTrailerIndex].key}` }}
               style={styles.webView}
-              allowsInlineMediaPlayback
+              allowsFullscreenVideo={true}
               mediaPlaybackRequiresUserAction={false}
             />
-            <TouchableOpacity
-              style={styles.closeTrailerButton}
-              onPress={() => setShowTrailer(false)}
-            >
-              <Ionicons name="close" size={24} color="white" />
-            </TouchableOpacity>
           </View>
         )}
-        
-        {/* Bouton play trailer */}
-        {!showTrailer && trailers[activeTrailerIndex] && (
-          <TouchableOpacity
-            style={styles.playTrailerButton}
-            onPress={() => setShowTrailer(true)}
-          >
-            <Ionicons name="play" size={24} color="white" />
-            <Text style={styles.playTrailerText}>Voir la bande-annonce</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
-  
-  const renderStatusSelector = () => {
-    const statuses = [
-      { key: 'planned', label: 'À regarder', color: '#3498db' },
-      { key: 'watching', label: 'En cours', color: '#e74c3c' },
-      { key: 'completed', label: 'Terminé', color: '#27ae60' },
-      { key: 'dropped', label: 'Abandonné', color: '#95a5a6' }
-    ];
-    
-    return (
-      <View style={styles.statusSection}>
-        <Text style={styles.sectionTitle}>Statut</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {statuses.map(status => (
-            <TouchableOpacity
-              key={status.key}
-              style={[
-                styles.statusButton,
-                { backgroundColor: status.color },
-                currentStatus === status.key && styles.activeStatusButton
-              ]}
-              onPress={() => handleStatusChange(status.key)}
-            >
-              <Text style={styles.statusButtonText}>{status.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       </View>
     );
   };
@@ -280,58 +237,11 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#3498db" />
+        <ActivityIndicator size="large" color="#007AFF" />
         <Text style={styles.loadingText}>Chargement des détails...</Text>
       </View>
     );
   }
-  
-  if (error) {
-    return (
-      <View style={styles.errorContainer}>
-        <Ionicons name="alert-circle-outline" size={48} color="#e74c3c" />
-        <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={loadMediaDetails}>
-          <Text style={styles.retryButtonText}>Réessayer</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-  
-  const details = mediaDetails || media;
-  
-  // Helper pour obtenir une valeur en toute sécurité
-  const getSafeValue = (key: string): string => {
-    let value: any = null;
-    
-    // Prioriser mediaDetails si disponible
-    if (mediaDetails && mediaDetails[key as keyof MediaDetails] !== undefined) {
-      value = mediaDetails[key as keyof MediaDetails];
-    } 
-    // Sinon utiliser media
-    else if (media && media[key as keyof typeof media] !== undefined) {
-      value = media[key as keyof typeof media];
-    }
-    
-    // Convertir en string sécurisé
-    if (value === null || value === undefined) return '';
-    if (typeof value === 'string') return value;
-    if (typeof value === 'number') return value.toString();
-    if (typeof value === 'boolean') return value.toString();
-    if (Array.isArray(value)) return value.join(', ');
-    return String(value);
-  };
-
-  // Helper pour obtenir des propriétés complexes
-  const getComplexProperty = (key: string): any => {
-    if (mediaDetails && (key in mediaDetails)) {
-      return (mediaDetails as any)[key];
-    }
-    if (key in media) {
-      return (media as any)[key];
-    }
-    return null;
-  };
   
   return (
     <View style={styles.container}>
@@ -345,178 +255,180 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
         <View style={styles.header}>
           {getComplexProperty('backdrop_path') && (
             <Image
-              source={{ uri: getComplexProperty('backdrop_path') }}
-              style={styles.backdropImage}
+              source={{ uri: `https://image.tmdb.org/t/p/w1280${getComplexProperty('backdrop_path')}` }}
+              style={styles.backdrop}
               resizeMode="cover"
             />
           )}
-          
           <LinearGradient
-            colors={['transparent', 'rgba(0,0,0,0.8)']}
+            colors={['rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)']}
             style={styles.gradient}
           />
           
-          {/* Boutons header */}
-          <View style={styles.headerButtons}>
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={() => navigation.goBack()}
-            >
-              <Ionicons name="arrow-back" size={24} color="white" />
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={styles.headerButton}
-              onPress={handleShare}
-            >
-              <Ionicons name="share-outline" size={24} color="white" />
-            </TouchableOpacity>
-          </View>
+          {/* Bouton retour */}
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
+            <Ionicons name="arrow-back" size={24} color="white" />
+          </TouchableOpacity>
+          
+          {/* Bouton partage */}
+          <TouchableOpacity
+            style={styles.shareButton}
+            onPress={handleShare}
+          >
+            <Ionicons name="share-outline" size={24} color="white" />
+          </TouchableOpacity>
         </View>
         
         {/* Contenu principal */}
         <Animated.View
           style={[
             styles.content,
-            { transform: [{ translateY: slideAnim }] }
+            {
+              transform: [{ translateY: slideAnim }]
+            }
           ]}
         >
-          {/* Informations principales */}
+          {/* Poster et informations principales */}
           <View style={styles.mainInfo}>
             <View style={styles.posterContainer}>
-              {details.posterUrl ? (
-                <Image
-                  source={{ uri: details.posterUrl }}
-                  style={styles.posterImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.posterPlaceholder}>
-                  <Text style={styles.posterPlaceholderText}>
-                    {details.type === 'movie' ? '🎬' : '📺'}
-                  </Text>
-                </View>
-              )}
+              <Image
+                source={{ 
+                  uri: mediaDetails?.posterUrl || media.posterUrl || 'https://via.placeholder.com/300x450'
+                }}
+                style={styles.poster}
+                resizeMode="cover"
+              />
             </View>
             
             <View style={styles.infoContainer}>
-              <Text style={styles.title}>{details.title}</Text>
-              
-              {getSafeValue('tagline') && (
-                <Text style={styles.tagline}>{getSafeValue('tagline')}</Text>
-              )}
+              <Text style={styles.title}>{safeText(mediaDetails?.title || media.title)}</Text>
               
               <View style={styles.metadata}>
-                <Text style={styles.metadataItem}>
-                  {getSafeValue('release_date') && getSafeValue('year')}
+                <Text style={styles.year}>
+                  {safeText(mediaDetails?.release_date ? new Date(mediaDetails.release_date).getFullYear() : media.year)}
                 </Text>
-                {getComplexProperty('runtime') && (
-                  <Text style={styles.metadataItem}>
-                    {formatRuntime(getComplexProperty('runtime'))}
+                
+                {mediaDetails?.genres && (
+                  <Text style={styles.genre}>
+                    {mediaDetails.genres.slice(0, 2).map(g => g.name).join(', ')}
                   </Text>
                 )}
-                {getComplexProperty('vote_average') && (
-                  <View style={styles.ratingContainer}>
-                    <Ionicons name="star" size={16} color="#f39c12" />
-                    <Text style={styles.rating}>
-                      {getComplexProperty('vote_average')?.toFixed ? 
-                        getComplexProperty('vote_average').toFixed(1) : 
-                        getSafeValue('rating')}
-                    </Text>
-                  </View>
+                
+                {mediaDetails?.runtime && (
+                  <Text style={styles.runtime}>
+                    {Math.floor(mediaDetails.runtime / 60)}h {mediaDetails.runtime % 60}min
+                  </Text>
                 )}
               </View>
               
-              {getComplexProperty('genres') && Array.isArray(getComplexProperty('genres')) && getComplexProperty('genres').length > 0 && (
-                <View style={styles.genresContainer}>
-                  {getComplexProperty('genres').slice(0, 3).map((genre: string, index: number) => (
-                    <View key={index} style={styles.genreTag}>
-                      <Text style={styles.genreText}>{genre}</Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-              
-              {getSafeValue('genre') && !getComplexProperty('genres') && (
-                <View style={styles.genresContainer}>
-                  <View style={styles.genreTag}>
-                    <Text style={styles.genreText}>{getSafeValue('genre')}</Text>
-                  </View>
+              {mediaDetails?.rating && (
+                <View style={styles.ratingContainer}>
+                  <Ionicons name="star" size={16} color="#FFD700" />
+                  <Text style={styles.rating}>{mediaDetails.rating.toFixed(1)}</Text>
                 </View>
               )}
             </View>
           </View>
           
-          {/* Boutons d'action */}
-          <View style={styles.actionButtons}>
+          {/* Actions */}
+          <View style={styles.actions}>
             {!isInWatchlist ? (
               <TouchableOpacity
-                style={styles.primaryButton}
+                style={styles.addButton}
                 onPress={handleAddToWatchlist}
               >
                 <Ionicons name="add" size={20} color="white" />
-                <Text style={styles.primaryButtonText}>Ajouter à ma liste</Text>
+                <Text style={styles.addButtonText}>Ajouter à ma liste</Text>
               </TouchableOpacity>
             ) : (
-              renderStatusSelector()
+              <View style={styles.statusContainer}>
+                <Text style={styles.statusLabel}>Statut :</Text>
+                <TouchableOpacity
+                  style={styles.statusButton}
+                  onPress={() => {
+                    Alert.alert(
+                      'Changer le statut',
+                      'Sélectionnez un nouveau statut',
+                      [
+                        { text: 'À regarder', onPress: () => handleStatusChange('planned') },
+                        { text: 'En cours', onPress: () => handleStatusChange('watching') },
+                        { text: 'Terminé', onPress: () => handleStatusChange('completed') },
+                        { text: 'Abandonné', onPress: () => handleStatusChange('dropped') },
+                        { text: 'Annuler', style: 'cancel' }
+                      ]
+                    );
+                  }}
+                >
+                  <Text style={styles.statusText}>
+                    {currentStatus === 'planned' ? 'À regarder' :
+                     currentStatus === 'watching' ? 'En cours' :
+                     currentStatus === 'completed' ? 'Terminé' :
+                     currentStatus === 'dropped' ? 'Abandonné' : currentStatus}
+                  </Text>
+                  <Ionicons name="chevron-down" size={16} color="#007AFF" />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
           
+          {/* Trailers */}
+          {renderTrailerCarousel()}
+          
           {/* Synopsis */}
           {getProperty('overview') && (
-            <View style={styles.synopsisSection}>
+            <View style={styles.section}>
               <Text style={styles.sectionTitle}>Synopsis</Text>
-              <Text style={styles.synopsisText}>{getProperty('overview')}</Text>
+              <Text style={styles.synopsisText}>{safeText(getProperty('overview'))}</Text>
             </View>
           )}
           
-          {/* Carrousel de trailers */}
-          {renderTrailerCarousel()}
-          
-          {/* Détails supplémentaires */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>Informations</Text>
+          {/* Détails */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Détails</Text>
             
             {getProperty('production_companies') && getProperty('production_companies').length > 0 && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Production :</Text>
                 <Text style={styles.detailValue}>
-                  {getProperty('production_companies').slice(0, 2).join(', ')}
+                  {getProperty('production_companies').slice(0, 2).map((c: any) => c.name).join(', ')}
                 </Text>
               </View>
             )}
             
-            {getProperty('number_of_seasons') && (
+            {mediaType === 'series' && getProperty('number_of_seasons') && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Saisons :</Text>
-                <Text style={styles.detailValue}>{getProperty('number_of_seasons')}</Text>
+                <Text style={styles.detailValue}>{safeText(getProperty('number_of_seasons'))}</Text>
               </View>
             )}
             
-            {getProperty('number_of_episodes') && (
+            {mediaType === 'series' && getProperty('number_of_episodes') && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Épisodes :</Text>
-                <Text style={styles.detailValue}>{getProperty('number_of_episodes')}</Text>
+                <Text style={styles.detailValue}>{safeText(getProperty('number_of_episodes'))}</Text>
               </View>
             )}
             
-            {getProperty('networks') && getProperty('networks').length > 0 && (
+            {mediaType === 'series' && getProperty('networks') && getProperty('networks').length > 0 && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Réseaux :</Text>
+                <Text style={styles.detailLabel}>Chaînes :</Text>
                 <Text style={styles.detailValue}>
-                  {getProperty('networks').slice(0, 2).join(', ')}
+                  {getProperty('networks').slice(0, 2).map((n: any) => n.name).join(', ')}
                 </Text>
               </View>
             )}
             
-            {getProperty('status_text') && (
+            {mediaType === 'series' && getProperty('status') && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Statut :</Text>
-                <Text style={styles.detailValue}>{getProperty('status_text')}</Text>
+                <Text style={styles.detailValue}>{safeText(getProperty('status'))}</Text>
               </View>
             )}
             
-            {getProperty('budget') && getProperty('budget') > 0 && (
+            {mediaType === 'movie' && getProperty('budget') && getProperty('budget') > 0 && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Budget :</Text>
                 <Text style={styles.detailValue}>
@@ -525,7 +437,7 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
               </View>
             )}
             
-            {getProperty('revenue') && getProperty('revenue') > 0 && (
+            {mediaType === 'movie' && getProperty('revenue') && getProperty('revenue') > 0 && (
               <View style={styles.detailRow}>
                 <Text style={styles.detailLabel}>Recettes :</Text>
                 <Text style={styles.detailValue}>
@@ -543,74 +455,52 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-  },
-  scrollView: {
-    flex: 1,
+    backgroundColor: '#000',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000',
   },
   loadingText: {
-    color: '#ffffff',
-    fontSize: 16,
+    color: 'white',
     marginTop: 16,
+    fontSize: 16,
   },
-  errorContainer: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    paddingHorizontal: 20,
-  },
-  errorText: {
-    color: '#e74c3c',
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 16,
-    marginBottom: 24,
-  },
-  retryButton: {
-    backgroundColor: '#3498db',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  retryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   header: {
     height: height * 0.4,
     position: 'relative',
   },
-  backdropImage: {
+  backdrop: {
     width: '100%',
     height: '100%',
-    position: 'absolute',
   },
   gradient: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
     bottom: 0,
-    left: 0,
-    right: 0,
-    height: 100,
   },
-  headerButtons: {
+  backButton: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 50 : 30,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    zIndex: 10,
+    top: Platform.OS === 'ios' ? 60 : 40,
+    left: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  headerButton: {
+  shareButton: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 60 : 40,
+    right: 20,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -620,213 +510,156 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#1a1a1a',
-    marginTop: -50,
+    backgroundColor: '#000',
+    marginTop: -30,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: 20,
     paddingTop: 20,
   },
   mainInfo: {
     flexDirection: 'row',
-    marginBottom: 20,
+    padding: 20,
+    alignItems: 'flex-start',
   },
   posterContainer: {
+    marginRight: 20,
+  },
+  poster: {
     width: 120,
     height: 180,
-    marginRight: 16,
-  },
-  posterImage: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 8,
-  },
-  posterPlaceholder: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#2c2c2c',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  posterPlaceholderText: {
-    fontSize: 32,
+    borderRadius: 10,
   },
   infoContainer: {
     flex: 1,
   },
   title: {
-    color: '#ffffff',
     fontSize: 24,
     fontWeight: 'bold',
+    color: 'white',
     marginBottom: 8,
-  },
-  tagline: {
-    color: '#b0b0b0',
-    fontSize: 14,
-    fontStyle: 'italic',
-    marginBottom: 12,
   },
   metadata: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
+    flexWrap: 'wrap',
+    marginBottom: 8,
   },
-  metadataItem: {
-    color: '#b0b0b0',
-    fontSize: 14,
-    marginRight: 16,
+  year: {
+    color: '#ccc',
+    marginRight: 12,
+  },
+  genre: {
+    color: '#ccc',
+    marginRight: 12,
+  },
+  runtime: {
+    color: '#ccc',
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 8,
   },
   rating: {
-    color: '#f39c12',
-    fontSize: 14,
+    color: '#FFD700',
+    fontWeight: 'bold',
     marginLeft: 4,
-    fontWeight: '600',
   },
-  genresContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  actions: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
-  genreTag: {
-    backgroundColor: '#3498db',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-    marginBottom: 4,
-  },
-  genreText: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  actionButtons: {
-    marginBottom: 24,
-  },
-  primaryButton: {
-    backgroundColor: '#e74c3c',
+  addButton: {
+    backgroundColor: '#007AFF',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: 24,
+    borderRadius: 25,
   },
-  primaryButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
+  addButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
     marginLeft: 8,
   },
-  statusSection: {
-    marginBottom: 16,
+  statusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  statusLabel: {
+    color: 'white',
+    marginRight: 12,
   },
   statusButton: {
-    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    opacity: 0.7,
+    borderRadius: 15,
   },
-  activeStatusButton: {
-    opacity: 1,
-  },
-  statusButtonText: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  synopsisSection: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-  },
-  synopsisText: {
-    color: '#b0b0b0',
-    fontSize: 14,
-    lineHeight: 20,
+  statusText: {
+    color: '#007AFF',
+    marginRight: 4,
   },
   trailerSection: {
-    marginBottom: 24,
+    marginBottom: 20,
   },
   trailerTabs: {
+    paddingHorizontal: 20,
     marginBottom: 16,
   },
   trailerTab: {
-    backgroundColor: '#2c2c2c',
+    backgroundColor: '#1C1C1E',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginRight: 8,
+    marginRight: 12,
   },
   activeTrailerTab: {
-    backgroundColor: '#3498db',
+    backgroundColor: '#007AFF',
   },
   trailerTabText: {
-    color: '#b0b0b0',
+    color: '#ccc',
     fontSize: 14,
   },
   activeTrailerTabText: {
-    color: '#ffffff',
+    color: 'white',
   },
   trailerPlayer: {
     height: 200,
-    backgroundColor: '#000000',
-    borderRadius: 8,
-    position: 'relative',
+    marginHorizontal: 20,
+    borderRadius: 10,
     overflow: 'hidden',
   },
   webView: {
     flex: 1,
   },
-  closeTrailerButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  section: {
+    paddingHorizontal: 20,
+    marginBottom: 20,
   },
-  playTrailerButton: {
-    backgroundColor: '#e74c3c',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 12,
   },
-  playTrailerText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  detailsSection: {
-    marginBottom: 24,
+  synopsisText: {
+    color: '#ccc',
+    lineHeight: 22,
   },
   detailRow: {
     flexDirection: 'row',
     marginBottom: 8,
   },
   detailLabel: {
-    color: '#b0b0b0',
-    fontSize: 14,
-    fontWeight: '500',
+    color: '#999',
     width: 100,
+    fontWeight: '500',
   },
   detailValue: {
-    color: '#ffffff',
-    fontSize: 14,
+    color: '#ccc',
     flex: 1,
   },
 });
