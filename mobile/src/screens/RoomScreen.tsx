@@ -65,29 +65,32 @@ const MediaItemCard = ({
   const opacity = useRef(new Animated.Value(1)).current;
   const scale = useRef(new Animated.Value(1)).current;
   
-  // Seuil pour valider le swipe (plus accessible)
-  const SWIPE_THRESHOLD = 80;
+  // Seuils pour le swipe (ultra accessibles)
+  const SWIPE_THRESHOLD = 40; // Encore réduit de 50 à 40
+  const SWIPE_VELOCITY_THRESHOLD = 0.3; // Encore réduit de 0.5 à 0.3
+  const VISUAL_FEEDBACK_THRESHOLD = 20; // Réduit de 30 à 20 pour feedback plus précoce
+  const RESISTANCE_THRESHOLD = 60; // Limite de résistance pour directions non autorisées
   
-  // Reset animation avec spring plus fluide
+  // Reset animation avec spring plus fluide et plus rapide
   const resetAnimation = () => {
     Animated.parallel([
       Animated.spring(translateX, { 
         toValue: 0, 
         useNativeDriver: true,
-        tension: 100,
-        friction: 8,
+        tension: 150, // Augmenté pour plus de réactivité
+        friction: 10, // Augmenté pour moins de rebond
       }),
       Animated.spring(opacity, { 
         toValue: 1, 
         useNativeDriver: true,
-        tension: 100,
-        friction: 8,
+        tension: 150,
+        friction: 10,
       }),
       Animated.spring(scale, { 
         toValue: 1, 
         useNativeDriver: true,
-        tension: 100,
-        friction: 8,
+        tension: 150,
+        friction: 10,
       }),
     ]).start();
   };
@@ -140,59 +143,94 @@ const MediaItemCard = ({
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (evt, gestureState) => {
-      // Activer le pan responder si le mouvement horizontal est supérieur au vertical
-      const shouldSet = Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 5;
-      console.log('[PanResponder] onMoveShouldSetPanResponder:', { dx: gestureState.dx, dy: gestureState.dy, shouldSet });
+      // Condition encore plus permissive pour activer le pan responder
+      const horizontalMovement = Math.abs(gestureState.dx);
+      const verticalMovement = Math.abs(gestureState.dy);
+      
+      // Activer si mouvement horizontal > 2px ET (mouvement horizontal > 50% du vertical OU mouvement horizontal > 5px)
+      const shouldSet = horizontalMovement > 2 && (horizontalMovement > verticalMovement * 0.5 || horizontalMovement > 5);
+      
+      console.log('[PanResponder] onMoveShouldSetPanResponder:', { 
+        dx: gestureState.dx, 
+        dy: gestureState.dy, 
+        horizontalMovement,
+        verticalMovement,
+        shouldSet 
+      });
       return shouldSet;
     },
     onPanResponderGrant: () => {
       console.log('[PanResponder] onPanResponderGrant - Geste commencé');
-      // Petit feedback visuel au début du geste
+      // Feedback visuel immédiat plus marqué avec vibration tactile
       Animated.spring(scale, {
         toValue: 0.98,
         useNativeDriver: true,
-        tension: 150,
+        tension: 300,
         friction: 10,
       }).start();
     },
     onPanResponderMove: (evt, gestureState) => {
       const direction = gestureState.dx > 0 ? 'right' : 'left';
+      const distance = Math.abs(gestureState.dx);
       
-      // Limiter le mouvement selon les règles de l'onglet
+      // Limiter le mouvement selon les règles de l'onglet avec résistance progressive
       if (!isSwipeAllowed(direction)) {
-        // Résistance progressive si le mouvement n'est pas autorisé
-        const resistance = Math.sign(gestureState.dx) * Math.min(Math.abs(gestureState.dx) * 0.2, 30);
+        // Résistance progressive plus douce avec limite
+        const resistance = Math.sign(gestureState.dx) * Math.min(Math.abs(gestureState.dx) * 0.25, RESISTANCE_THRESHOLD);
         translateX.setValue(resistance);
+        
+        // Feedback visuel de résistance
+        const resistancePercent = Math.min(Math.abs(resistance) / RESISTANCE_THRESHOLD, 1);
+        scale.setValue(1 - resistancePercent * 0.02);
+        opacity.setValue(1 - resistancePercent * 0.1);
         return;
       }
       
       // Mouvement fluide pour les directions autorisées
       translateX.setValue(gestureState.dx);
       
-      // Effets visuels progressifs
-      const dragPercent = Math.min(Math.abs(gestureState.dx) / 150, 1);
+      // Effets visuels progressifs avec feedback de validation plus précoce
+      const dragPercent = Math.min(distance / 100, 1);
+      const willValidate = distance > VISUAL_FEEDBACK_THRESHOLD;
       
-      // Scale effect plus subtil
-      scale.setValue(Math.max(0.96, 1 - dragPercent * 0.04));
+      // Scale effect avec feedback de validation plus marqué
+      const targetScale = willValidate ? 
+        Math.max(0.90, 1 - dragPercent * 0.10) : // Plus marqué si va valider
+        Math.max(0.97, 1 - dragPercent * 0.03);  // Plus subtil sinon
+      scale.setValue(targetScale);
       
-      // Opacity effect plus subtil
-      opacity.setValue(Math.max(0.8, 1 - dragPercent * 0.2));
+      // Opacity effect avec feedback de validation plus marqué
+      const targetOpacity = willValidate ?
+        Math.max(0.65, 1 - dragPercent * 0.35) :  // Plus transparent si va valider
+        Math.max(0.90, 1 - dragPercent * 0.10);   // Moins transparent sinon
+      opacity.setValue(targetOpacity);
     },
     onPanResponderRelease: (evt, gestureState) => {
       const direction = gestureState.dx > 0 ? 'right' : 'left';
       const distance = Math.abs(gestureState.dx);
+      const velocity = Math.abs(gestureState.vx);
       
       console.log('[PanResponder] onPanResponderRelease:', { 
         direction, 
         distance, 
-        threshold: SWIPE_THRESHOLD, 
+        velocity,
+        threshold: SWIPE_THRESHOLD,
+        velocityThreshold: SWIPE_VELOCITY_THRESHOLD,
         isAllowed: isSwipeAllowed(direction),
         currentStatus: item.status,
         currentTab
       });
       
-      if (distance > SWIPE_THRESHOLD && isSwipeAllowed(direction)) {
-        // Swipe valide
+      // Valider le swipe si:
+      // 1. Direction autorisée ET
+      // 2. (Distance > seuil OU vélocité > seuil OU distance > seuil très bas avec vélocité minimum)
+      const isValidSwipe = isSwipeAllowed(direction) && 
+        (distance > SWIPE_THRESHOLD || 
+         velocity > SWIPE_VELOCITY_THRESHOLD || 
+         (distance > 25 && velocity > 0.1)); // Seuil très bas pour gestes lents mais intentionnels
+      
+      if (isValidSwipe) {
+        // Swipe valide - feedback haptique
         console.log('[PanResponder] Swipe valide - déclenchement animation');
         triggerSwipeAnimation(direction);
         setTimeout(() => onSwipe(item.id, direction), 50);
@@ -222,6 +260,63 @@ const MediaItemCard = ({
       ]} 
       {...panResponder.panHandlers}
     >
+      {/* Indicateurs de swipe à gauche et à droite avec seuils plus bas */}
+      <Animated.View style={[
+        styles.swipeIndicatorLeft,
+        {
+          opacity: translateX.interpolate({
+            inputRange: [-60, -15, 0],
+            outputRange: [1, 0.3, 0],
+            extrapolate: 'clamp',
+          }),
+          transform: [{
+            scale: translateX.interpolate({
+              inputRange: [-60, -15, 0],
+              outputRange: [1.2, 0.8, 0.5],
+              extrapolate: 'clamp',
+            })
+          }]
+        }
+      ]}>
+        {canLeft && (
+          <>
+            <Text style={styles.swipeIndicatorIcon}>←</Text>
+            <Text style={styles.swipeIndicatorText}>
+              {statusOrder[statusOrder.indexOf(item.status as any) - 1] === 'planned' ? 'À regarder' :
+               statusOrder[statusOrder.indexOf(item.status as any) - 1] === 'watching' ? 'En cours' : 'Terminé'}
+            </Text>
+          </>
+        )}
+      </Animated.View>
+      
+      <Animated.View style={[
+        styles.swipeIndicatorRight,
+        {
+          opacity: translateX.interpolate({
+            inputRange: [0, 15, 60],
+            outputRange: [0, 0.3, 1],
+            extrapolate: 'clamp',
+          }),
+          transform: [{
+            scale: translateX.interpolate({
+              inputRange: [0, 15, 60],
+              outputRange: [0.5, 0.8, 1.2],
+              extrapolate: 'clamp',
+            })
+          }]
+        }
+      ]}>
+        {canRight && (
+          <>
+            <Text style={styles.swipeIndicatorIcon}>→</Text>
+            <Text style={styles.swipeIndicatorText}>
+              {statusOrder[statusOrder.indexOf(item.status as any) + 1] === 'planned' ? 'À regarder' :
+               statusOrder[statusOrder.indexOf(item.status as any) + 1] === 'watching' ? 'En cours' : 'Terminé'}
+            </Text>
+          </>
+        )}
+      </Animated.View>
+
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => onViewDetails(item)}
@@ -576,7 +671,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.hint}>
           <Text style={styles.hintText}>
-            💡 Glissez un média vers la gauche ou la droite pour changer son statut
+            💡 Glissez un média horizontalement pour changer son statut (seuil réduit pour plus de facilité)
           </Text>
         </View>
         
@@ -781,6 +876,48 @@ const styles = StyleSheet.create({
     color: COLORS.onPrimary,
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  swipeIndicatorLeft: {
+    position: 'absolute',
+    left: 12,
+    top: '50%',
+    transform: [{ translateY: -30 }],
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 60,
+    zIndex: 1,
+  },
+  swipeIndicatorRight: {
+    position: 'absolute',
+    right: 12,
+    top: '50%',
+    transform: [{ translateY: -30 }],
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minWidth: 60,
+    zIndex: 1,
+  },
+  swipeIndicatorIcon: {
+    fontSize: 28,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  swipeIndicatorText: {
+    fontSize: 11,
+    color: '#FFFFFF',
+    fontWeight: '600',
+    textAlign: 'center',
+    maxWidth: 70,
+    lineHeight: 12,
   },
 });
 
