@@ -3,14 +3,18 @@ import { Media, SearchResult } from '../types';
 
 // Helper pour extraire l'ID TMDB depuis différents formats
 export const extractTmdbId = (media: any): number | null => {
+  console.log('[extractTmdbId] Media reçu:', JSON.stringify(media, null, 2));
+  
   // Si c'est déjà un nombre, on le retourne
   if (typeof media.tmdbId === 'number') {
+    console.log('[extractTmdbId] TMDB ID trouvé (number):', media.tmdbId);
     return media.tmdbId;
   }
   
   // Si c'est une chaîne, on essaie de la convertir
   if (typeof media.tmdbId === 'string') {
     const id = parseInt(media.tmdbId, 10);
+    console.log('[extractTmdbId] TMDB ID trouvé (string):', media.tmdbId, '→', id);
     return isNaN(id) ? null : id;
   }
   
@@ -19,15 +23,18 @@ export const extractTmdbId = (media: any): number | null => {
     const match = media.external_id.match(/^tmdb_(\d+)$/);
     if (match) {
       const id = parseInt(match[1], 10);
+      console.log('[extractTmdbId] External ID trouvé:', media.external_id, '→', id);
       return isNaN(id) ? null : id;
     }
   }
   
   // Si on a un ID numérique simple
   if (typeof media.id === 'number' && media.id > 0) {
+    console.log('[extractTmdbId] ID simple trouvé:', media.id);
     return media.id;
   }
   
+  console.log('[extractTmdbId] Aucun ID TMDB trouvé');
   return null;
 };
 

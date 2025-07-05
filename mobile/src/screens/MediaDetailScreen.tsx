@@ -82,23 +82,34 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
       setLoading(true);
       setError(null);
       
+      console.log('[MediaDetailScreen] Media reçu:', JSON.stringify(media, null, 2));
+      console.log('[MediaDetailScreen] TMDB ID extrait:', tmdbId);
+      console.log('[MediaDetailScreen] Type de média:', mediaType);
+      
       if (!tmdbId) {
-        throw new Error('ID TMDB non disponible');
+        console.log('[MediaDetailScreen] Pas de TMDB ID, utilisation des données existantes');
+        setMediaDetails(media as MediaDetails);
+        setLoading(false);
+        return;
       }
       
       console.log(`[MediaDetailScreen] Chargement des détails pour ${mediaType} ${tmdbId}`);
       
       // Charger les détails du média
       const details = await apiService.getMediaDetailsFromTMDB(tmdbId, mediaType);
+      console.log('[MediaDetailScreen] Détails TMDB reçus:', details?.title);
       setMediaDetails(details);
       
       // Charger les trailers
       const trailersData = await apiService.getMediaTrailers(tmdbId, mediaType);
+      console.log('[MediaDetailScreen] Trailers reçus:', trailersData.length);
       setTrailers(trailersData);
       
       console.log(`[MediaDetailScreen] Détails chargés: ${details.title}, ${trailersData.length} trailers`);
     } catch (err) {
       console.error('[MediaDetailScreen] Erreur:', err);
+      console.log('[MediaDetailScreen] Utilisation des données de base en cas d\'erreur');
+      setMediaDetails(media as MediaDetails);
       setError(err instanceof Error ? err.message : 'Erreur lors du chargement des détails');
     } finally {
       setLoading(false);
@@ -299,6 +310,12 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
     }
     return null;
   };
+
+  // Helper pour s'assurer que le texte est rendu correctement
+  const safeText = (value: any): string => {
+    if (value === null || value === undefined) return '';
+    return String(value);
+  };
   
   return (
     <View style={styles.container}>
@@ -375,17 +392,17 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
               
               <View style={styles.metadata}>
                 <Text style={styles.metadataItem}>
-                  {getProperty('release_date') && new Date(getProperty('release_date')).getFullYear()}
+                  {getProperty('release_date') && safeText(new Date(getProperty('release_date')).getFullYear())}
                 </Text>
                 {getProperty('runtime') && (
                   <Text style={styles.metadataItem}>
-                    {formatRuntime(getProperty('runtime'))}
+                    {safeText(formatRuntime(getProperty('runtime')))}
                   </Text>
                 )}
                 {getProperty('vote_average') && (
                   <View style={styles.ratingContainer}>
                     <Ionicons name="star" size={16} color="#f39c12" />
-                    <Text style={styles.rating}>{getProperty('vote_average').toFixed(1)}</Text>
+                    <Text style={styles.rating}>{safeText(getProperty('vote_average').toFixed(1))}</Text>
                   </View>
                 )}
               </View>
