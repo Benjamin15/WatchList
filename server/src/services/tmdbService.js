@@ -22,7 +22,7 @@ class TMDBService {
       });
 
       return response.data.results.map(movie => ({
-        external_id: `tmdb_${movie.id}`,
+        external_id: `tmdb_movie_${movie.id}`,
         title: movie.title,
         type: 'movie',
         description: movie.overview,
@@ -61,7 +61,7 @@ class TMDBService {
       console.log('TMDBService: TV results count:', response.data.results?.length || 0);
 
       return response.data.results.map(show => ({
-        external_id: `tmdb_${show.id}`,
+        external_id: `tmdb_tv_${show.id}`,
         title: show.name,
         type: 'tv',
         description: show.overview,

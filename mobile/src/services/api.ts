@@ -174,6 +174,14 @@ class ApiService {
       return undefined;
     }
     
+    // Nouveau format avec type : tmdb_movie_123 ou tmdb_tv_123
+    const newFormatMatch = externalId.match(/^tmdb_(movie|tv)_(\d+)$/);
+    if (newFormatMatch) {
+      const id = parseInt(newFormatMatch[2], 10);
+      return isNaN(id) ? undefined : id;
+    }
+    
+    // Ancien format : tmdb_123 (pour rétrocompatibilité)
     if (externalId.startsWith('tmdb_')) {
       const id = parseInt(externalId.replace('tmdb_', ''));
       return isNaN(id) ? undefined : id;

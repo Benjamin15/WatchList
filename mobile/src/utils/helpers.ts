@@ -18,12 +18,21 @@ export const extractTmdbId = (media: any): number | null => {
     return isNaN(id) ? null : id;
   }
   
-  // Si on a un external_id au format "tmdb_123"
+  // Si on a un external_id aux nouveaux formats "tmdb_movie_123" ou "tmdb_tv_123" ou ancien format "tmdb_123"
   if (media.external_id && typeof media.external_id === 'string') {
-    const match = media.external_id.match(/^tmdb_(\d+)$/);
-    if (match) {
-      const id = parseInt(match[1], 10);
-      console.log('[extractTmdbId] External ID trouvé:', media.external_id, '→', id);
+    // Nouveau format avec type : tmdb_movie_123 ou tmdb_tv_123
+    const newFormatMatch = media.external_id.match(/^tmdb_(movie|tv)_(\d+)$/);
+    if (newFormatMatch) {
+      const id = parseInt(newFormatMatch[2], 10);
+      console.log('[extractTmdbId] External ID nouveau format trouvé:', media.external_id, '→', id);
+      return isNaN(id) ? null : id;
+    }
+    
+    // Ancien format : tmdb_123 (pour rétrocompatibilité)
+    const oldFormatMatch = media.external_id.match(/^tmdb_(\d+)$/);
+    if (oldFormatMatch) {
+      const id = parseInt(oldFormatMatch[1], 10);
+      console.log('[extractTmdbId] External ID ancien format trouvé:', media.external_id, '→', id);
       return isNaN(id) ? null : id;
     }
   }

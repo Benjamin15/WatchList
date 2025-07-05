@@ -29,7 +29,9 @@ class ItemController {
       // Convert tmdbId to external_id if provided
       let finalExternalId = external_id;
       if (tmdbId && !finalExternalId) {
-        finalExternalId = `tmdb_${tmdbId}`;
+        // Nouveau format avec type pour éviter les collisions d'ID
+        const tmdbType = type === 'series' || type === 'tv' ? 'tv' : 'movie';
+        finalExternalId = `tmdb_${tmdbType}_${tmdbId}`;
       } else if (malId && !finalExternalId) {
         finalExternalId = `mal_${malId}`;
       }

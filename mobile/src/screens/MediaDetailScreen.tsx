@@ -313,7 +313,12 @@ const MediaDetailScreen: React.FC = () => {
                 
                 {mediaDetails?.genres && (
                   <Text style={styles.genre}>
-                    {mediaDetails.genres.slice(0, 2).map(g => g.name).join(', ')}
+                    {Array.isArray(mediaDetails.genres) 
+                      ? mediaDetails.genres.slice(0, 2).map((g: any) => 
+                          typeof g === 'string' ? g : (g.name || String(g))
+                        ).join(', ')
+                      : safeText(mediaDetails.genres)
+                    }
                   </Text>
                 )}
                 
