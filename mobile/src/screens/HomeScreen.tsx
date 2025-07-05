@@ -180,21 +180,37 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <>
             <View style={styles.divider} />
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Rooms récentes</Text>
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Rooms récentes</Text>
+                <Text style={styles.sectionCount}>({roomsHistory.length})</Text>
+              </View>
               {roomsHistory.map((item, index) => (
                 <TouchableOpacity
                   key={item.room_id}
                   style={styles.historyItem}
                   onPress={() => handleJoinFromHistory(item)}
+                  activeOpacity={0.7}
+                  android_ripple={{ color: COLORS.primary + '20' }}
                 >
                   <View style={styles.historyContent}>
-                    <Text style={styles.historyRoomName}>
-                      {item.name || `Room ${index + 1}`}
-                    </Text>
-                    <Text style={styles.historyRoomCode}>Code: {item.room_id}</Text>
+                    <View style={styles.historyHeader}>
+                      <Text style={styles.historyRoomName}>
+                        {item.name || `Room ${index + 1}`}
+                      </Text>
+                      <View style={styles.historyRoomBadge}>
+                        <Text style={styles.historyRoomCode}>{item.room_id}</Text>
+                      </View>
+                    </View>
                     <Text style={styles.historyLastJoined}>
-                      Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR')}
+                      Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                      })}
                     </Text>
+                  </View>
+                  <View style={styles.historyArrow}>
+                    <Text style={styles.historyArrowText}>›</Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -238,6 +254,17 @@ const styles = StyleSheet.create({
     color: COLORS.onBackground,
     marginBottom: SPACING.md,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.md,
+  },
+  sectionCount: {
+    fontSize: FONT_SIZES.sm,
+    color: COLORS.placeholder,
+    fontWeight: 'bold',
+  },
   input: {
     backgroundColor: COLORS.surface,
     borderRadius: 8,
@@ -266,31 +293,67 @@ const styles = StyleSheet.create({
   },
   historyItem: {
     backgroundColor: COLORS.surface,
-    borderRadius: 8,
+    borderRadius: 12,
     padding: SPACING.md,
-    marginBottom: SPACING.sm,
+    marginBottom: SPACING.md,
     borderWidth: 1,
     borderColor: COLORS.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   historyContent: {
     flex: 1,
+  },
+  historyHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.xs,
   },
   historyRoomName: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
     color: COLORS.onSurface,
-    marginBottom: SPACING.xs,
-    minHeight: 24, // Hauteur minimale pour éviter que le texte disparaisse
+    minHeight: 24,
+    flex: 1,
+  },
+  historyRoomBadge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 16,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: SPACING.xs / 2,
+    marginLeft: SPACING.sm,
   },
   historyRoomCode: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
-    marginBottom: SPACING.xs,
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.onPrimary,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   historyLastJoined: {
-    fontSize: FONT_SIZES.xs,
+    fontSize: FONT_SIZES.sm,
     color: COLORS.placeholder,
     fontStyle: 'italic',
+  },
+  historyArrow: {
+    marginLeft: SPACING.sm,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  historyArrowText: {
+    fontSize: FONT_SIZES.xl,
+    color: COLORS.placeholder,
+    fontWeight: 'bold',
   },
 });
 
