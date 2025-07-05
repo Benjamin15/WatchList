@@ -104,26 +104,31 @@ class ApiService {
     const response = await this.client.get<{room: any, items: any[]}>(url);
     
     // Transformer les données de l'API backend vers le format attendu par l'application mobile
-    const transformedItems: WatchlistItem[] = response.data.items.map(item => ({
-      id: item.id,
-      roomId: response.data.room.id,
-      mediaId: item.id,
-      status: this.transformStatus(item.status),
-      addedAt: item.added_to_room_at || item.created_at,
-      media: {
+    const transformedItems: WatchlistItem[] = response.data.items.map(item => {
+      const tmdbId = this.extractTmdbId(item.external_id);
+      console.log(`[API] Transformation item: ${item.title} (${item.id}) -> external_id: ${item.external_id} -> tmdbId: ${tmdbId}`);
+      
+      return {
         id: item.id,
-        title: item.title,
-        type: item.type,
-        year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
-        genre: undefined, // L'API backend ne semble pas retourner le genre
-        description: item.description,
-        posterUrl: item.image_url,
-        rating: item.note,
-        tmdbId: this.extractTmdbId(item.external_id), // Utiliser extractTmdbId pour convertir "tmdb_XXXXX" en nombre
-        createdAt: item.created_at,
-        updatedAt: item.created_at,
-      },
-    }));
+        roomId: response.data.room.id,
+        mediaId: item.id,
+        status: this.transformStatus(item.status),
+        addedAt: item.added_to_room_at || item.created_at,
+        media: {
+          id: item.id,
+          title: item.title,
+          type: item.type,
+          year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
+          genre: undefined, // L'API backend ne semble pas retourner le genre
+          description: item.description,
+          posterUrl: item.image_url,
+          rating: item.note,
+          tmdbId: tmdbId, // Utiliser extractTmdbId pour convertir "tmdb_XXXXX" en nombre
+          createdAt: item.created_at,
+          updatedAt: item.created_at,
+        },
+      };
+    });
     
     console.log('API: Transformed items:', transformedItems);
     return transformedItems;

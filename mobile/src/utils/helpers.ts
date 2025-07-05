@@ -28,13 +28,11 @@ export const extractTmdbId = (media: any): number | null => {
     }
   }
   
-  // Si on a un ID numérique simple
-  if (typeof media.id === 'number' && media.id > 0) {
-    console.log('[extractTmdbId] ID simple trouvé:', media.id);
-    return media.id;
-  }
+  // ATTENTION: Ne pas utiliser media.id car c'est l'ID local de la base, pas l'ID TMDB !
+  // La transformation external_id -> tmdbId doit être faite dans le service API
   
   console.log('[extractTmdbId] Aucun ID TMDB trouvé');
+  console.log('[extractTmdbId] ATTENTION: media.id =', media.id, 'ignoré car ID local de la base');
   return null;
 };
 

@@ -29,12 +29,7 @@ const { width, height } = Dimensions.get('window');
 type MediaDetailScreenRouteProp = RouteProp<RootStackParamList, 'Detail'>;
 type MediaDetailScreenNavigationProp = StackNavigationProp<RootStackParamList, 'Detail'>;
 
-interface MediaDetailScreenProps {
-  route: MediaDetailScreenRouteProp;
-  navigation: MediaDetailScreenNavigationProp;
-}
-
-const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
+const MediaDetailScreen: React.FC = () => {
   const route = useRoute<MediaDetailScreenRouteProp>();
   const navigation = useNavigation<MediaDetailScreenNavigationProp>();
   
@@ -47,10 +42,8 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
   const [error, setError] = useState<string | null>(null);
   const [activeTrailerIndex, setActiveTrailerIndex] = useState(0);
   const [showTrailer, setShowTrailer] = useState(false);
-  const [currentStatus, setCurrentStatus] = useState<string>(
-    'status' in media ? media.status || 'planned' : 'planned'
-  );
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [currentStatus, setCurrentStatus] = useState<string>('planned');
+  const [isInWatchlist, setIsInWatchlist] = useState(!!roomId);
   
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -123,14 +116,15 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
         return;
       }
       
+      const currentDetails = mediaDetails || media;
       const mediaToAdd = {
-        title: mediaDetails?.title || media.title,
+        title: currentDetails.title,
         type: mediaType as 'movie' | 'series' | 'manga',
-        year: mediaDetails?.release_date ? new Date(mediaDetails.release_date).getFullYear() : media.year,
-        description: mediaDetails?.overview || media.description,
-        image_url: mediaDetails?.posterUrl || media.posterUrl,
+        year: currentDetails.year,
+        description: currentDetails.description,
+        image_url: currentDetails.posterUrl,
         tmdbId: tmdbId || undefined,
-        rating: mediaDetails?.rating || media.rating,
+        rating: currentDetails.rating,
         status: 'planned' as const
       };
       
@@ -164,10 +158,10 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
   
   const handleShare = async () => {
     try {
-      const message = `Découvre ${mediaDetails?.title || media.title} sur notre WatchList !`;
+      const currentDetails = mediaDetails || media;
+      const message = `Découvre ${currentDetails.title} sur notre WatchList !`;
       await Share.share({
         message,
-        url: mediaDetails?.homepage || '',
       });
     } catch (err) {
       console.error('[MediaDetailScreen] Erreur partage:', err);
@@ -298,40 +292,14 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
     );
   }
   
-  const details = mediaDetails || media;
-  
-  // Helper pour obtenir une valeur en toute sécurité
-  const getSafeValue = (key: string): string => {
-    let value: any = null;
-    
-    // Prioriser mediaDetails si disponible
-    if (mediaDetails && mediaDetails[key as keyof MediaDetails] !== undefined) {
-      value = mediaDetails[key as keyof MediaDetails];
-    } 
-    // Sinon utiliser media
-    else if (media && media[key as keyof typeof media] !== undefined) {
-      value = media[key as keyof typeof media];
-    }
-    
-    // Convertir en string sécurisé
-    if (value === null || value === undefined) return '';
-    if (typeof value === 'string') return value;
-    if (typeof value === 'number') return value.toString();
-    if (typeof value === 'boolean') return value.toString();
-    if (Array.isArray(value)) return value.join(', ');
-    return String(value);
-  };
-
-  // Helper pour obtenir des propriétés complexes
-  const getComplexProperty = (key: string): any => {
-    if (mediaDetails && (key in mediaDetails)) {
-      return (mediaDetails as any)[key];
-    }
-    if (key in media) {
-      return (media as any)[key];
-    }
-    return null;
-  };
+  // Utiliser les données disponibles (mediaDetails prioritaire, sinon media)
+  const currentData = mediaDetails || media;
+  const displayTitle = currentData.title || 'Titre non disponible';
+  const displayYear = currentData.year || (mediaDetails?.release_date ? new Date(mediaDetails.release_date).getFullYear() : '');
+  const displayRating = currentData.rating || (mediaDetails?.vote_average ? mediaDetails.vote_average : null);
+  const displayDescription = currentData.description || (mediaDetails?.overview ? mediaDetails.overview : '');
+  const displayPosterUrl = currentData.posterUrl || (mediaDetails?.posterUrl ? mediaDetails.posterUrl : null);
+  const displayBackdropUrl = mediaDetails?.backdrop_path || null;
   
   return (
     <View style={styles.container}>
@@ -343,9 +311,9 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
       >
         {/* Header avec image de fond */}
         <View style={styles.header}>
-          {getComplexProperty('backdrop_path') && (
+          {displayBackdropUrl && (
             <Image
-              source={{ uri: getComplexProperty('backdrop_path') }}
+              source={{ uri: displayBackdropUrl }}
               style={styles.backdropImage}
               resizeMode="cover"
             />
@@ -384,52 +352,48 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
           {/* Informations principales */}
           <View style={styles.mainInfo}>
             <View style={styles.posterContainer}>
-              {details.posterUrl ? (
+              {displayPosterUrl ? (
                 <Image
-                  source={{ uri: details.posterUrl }}
+                  source={{ uri: displayPosterUrl }}
                   style={styles.posterImage}
                   resizeMode="cover"
                 />
               ) : (
                 <View style={styles.posterPlaceholder}>
                   <Text style={styles.posterPlaceholderText}>
-                    {details.type === 'movie' ? '🎬' : '📺'}
+                    {currentData.type === 'movie' ? '🎬' : '📺'}
                   </Text>
                 </View>
               )}
             </View>
             
             <View style={styles.infoContainer}>
-              <Text style={styles.title}>{details.title}</Text>
+              <Text style={styles.title}>{displayTitle}</Text>
               
-              {getSafeValue('tagline') && (
-                <Text style={styles.tagline}>{getSafeValue('tagline')}</Text>
+              {mediaDetails?.tagline && (
+                <Text style={styles.tagline}>{mediaDetails.tagline}</Text>
               )}
               
               <View style={styles.metadata}>
-                <Text style={styles.metadataItem}>
-                  {getSafeValue('release_date') && getSafeValue('year')}
-                </Text>
-                {getComplexProperty('runtime') && (
+                {displayYear && (
+                  <Text style={styles.metadataItem}>{String(displayYear)}</Text>
+                )}
+                {mediaDetails?.runtime && (
                   <Text style={styles.metadataItem}>
-                    {formatRuntime(getComplexProperty('runtime'))}
+                    {formatRuntime(mediaDetails.runtime)}
                   </Text>
                 )}
-                {getComplexProperty('vote_average') && (
+                {displayRating && (
                   <View style={styles.ratingContainer}>
                     <Ionicons name="star" size={16} color="#f39c12" />
-                    <Text style={styles.rating}>
-                      {getComplexProperty('vote_average')?.toFixed ? 
-                        getComplexProperty('vote_average').toFixed(1) : 
-                        getSafeValue('rating')}
-                    </Text>
+                    <Text style={styles.rating}>{String(Number(displayRating).toFixed(1))}</Text>
                   </View>
                 )}
               </View>
               
-              {getComplexProperty('genres') && Array.isArray(getComplexProperty('genres')) && getComplexProperty('genres').length > 0 && (
+              {mediaDetails?.genres && Array.isArray(mediaDetails.genres) && mediaDetails.genres.length > 0 && (
                 <View style={styles.genresContainer}>
-                  {getComplexProperty('genres').slice(0, 3).map((genre: string, index: number) => (
+                  {mediaDetails.genres.slice(0, 3).map((genre: string, index: number) => (
                     <View key={index} style={styles.genreTag}>
                       <Text style={styles.genreText}>{genre}</Text>
                     </View>
@@ -437,10 +401,10 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
                 </View>
               )}
               
-              {getSafeValue('genre') && !getComplexProperty('genres') && (
+              {currentData.genre && (!mediaDetails?.genres || mediaDetails.genres.length === 0) && (
                 <View style={styles.genresContainer}>
                   <View style={styles.genreTag}>
-                    <Text style={styles.genreText}>{getSafeValue('genre')}</Text>
+                    <Text style={styles.genreText}>{currentData.genre}</Text>
                   </View>
                 </View>
               )}
@@ -463,77 +427,15 @@ const MediaDetailScreen: React.FC<MediaDetailScreenProps> = () => {
           </View>
           
           {/* Synopsis */}
-          {getProperty('overview') && (
+          {displayDescription && (
             <View style={styles.synopsisSection}>
               <Text style={styles.sectionTitle}>Synopsis</Text>
-              <Text style={styles.synopsisText}>{getProperty('overview')}</Text>
+              <Text style={styles.synopsisText}>{displayDescription}</Text>
             </View>
           )}
           
           {/* Carrousel de trailers */}
           {renderTrailerCarousel()}
-          
-          {/* Détails supplémentaires */}
-          <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>Informations</Text>
-            
-            {getProperty('production_companies') && getProperty('production_companies').length > 0 && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Production :</Text>
-                <Text style={styles.detailValue}>
-                  {getProperty('production_companies').slice(0, 2).join(', ')}
-                </Text>
-              </View>
-            )}
-            
-            {getProperty('number_of_seasons') && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Saisons :</Text>
-                <Text style={styles.detailValue}>{getProperty('number_of_seasons')}</Text>
-              </View>
-            )}
-            
-            {getProperty('number_of_episodes') && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Épisodes :</Text>
-                <Text style={styles.detailValue}>{getProperty('number_of_episodes')}</Text>
-              </View>
-            )}
-            
-            {getProperty('networks') && getProperty('networks').length > 0 && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Réseaux :</Text>
-                <Text style={styles.detailValue}>
-                  {getProperty('networks').slice(0, 2).join(', ')}
-                </Text>
-              </View>
-            )}
-            
-            {getProperty('status_text') && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Statut :</Text>
-                <Text style={styles.detailValue}>{getProperty('status_text')}</Text>
-              </View>
-            )}
-            
-            {getProperty('budget') && getProperty('budget') > 0 && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Budget :</Text>
-                <Text style={styles.detailValue}>
-                  ${getProperty('budget').toLocaleString()}
-                </Text>
-              </View>
-            )}
-            
-            {getProperty('revenue') && getProperty('revenue') > 0 && (
-              <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Recettes :</Text>
-                <Text style={styles.detailValue}>
-                  ${getProperty('revenue').toLocaleString()}
-                </Text>
-              </View>
-            )}
-          </View>
         </Animated.View>
       </Animated.ScrollView>
     </View>
@@ -810,24 +712,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginLeft: 8,
-  },
-  detailsSection: {
-    marginBottom: 24,
-  },
-  detailRow: {
-    flexDirection: 'row',
-    marginBottom: 8,
-  },
-  detailLabel: {
-    color: '#b0b0b0',
-    fontSize: 14,
-    fontWeight: '500',
-    width: 100,
-  },
-  detailValue: {
-    color: '#ffffff',
-    fontSize: 14,
-    flex: 1,
   },
 });
 
