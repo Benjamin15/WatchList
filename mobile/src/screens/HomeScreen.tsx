@@ -188,8 +188,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               <ScrollView
                 ref={scrollViewRef}
                 style={styles.historyScrollView}
+                contentContainerStyle={styles.historyScrollContent}
                 showsVerticalScrollIndicator={false}
                 keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled={true}
               >
                 {roomsHistory.map((item, index) => (
                   <TouchableOpacity
@@ -240,8 +242,11 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
   },
   historyScrollView: {
-    flex: 1,
-    maxHeight: 300, // Limiter la hauteur du scroll des rooms récentes
+    maxHeight: 350, // Augmenter légèrement la hauteur maximale
+    marginBottom: SPACING.md, // Ajouter une marge en bas du ScrollView
+  },
+  historyScrollContent: {
+    paddingBottom: SPACING.xl, // Plus d'espace en bas pour la dernière room
   },
   title: {
     fontSize: FONT_SIZES.xxxl,
