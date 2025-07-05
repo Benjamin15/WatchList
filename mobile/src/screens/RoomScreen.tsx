@@ -686,17 +686,12 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View style={styles.headerLeft}>
-            <Text style={styles.roomTitle}>{roomName}</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.shareButton}
-            onPress={handleShareRoom}
-          >
-            <Text style={styles.shareButtonIcon}>📤</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity 
+          style={styles.shareButton}
+          onPress={handleShareRoom}
+        >
+          <Text style={styles.shareButtonIcon}>📤</Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.tabs}>
@@ -752,22 +747,7 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    width: '100%',
-  },
-  headerLeft: {
-    flex: 1,
-    alignItems: 'flex-start',
-  },
-  roomTitle: {
-    fontSize: FONT_SIZES.xl,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-    marginBottom: SPACING.xs,
+    alignItems: 'flex-end',
   },
   tabs: {
     flexDirection: 'row',
