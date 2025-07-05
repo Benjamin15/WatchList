@@ -6,8 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
-  KeyboardAvoidingView,
+  ScrollView,
   Platform,
+  SafeAreaView,
 } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -28,6 +29,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [roomsHistory, setRoomsHistory] = useState<RoomHistory[]>([]);
+  const scrollViewRef = React.useRef<ScrollView>(null);
 
   // Charger l'historique des rooms
   const loadRoomsHistory = async () => {
@@ -43,6 +45,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   useFocusEffect(
     React.useCallback(() => {
       loadRoomsHistory();
+      // Remonter en haut de la liste des rooms récentes
+      scrollViewRef.current?.scrollTo({ y: 0, animated: false });
     }, [])
   );
 
@@ -134,10 +138,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>WatchList</Text>
         <Text style={styles.subtitle}>Partagez vos listes de films, séries et mangas</Text>
@@ -184,41 +185,48 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 <Text style={styles.sectionTitle}>Rooms récentes</Text>
                 <Text style={styles.sectionCount}>({roomsHistory.length})</Text>
               </View>
-              {roomsHistory.map((item, index) => (
-                <TouchableOpacity
-                  key={item.room_id}
-                  style={styles.historyItem}
-                  onPress={() => handleJoinFromHistory(item)}
-                  activeOpacity={0.7}
-                  android_ripple={{ color: COLORS.primary + '20' }}
-                >
-                  <View style={styles.historyContent}>
-                    <View style={styles.historyHeader}>
-                      <Text style={styles.historyRoomName}>
-                        {item.name || `Room ${index + 1}`}
-                      </Text>
-                      <View style={styles.historyRoomBadge}>
-                        <Text style={styles.historyRoomCode}>{item.room_id}</Text>
+              <ScrollView
+                ref={scrollViewRef}
+                style={styles.historyScrollView}
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {roomsHistory.map((item, index) => (
+                  <TouchableOpacity
+                    key={item.room_id}
+                    style={styles.historyItem}
+                    onPress={() => handleJoinFromHistory(item)}
+                    activeOpacity={0.7}
+                    android_ripple={{ color: COLORS.primary + '20' }}
+                  >
+                    <View style={styles.historyContent}>
+                      <View style={styles.historyHeader}>
+                        <Text style={styles.historyRoomName}>
+                          {item.name || `Room ${index + 1}`}
+                        </Text>
+                        <View style={styles.historyRoomBadge}>
+                          <Text style={styles.historyRoomCode}>{item.room_id}</Text>
+                        </View>
                       </View>
+                      <Text style={styles.historyLastJoined}>
+                        Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </Text>
                     </View>
-                    <Text style={styles.historyLastJoined}>
-                      Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </Text>
-                  </View>
-                  <View style={styles.historyArrow}>
-                    <Text style={styles.historyArrowText}>›</Text>
-                  </View>
-                </TouchableOpacity>
-              ))}
+                    <View style={styles.historyArrow}>
+                      <Text style={styles.historyArrowText}>›</Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
             </View>
           </>
         )}
       </View>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -230,7 +238,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: SPACING.lg,
-    justifyContent: 'center',
+  },
+  historyScrollView: {
+    flex: 1,
+    maxHeight: 300, // Limiter la hauteur du scroll des rooms récentes
   },
   title: {
     fontSize: FONT_SIZES.xxxl,
