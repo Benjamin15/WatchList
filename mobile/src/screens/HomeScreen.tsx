@@ -9,7 +9,9 @@ import {
   ScrollView,
   Platform,
   SafeAreaView,
+  Animated,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { RootStackParamList } from '../types';
@@ -98,6 +100,43 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Bouton de suppression pour le swipe
+  const renderDeleteAction = (roomId: string, roomName: string) => {
+    return (
+      <TouchableOpacity
+        style={styles.deleteAction}
+        onPress={() => handleDeleteFromHistory(roomId, roomName)}
+      >
+        <Text style={styles.deleteActionText}>Supprimer</Text>
+      </TouchableOpacity>
+    );
+  };
+
+  // Supprimer une room de l'historique
+  const handleDeleteFromHistory = async (roomId: string, roomName: string) => {
+    Alert.alert(
+      'Supprimer de l\'historique',
+      `Voulez-vous supprimer "${roomName}" de votre historique ?`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { 
+          text: 'Supprimer', 
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await roomHistoryService.removeRoomFromHistory(roomId);
+              loadRoomsHistory();
+              console.log('[HomeScreen] Room supprimée de l\'historique:', roomName);
+            } catch (error) {
+              console.error('[HomeScreen] Erreur suppression historique:', error);
+              Alert.alert('Erreur', 'Impossible de supprimer la room de l\'historique');
+            }
+          }
+        }
+      ]
+    );
   };
 
   // Rejoindre une room depuis l'historique
@@ -194,34 +233,39 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 nestedScrollEnabled={true}
               >
                 {roomsHistory.map((item, index) => (
-                  <TouchableOpacity
+                  <Swipeable
                     key={item.room_id}
-                    style={styles.historyItem}
-                    onPress={() => handleJoinFromHistory(item)}
-                    activeOpacity={0.7}
-                    android_ripple={{ color: COLORS.primary + '20' }}
+                    renderRightActions={() => renderDeleteAction(item.room_id, item.name || `Room ${index + 1}`)}
+                    rightThreshold={40}
                   >
-                    <View style={styles.historyContent}>
-                      <View style={styles.historyHeader}>
-                        <Text style={styles.historyRoomName}>
-                          {item.name || `Room ${index + 1}`}
-                        </Text>
-                        <View style={styles.historyRoomBadge}>
-                          <Text style={styles.historyRoomCode}>{item.room_id}</Text>
+                    <TouchableOpacity
+                      style={styles.historyItem}
+                      onPress={() => handleJoinFromHistory(item)}
+                      activeOpacity={0.7}
+                      android_ripple={{ color: COLORS.primary + '20' }}
+                    >
+                      <View style={styles.historyContent}>
+                        <View style={styles.historyHeader}>
+                          <Text style={styles.historyRoomName}>
+                            {item.name || `Room ${index + 1}`}
+                          </Text>
+                          <View style={styles.historyRoomBadge}>
+                            <Text style={styles.historyRoomCode}>{item.room_id}</Text>
+                          </View>
                         </View>
+                        <Text style={styles.historyLastJoined}>
+                          Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric'
+                          })}
+                        </Text>
                       </View>
-                      <Text style={styles.historyLastJoined}>
-                        Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </Text>
-                    </View>
-                    <View style={styles.historyArrow}>
-                      <Text style={styles.historyArrowText}>›</Text>
-                    </View>
-                  </TouchableOpacity>
+                      <View style={styles.historyArrow}>
+                        <Text style={styles.historyArrowText}>›</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </Swipeable>
                 ))}
               </ScrollView>
             </View>
@@ -369,6 +413,20 @@ const styles = StyleSheet.create({
   historyArrowText: {
     fontSize: FONT_SIZES.xl,
     color: COLORS.placeholder,
+    fontWeight: 'bold',
+  },
+  deleteAction: {
+    backgroundColor: COLORS.error,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 100,
+    height: '100%',
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+  },
+  deleteActionText: {
+    color: COLORS.onPrimary,
+    fontSize: FONT_SIZES.sm,
     fontWeight: 'bold',
   },
 });
