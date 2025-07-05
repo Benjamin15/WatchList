@@ -21,13 +21,15 @@ const MediaItemCard = ({
   onSwipe, 
   statusOrder, 
   renderMediaPoster,
-  currentTab
+  currentTab,
+  onViewDetails
 }: { 
   item: WatchlistItem; 
   onSwipe: (id: number, direction: 'left' | 'right') => void;
   statusOrder: readonly string[];
   renderMediaPoster: (item: WatchlistItem) => React.ReactNode;
   currentTab: string;
+  onViewDetails: (item: WatchlistItem) => void;
 }) => {
   const statusConfig = {
     planned: { text: 'Prévu', color: MEDIA_STATUS.planned.color },
@@ -194,7 +196,7 @@ const MediaItemCard = ({
   return (
     <TouchableOpacity
       activeOpacity={0.7}
-      onPress={() => handleViewMediaDetails(item)}
+      onPress={() => onViewDetails(item)}
     >
       <Animated.View 
         style={[
@@ -477,9 +479,15 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   const renderMediaItem = (item: WatchlistItem) => (
-    <TouchableOpacity onPress={() => handleViewMediaDetails(item)}>
-      <MediaItemCard key={item.id} item={item} onSwipe={handleSwipe} statusOrder={statusOrder} renderMediaPoster={renderMediaPoster} currentTab={currentTab} />
-    </TouchableOpacity>
+    <MediaItemCard 
+      key={item.id} 
+      item={item} 
+      onSwipe={handleSwipe} 
+      statusOrder={statusOrder} 
+      renderMediaPoster={renderMediaPoster} 
+      currentTab={currentTab}
+      onViewDetails={handleViewMediaDetails}
+    />
   );
 
   const renderEmptyState = () => (
