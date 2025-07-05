@@ -190,6 +190,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   <View style={styles.historyContent}>
                     <Text style={styles.historyRoomName}>{item.name}</Text>
                     <Text style={styles.historyRoomCode}>Code: {item.room_id}</Text>
+                    <Text style={styles.historyLastJoined}>
+                      Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR')}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -271,7 +274,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   historyRoomName: {
-    fontSize: FONT_SIZES.md,
+    fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
     color: COLORS.onSurface,
     marginBottom: SPACING.xs,
@@ -279,6 +282,12 @@ const styles = StyleSheet.create({
   historyRoomCode: {
     fontSize: FONT_SIZES.sm,
     color: COLORS.placeholder,
+    marginBottom: SPACING.xs,
+  },
+  historyLastJoined: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.placeholder,
+    fontStyle: 'italic',
   },
 });
 
