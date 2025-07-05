@@ -21,25 +21,38 @@ class ItemController {
         description, 
         image_url, 
         release_date, 
-        note 
+        note,
+        tmdbId,
+        malId
       } = req.body;
+
+      // Convert tmdbId to external_id if provided
+      let finalExternalId = external_id;
+      if (tmdbId && !finalExternalId) {
+        finalExternalId = `tmdb_${tmdbId}`;
+      } else if (malId && !finalExternalId) {
+        finalExternalId = `mal_${malId}`;
+      }
 
       console.log('ItemController: Adding item to room:', roomId);
       console.log('ItemController: Request body:', JSON.stringify(req.body, null, 2));
       console.log('ItemController: Extracted fields:', {
         item_id,
-        external_id,
+        external_id: finalExternalId,
         title,
         type,
         description,
         image_url,
         release_date,
-        note
+        note,
+        tmdbId,
+        malId
       });
 
       // Check if room exists
+      const normalizedRoomId = roomId.toLowerCase();
       const room = await this.prisma.room.findUnique({
-        where: { roomId }
+        where: { roomId: normalizedRoomId }
       });
 
       if (!room) {
@@ -67,9 +80,9 @@ class ItemController {
         }
 
         // Check if item already exists by external_id
-        if (external_id) {
+        if (finalExternalId) {
           const existingItem = await this.prisma.item.findFirst({
-            where: { externalId: external_id }
+            where: { externalId: finalExternalId }
           });
 
           if (existingItem) {
@@ -83,7 +96,7 @@ class ItemController {
             data: {
               title,
               type,
-              externalId: external_id,
+              externalId: finalExternalId,
               description,
               imageUrl: image_url,
               releaseDate: release_date,
@@ -160,8 +173,9 @@ class ItemController {
       }
 
       // Check if room exists
+      const normalizedRoomId = roomId.toLowerCase();
       const room = await this.prisma.room.findUnique({
-        where: { roomId }
+        where: { roomId: normalizedRoomId }
       });
 
       if (!room) {
@@ -224,8 +238,9 @@ class ItemController {
       const { roomId, itemId } = req.params;
 
       // Check if room exists
+      const normalizedRoomId = roomId.toLowerCase();
       const room = await this.prisma.room.findUnique({
-        where: { roomId }
+        where: { roomId: normalizedRoomId }
       });
 
       if (!room) {

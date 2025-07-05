@@ -81,6 +81,48 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   const [isSearching, setIsSearching] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [currentSearchQuery, setCurrentSearchQuery] = useState('');
+  const [existingMediaIds, setExistingMediaIds] = useState<Set<string>>(new Set());
+
+  // Charger les médias existants dans la room
+  useEffect(() => {
+    const loadExistingMedia = async () => {
+      try {
+        const roomItems = await apiService.getRoomItems(roomId);
+        const existingIds = new Set<string>();
+        
+        roomItems.forEach(item => {
+          // L'external_id vient du serveur au format "tmdb_XXXXX"
+          if (item.media.tmdbId) {
+            // Si tmdbId est déjà extrait du serveur, l'utiliser directement
+            existingIds.add(String(item.media.tmdbId));
+          }
+          // Ajouter aussi le titre comme fallback
+          existingIds.add(item.media.title.toLowerCase());
+        });
+        
+        setExistingMediaIds(existingIds);
+        console.log('SearchScreen: Loaded existing media IDs:', Array.from(existingIds));
+      } catch (error) {
+        console.error('Error loading existing media:', error);
+      }
+    };
+
+    loadExistingMedia();
+  }, [roomId]);
+
+  // Fonction pour vérifier si un média existe déjà
+  const isMediaAlreadyAdded = (media: SearchResult): boolean => {
+    // Vérifier par tmdbId en priorité
+    if (media.tmdbId) {
+      const tmdbIdString = String(media.tmdbId);
+      if (existingMediaIds.has(tmdbIdString)) {
+        return true;
+      }
+    }
+    
+    // Fallback sur le titre
+    return existingMediaIds.has(media.title.toLowerCase());
+  };
 
   // Fonction de recherche avec debounce
   const performSearch = useCallback(async (query: string) => {
@@ -101,9 +143,9 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
     
     try {
       console.log('SearchScreen: Performing search for:', searchQuery);
-      // Utiliser l'API réelle pour la recherche
-      const results = await apiService.searchMedia(searchQuery);
-      console.log('SearchScreen: Search results received:', results.length);
+      // Utiliser l'API avec filtrage serveur par room
+      const results = await apiService.searchMediaWithRoomFilter(searchQuery, roomId);
+      console.log('SearchScreen: Search results received (server-filtered):', results.length);
       
       // Vérifier si c'est toujours la recherche actuelle
       if (currentSearchQuery === searchQuery || searchQuery === query.trim()) {
@@ -115,10 +157,13 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
       // Vérifier si c'est toujours la recherche actuelle  
       if (currentSearchQuery === searchQuery || searchQuery === query.trim()) {
         // En cas d'erreur, utiliser les données mock comme fallback
-        const filteredResults = mockSearchResults.filter(item =>
-          item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          item.genre?.toLowerCase().includes(searchQuery.toLowerCase())
-        );
+        const filteredResults = mockSearchResults
+          .filter(item =>
+            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.genre?.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+          .filter(media => !isMediaAlreadyAdded(media));
+        
         setSearchResults(filteredResults);
         
         Alert.alert(
@@ -129,7 +174,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
     } finally {
       setIsSearching(false);
     }
-  }, [currentSearchQuery]);
+  }, [currentSearchQuery, roomId, isMediaAlreadyAdded]);
 
   // Debounce hook pour éviter de surcharger l'API
   useEffect(() => {
@@ -174,45 +219,55 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   };
 
   const handleAddToWatchlist = async (media: SearchResult) => {
-    Alert.alert(
-      'Ajouter à la watchlist',
-      `Voulez-vous ajouter "${media.title}" à votre watchlist ?`,
-      [
-        { text: 'Annuler', style: 'cancel' },
-        { 
-          text: 'Ajouter', 
-          onPress: async () => {
-            try {
-              setIsSearching(true);
-              
-              // Ajouter le média à la room via l'API
-              await apiService.addItemToRoom(roomId, {
-                title: media.title,
-                type: media.type,
-                year: media.year,
-                genre: media.genre,
-                description: media.description,
-                posterUrl: media.posterUrl,
-                rating: media.rating,
-                tmdbId: media.tmdbId,
-                malId: media.malId,
-              });
-              
-              Alert.alert('✅ Ajouté', `"${media.title}" a été ajouté à votre watchlist !`);
-              navigation.goBack();
-            } catch (error) {
-              console.error('Error adding media to watchlist:', error);
-              Alert.alert(
-                'Erreur',
-                'Impossible d\'ajouter le média à la watchlist. Veuillez réessayer.'
-              );
-            } finally {
-              setIsSearching(false);
-            }
+    try {
+      setIsSearching(true);
+      
+      // Ajouter le média à la room via l'API
+      await apiService.addItemToRoom(roomId, {
+        title: media.title,
+        type: media.type,
+        year: media.year,
+        genre: media.genre,
+        description: media.description,
+        posterUrl: media.posterUrl,
+        rating: media.rating,
+        tmdbId: media.tmdbId,
+        malId: media.malId,
+      });
+      
+      // Mettre à jour la liste des médias existants
+      const newExistingIds = new Set(existingMediaIds);
+      if (media.tmdbId) {
+        newExistingIds.add(String(media.tmdbId));
+      }
+      newExistingIds.add(media.title.toLowerCase());
+      setExistingMediaIds(newExistingIds);
+      
+      // Filtrer les résultats actuels pour retirer le média ajouté
+      setSearchResults(prevResults => 
+        prevResults.filter(item => {
+          // Vérifier si ce média est celui qui vient d'être ajouté
+          if (item.tmdbId && media.tmdbId && item.tmdbId === media.tmdbId) {
+            return false;
           }
-        }
-      ]
-    );
+          if (item.title.toLowerCase() === media.title.toLowerCase()) {
+            return false;
+          }
+          return true;
+        })
+      );
+      
+      // Retourner à l'écran précédent
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error adding media to watchlist:', error);
+      Alert.alert(
+        'Erreur',
+        'Impossible d\'ajouter le média à la watchlist. Veuillez réessayer.'
+      );
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const renderSearchResult = (item: SearchResult) => (

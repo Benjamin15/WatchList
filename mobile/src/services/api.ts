@@ -117,7 +117,7 @@ class ApiService {
         description: item.description,
         posterUrl: item.image_url,
         rating: item.note,
-        tmdbId: item.external_id,
+        tmdbId: this.extractTmdbId(item.external_id), // Utiliser extractTmdbId pour convertir "tmdb_XXXXX" en nombre
         createdAt: item.created_at,
         updatedAt: item.created_at,
       },
@@ -426,6 +426,44 @@ class ApiService {
     });
     
     console.log('API: Transformed search results:', transformedResults);
+    return transformedResults;
+  }
+
+  async searchMediaWithRoomFilter(
+    query: string,
+    roomId: string | number,
+    type?: 'movie' | 'series' | 'manga'
+  ): Promise<SearchResult[]> {
+    if (USE_MOCK_DATA) {
+      return mockApiService.searchMedia(query, type);
+    }
+    
+    // Nouvelle API unifiée avec filtrage par room
+    const url = `/search/autocomplete/${encodeURIComponent(query)}/${roomId}`;
+    console.log('API: searchMediaWithRoomFilter URL:', this.client.defaults.baseURL + url);
+    
+    const response = await this.client.get<{query: string, type: string, results: any[], roomId: string}>(url);
+    
+    // Transformer les résultats vers le format attendu par l'application mobile
+    const transformedResults: SearchResult[] = response.data.results.map(item => {
+      const tmdbId = this.extractTmdbId(item.external_id);
+      // Générer un ID unique pour l'affichage, même si tmdbId est undefined
+      const displayId = tmdbId || Math.floor(Math.random() * 1000000);
+      
+      return {
+        id: displayId,
+        title: item.title,
+        type: item.type === 'tv' ? 'series' : item.type, // Transformer 'tv' en 'series'
+        year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
+        genre: undefined, // L'API ne retourne pas le genre dans cette réponse
+        description: item.description,
+        posterUrl: item.image_url,
+        rating: item.rating || undefined,
+        tmdbId: tmdbId,
+      };
+    });
+    
+    console.log('API: Transformed search results with room filter:', transformedResults);
     return transformedResults;
   }
 

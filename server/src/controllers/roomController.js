@@ -48,8 +48,11 @@ class RoomController {
     try {
       const { roomId } = req.params;
 
+      // Normaliser le roomId en minuscules pour la recherche
+      const normalizedRoomId = roomId.toLowerCase();
+      
       const room = await this.prisma.room.findUnique({
-        where: { roomId }
+        where: { roomId: normalizedRoomId }
       });
 
       if (!room) {
@@ -77,8 +80,11 @@ class RoomController {
     try {
       const { roomId } = req.params;
 
+      // Normaliser le roomId en minuscules pour la recherche
+      const normalizedRoomId = roomId.toLowerCase();
+      
       const room = await this.prisma.room.findUnique({
-        where: { roomId },
+        where: { roomId: normalizedRoomId },
         include: {
           items: {
             include: {
