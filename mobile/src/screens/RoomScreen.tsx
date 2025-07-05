@@ -140,9 +140,13 @@ const MediaItemCard = ({
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (evt, gestureState) => {
-      return Math.abs(gestureState.dx) > 10;
+      // Activer le pan responder si le mouvement horizontal est supérieur au vertical
+      const shouldSet = Math.abs(gestureState.dx) > Math.abs(gestureState.dy) && Math.abs(gestureState.dx) > 5;
+      console.log('[PanResponder] onMoveShouldSetPanResponder:', { dx: gestureState.dx, dy: gestureState.dy, shouldSet });
+      return shouldSet;
     },
     onPanResponderGrant: () => {
+      console.log('[PanResponder] onPanResponderGrant - Geste commencé');
       // Petit feedback visuel au début du geste
       Animated.spring(scale, {
         toValue: 0.98,
@@ -178,12 +182,23 @@ const MediaItemCard = ({
       const direction = gestureState.dx > 0 ? 'right' : 'left';
       const distance = Math.abs(gestureState.dx);
       
+      console.log('[PanResponder] onPanResponderRelease:', { 
+        direction, 
+        distance, 
+        threshold: SWIPE_THRESHOLD, 
+        isAllowed: isSwipeAllowed(direction),
+        currentStatus: item.status,
+        currentTab
+      });
+      
       if (distance > SWIPE_THRESHOLD && isSwipeAllowed(direction)) {
         // Swipe valide
+        console.log('[PanResponder] Swipe valide - déclenchement animation');
         triggerSwipeAnimation(direction);
         setTimeout(() => onSwipe(item.id, direction), 50);
       } else {
         // Swipe annulé - retour à la position initiale
+        console.log('[PanResponder] Swipe annulé - retour position initiale');
         resetAnimation();
       }
     },
@@ -194,22 +209,23 @@ const MediaItemCard = ({
   });
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={() => onViewDetails(item)}
+    <Animated.View 
+      style={[
+        styles.mediaItem,
+        {
+          transform: [
+            { translateX: translateX },
+            { scale: scale }
+          ],
+          opacity: opacity,
+        }
+      ]} 
+      {...panResponder.panHandlers}
     >
-      <Animated.View 
-        style={[
-          styles.mediaItem,
-          {
-            transform: [
-              { translateX: translateX },
-              { scale: scale }
-            ],
-            opacity: opacity,
-          }
-        ]} 
-        {...panResponder.panHandlers}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => onViewDetails(item)}
+        style={styles.touchableContent}
       >
         {renderMediaPoster(item)}
         
@@ -235,8 +251,8 @@ const MediaItemCard = ({
             )}
           </View>
         </View>
-      </Animated.View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Animated.View>
   );
 };
 
@@ -721,6 +737,10 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: COLORS.onPrimary,
     fontWeight: 'bold',
+  },
+  touchableContent: {
+    flexDirection: 'row',
+    flex: 1,
   },
 });
 
