@@ -696,7 +696,6 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
             onPress={handleShareRoom}
           >
             <Text style={styles.shareButtonIcon}>📤</Text>
-            <Text style={styles.shareButtonText}>Partager</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -803,27 +802,22 @@ const styles = StyleSheet.create({
     padding: SPACING.md,
   },
   shareButton: {
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    paddingVertical: SPACING.sm,
-    paddingHorizontal: SPACING.md,
-    flexDirection: 'row',
-    alignItems: 'center',
+    width: 40,
+    height: 40,
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
     justifyContent: 'center',
-    elevation: 2,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    elevation: 1,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
   },
   shareButtonIcon: {
-    fontSize: FONT_SIZES.lg,
-    marginRight: SPACING.xs,
-  },
-  shareButtonText: {
-    color: COLORS.onPrimary,
-    fontSize: FONT_SIZES.md,
-    fontWeight: 'bold',
+    fontSize: 18,
   },
   hint: {
     backgroundColor: COLORS.surface,
