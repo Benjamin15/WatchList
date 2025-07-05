@@ -84,6 +84,46 @@ export interface PaginatedResponse<T> {
   };
 }
 
+// Types pour les trailers
+export interface Trailer {
+  id: string;
+  name: string;
+  key: string;
+  site: string;
+  type: string;
+  size: number;
+  official: boolean;
+  published_at: string;
+  iso_639_1: string;
+  iso_3166_1: string;
+}
+
+export interface MediaDetails extends Media {
+  trailers?: Trailer[];
+  genres?: string[];
+  runtime?: number;
+  overview?: string;
+  backdrop_path?: string;
+  vote_average?: number;
+  vote_count?: number;
+  release_date?: string;
+  first_air_date?: string;
+  number_of_seasons?: number;
+  number_of_episodes?: number;
+  episode_run_time?: number[];
+  networks?: string[];
+  production_companies?: string[];
+  spoken_languages?: string[];
+  status_text?: string;
+  tagline?: string;
+  homepage?: string;
+  imdb_id?: string;
+  adult?: boolean;
+  budget?: number;
+  revenue?: number;
+  popularity?: number;
+}
+
 // Types pour les erreurs
 export interface ApiError {
   message: string;

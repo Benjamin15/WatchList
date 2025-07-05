@@ -1,0 +1,97 @@
+// Import des types
+import { Media, SearchResult } from '../types';
+
+// Helper pour extraire l'ID TMDB depuis différents formats
+export const extractTmdbId = (media: any): number | null => {
+  // Si c'est déjà un nombre, on le retourne
+  if (typeof media.tmdbId === 'number') {
+    return media.tmdbId;
+  }
+  
+  // Si c'est une chaîne, on essaie de la convertir
+  if (typeof media.tmdbId === 'string') {
+    const id = parseInt(media.tmdbId, 10);
+    return isNaN(id) ? null : id;
+  }
+  
+  // Si on a un external_id au format "tmdb_123"
+  if (media.external_id && typeof media.external_id === 'string') {
+    const match = media.external_id.match(/^tmdb_(\d+)$/);
+    if (match) {
+      const id = parseInt(match[1], 10);
+      return isNaN(id) ? null : id;
+    }
+  }
+  
+  // Si on a un ID numérique simple
+  if (typeof media.id === 'number' && media.id > 0) {
+    return media.id;
+  }
+  
+  return null;
+};
+
+// Helper pour formater la durée en heures et minutes
+export const formatRuntime = (minutes: number): string => {
+  if (!minutes) return '';
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return hours > 0 ? `${hours}h ${mins}min` : `${mins}min`;
+};
+
+// Helper pour formater les notes
+export const formatRating = (rating: number): string => {
+  if (!rating) return '';
+  return rating.toFixed(1);
+};
+
+// Helper pour formater les dates
+export const formatDate = (dateString: string): string => {
+  if (!dateString) return '';
+  const date = new Date(dateString);
+  return date.getFullYear().toString();
+};
+
+// Helper pour formater les nombres avec séparateurs
+export const formatNumber = (num: number): string => {
+  if (!num) return '';
+  return num.toLocaleString();
+};
+
+// Helper pour obtenir l'URL complète de l'image TMDB
+export const getTmdbImageUrl = (path: string, size: 'w200' | 'w300' | 'w500' | 'w780' | 'w1280' | 'original' = 'w500'): string => {
+  if (!path) return '';
+  return `https://image.tmdb.org/t/p/${size}${path}`;
+};
+
+// Helper pour truncater le texte
+export const truncateText = (text: string, maxLength: number): string => {
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}...`;
+};
+
+// Helper pour valider les URLs YouTube
+export const isValidYouTubeUrl = (url: string): boolean => {
+  const youtubeRegex = /^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/.+/;
+  return youtubeRegex.test(url);
+};
+
+// Helper pour obtenir l'URL d'embed YouTube
+export const getYouTubeEmbedUrl = (videoKey: string): string => {
+  return `https://www.youtube.com/embed/${videoKey}`;
+};
+
+// Helper pour obtenir l'URL de la miniature YouTube
+export const getYouTubeThumbnailUrl = (videoKey: string, quality: 'default' | 'medium' | 'high' | 'standard' | 'maxres' = 'medium'): string => {
+  return `https://img.youtube.com/vi/${videoKey}/${quality}default.jpg`;
+};
+
+// Type guards
+export const isMedia = (item: any): item is Media => {
+  return item && typeof item === 'object' && 'id' in item && 'title' in item;
+};
+
+export const isSearchResult = (item: any): item is SearchResult => {
+  return item && typeof item === 'object' && 'title' in item && 'type' in item;
+};

@@ -1,10 +1,10 @@
 const { PrismaClient } = require('@prisma/client');
-const TMDBService = require('./tmdbService');
+const tmdbService = require('./tmdbService');
 
 class SearchService {
   constructor() {
     this.prisma = new PrismaClient();
-    this.tmdbService = new TMDBService();
+    this.tmdbService = tmdbService;
   }
 
   /**

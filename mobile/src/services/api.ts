@@ -10,6 +10,8 @@ import {
   ApiResponse,
   PaginatedResponse,
   ApiError,
+  MediaDetails,
+  Trailer,
 } from '../types';
 
 class ApiService {
@@ -486,6 +488,27 @@ class ApiService {
       API_ENDPOINTS.MEDIA_DETAIL(mediaId)
     );
     return response.data.data;
+  }
+
+  // Méthodes pour les détails des médias TMDB
+  async getMediaDetailsFromTMDB(tmdbId: number, type: 'movie' | 'series'): Promise<MediaDetails> {
+    try {
+      const response = await this.client.get<MediaDetails>(`/media/${type}/${tmdbId}/details`);
+      return response.data;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des détails du média:', error);
+      throw this.handleError(error as AxiosError);
+    }
+  }
+
+  async getMediaTrailers(tmdbId: number, type: 'movie' | 'series'): Promise<Trailer[]> {
+    try {
+      const response = await this.client.get<{ trailers: Trailer[] }>(`/media/${type}/${tmdbId}/trailers`);
+      return response.data.trailers;
+    } catch (error) {
+      console.error('Erreur lors de la récupération des trailers:', error);
+      throw this.handleError(error as AxiosError);
+    }
   }
 }
 

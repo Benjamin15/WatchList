@@ -270,11 +270,15 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
     }
   };
 
+  const handleViewDetails = (media: SearchResult) => {
+    navigation.navigate('Detail', { media, roomId });
+  };
+
   const renderSearchResult = (item: SearchResult) => (
     <TouchableOpacity
       key={item.id}
       style={styles.resultItem}
-      onPress={() => handleAddToWatchlist(item)}
+      onPress={() => handleViewDetails(item)}
     >
       {renderSearchPoster(item)}
       
@@ -288,9 +292,15 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
           <Text style={styles.resultRating}>
             ⭐ {item.rating}
           </Text>
-          <View style={styles.addButton}>
+          <TouchableOpacity
+            style={styles.addButton}
+            onPress={(e: any) => {
+              e.stopPropagation();
+              handleAddToWatchlist(item);
+            }}
+          >
             <Text style={styles.addButtonText}>+ Ajouter</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>

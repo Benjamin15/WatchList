@@ -192,44 +192,49 @@ const MediaItemCard = ({
   });
 
   return (
-    <Animated.View 
-      style={[
-        styles.mediaItem,
-        {
-          transform: [
-            { translateX: translateX },
-            { scale: scale }
-          ],
-          opacity: opacity,
-        }
-      ]} 
-      {...panResponder.panHandlers}
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={() => handleViewMediaDetails(item)}
     >
-      {renderMediaPoster(item)}
-      
-      <View style={styles.mediaContent}>
-        <Text style={styles.title}>{item.media.title}</Text>
-        <Text style={styles.meta}>{item.media.year} {item.media.genre}</Text>
+      <Animated.View 
+        style={[
+          styles.mediaItem,
+          {
+            transform: [
+              { translateX: translateX },
+              { scale: scale }
+            ],
+            opacity: opacity,
+          }
+        ]} 
+        {...panResponder.panHandlers}
+      >
+        {renderMediaPoster(item)}
         
-        <View style={styles.footer}>
-          <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
-            <Text style={styles.badgeText}>{statusBadge.text}</Text>
+        <View style={styles.mediaContent}>
+          <Text style={styles.title}>{item.media.title}</Text>
+          <Text style={styles.meta}>{item.media.year} {item.media.genre}</Text>
+          
+          <View style={styles.footer}>
+            <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
+              <Text style={styles.badgeText}>{statusBadge.text}</Text>
+            </View>
+            {/* Indicateur visuel discret de la direction possible */}
+            {currentTab === 'planned' && canRight && (
+              <Text style={styles.swipeHint}>→</Text>
+            )}
+            {currentTab === 'completed' && canLeft && (
+              <Text style={styles.swipeHint}>←</Text>
+            )}
+            {currentTab === 'watching' && (
+              <Text style={styles.swipeHint}>
+                {canLeft && canRight ? '← →' : canLeft ? '←' : canRight ? '→' : ''}
+              </Text>
+            )}
           </View>
-          {/* Indicateur visuel discret de la direction possible */}
-          {currentTab === 'planned' && canRight && (
-            <Text style={styles.swipeHint}>→</Text>
-          )}
-          {currentTab === 'completed' && canLeft && (
-            <Text style={styles.swipeHint}>←</Text>
-          )}
-          {currentTab === 'watching' && (
-            <Text style={styles.swipeHint}>
-              {canLeft && canRight ? '← →' : canLeft ? '←' : canRight ? '→' : ''}
-            </Text>
-          )}
         </View>
-      </View>
-    </Animated.View>
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
@@ -331,6 +336,11 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
   const handleImageError = (itemId: number) => {
     setImageErrors(prev => new Set([...prev, itemId]));
+  };
+
+  // Fonction pour naviguer vers les détails du média
+  const handleViewMediaDetails = (item: WatchlistItem) => {
+    navigation.navigate('Detail', { media: item.media, roomId });
   };
 
   const renderMediaPoster = (item: WatchlistItem) => {
@@ -466,9 +476,11 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     return watchlistItems.filter(item => item.status === currentTab);
   };
 
-  const renderMediaItem = (item: WatchlistItem) => {
-    return <MediaItemCard key={item.id} item={item} onSwipe={handleSwipe} statusOrder={statusOrder} renderMediaPoster={renderMediaPoster} currentTab={currentTab} />;
-  };
+  const renderMediaItem = (item: WatchlistItem) => (
+    <TouchableOpacity onPress={() => handleViewMediaDetails(item)}>
+      <MediaItemCard key={item.id} item={item} onSwipe={handleSwipe} statusOrder={statusOrder} renderMediaPoster={renderMediaPoster} currentTab={currentTab} />
+    </TouchableOpacity>
+  );
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>

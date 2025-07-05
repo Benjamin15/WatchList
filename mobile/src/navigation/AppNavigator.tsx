@@ -6,6 +6,7 @@ import HomeScreen from '../screens/HomeScreen';
 import RoomScreen from '../screens/RoomScreen';
 import SearchScreen from '../screens/SearchScreen';
 import LoadingScreen from '../screens/LoadingScreen';
+import MediaDetailScreen from '../screens/MediaDetailScreen';
 import { COLORS } from '../constants';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -45,6 +46,14 @@ const AppNavigator: React.FC = () => {
           component={SearchScreen}
           options={{
             title: 'Rechercher',
+          }}
+        />
+        <Stack.Screen
+          name="Detail"
+          component={MediaDetailScreen}
+          options={{
+            title: 'Détails',
+            headerShown: false,
           }}
         />
         <Stack.Screen
