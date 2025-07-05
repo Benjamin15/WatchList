@@ -314,6 +314,50 @@ class ItemController {
       res.status(500).json({ error: 'Failed to get item' });
     }
   }
+
+  /**
+   * Update item (general method for PUT /api/items/:itemId)
+   * @param {Object} req - Express request object
+   * @param {Object} res - Express response object
+   */
+  async updateItem(req, res) {
+    try {
+      const { itemId } = req.params;
+      const { status } = req.body;
+
+      console.log('ItemController: Updating item', itemId, 'with status:', status);
+
+      const validStatuses = ['a_voir', 'en_cours', 'termine', 'vu'];
+      if (!validStatuses.includes(status)) {
+        console.log('ItemController: Invalid status:', status);
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+
+      // Update item status
+      const updatedItem = await this.prisma.item.update({
+        where: { id: parseInt(itemId) },
+        data: { status }
+      });
+
+      console.log('ItemController: Item status updated successfully');
+
+      res.json({
+        id: updatedItem.id,
+        title: updatedItem.title,
+        type: updatedItem.type,
+        external_id: updatedItem.externalId,
+        status: updatedItem.status,
+        image_url: updatedItem.imageUrl,
+        release_date: updatedItem.releaseDate,
+        description: updatedItem.description,
+        note: updatedItem.note,
+        created_at: updatedItem.createdAt
+      });
+    } catch (error) {
+      console.error('Update item error:', error.message);
+      res.status(500).json({ error: 'Failed to update item' });
+    }
+  }
 }
 
 module.exports = ItemController;
