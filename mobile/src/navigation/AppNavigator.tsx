@@ -1,7 +1,8 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Pressable, Text } from 'react-native';
+import { TouchableOpacity, Text, Share, Alert } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootStackParamList } from '../types';
 import HomeScreen from '../screens/HomeScreen';
 import RoomScreen from '../screens/RoomScreen';
@@ -14,7 +15,8 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator: React.FC = () => {
   return (
-    <NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Home"
         screenOptions={{
@@ -41,7 +43,7 @@ const AppNavigator: React.FC = () => {
           options={({ route, navigation }) => ({
             title: route.params?.roomName || 'Room',
             headerRight: () => (
-              <Pressable
+              <TouchableOpacity
                 style={{
                   width: 40,
                   height: 40,
@@ -56,23 +58,21 @@ const AppNavigator: React.FC = () => {
                   // Fonction de partage depuis les paramètres de route
                   const { roomId, roomName } = route.params || {};
                   if (roomId && roomName) {
-                    import('react-native').then(({ Share, Alert }) => {
-                      const shareContent = {
-                        title: 'Rejoignez ma WatchList !',
-                        message: `🎬 Rejoignez ma room "${roomName}" !\n\nCode d'accès : ${roomId}\n\nPartagez et découvrez des films et séries ensemble ! 🍿`,
-                        url: `watchlist://room/${roomId}`,
-                      };
-                      
-                      Share.share(shareContent).catch((error) => {
-                        console.error('Erreur lors du partage:', error);
-                        Alert.alert('Erreur', 'Impossible de partager la room');
-                      });
+                    const shareContent = {
+                      title: 'Rejoignez ma WatchList !',
+                      message: `🎬 Rejoignez ma room "${roomName}" !\n\nCode d'accès : ${roomId}\n\nPartagez et découvrez des films et séries ensemble ! 🍿`,
+                      url: `watchlist://room/${roomId}`,
+                    };
+                    
+                    Share.share(shareContent).catch((error) => {
+                      console.error('Erreur lors du partage:', error);
+                      Alert.alert('Erreur', 'Impossible de partager la room');
                     });
                   }
                 }}
               >
                 <Text style={{ fontSize: 18 }}>📤</Text>
-              </Pressable>
+              </TouchableOpacity>
             ),
           })}
         />
@@ -100,6 +100,7 @@ const AppNavigator: React.FC = () => {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </GestureHandlerRootView>
   );
 };
 
