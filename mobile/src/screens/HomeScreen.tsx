@@ -108,13 +108,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       <TouchableOpacity
         style={styles.deleteAction}
         onPress={() => handleDeleteFromHistory(roomId, roomName)}
+        activeOpacity={0.8}
       >
         <Text style={styles.deleteActionText}>Supprimer</Text>
       </TouchableOpacity>
     );
   };
 
-  // Supprimer une room de l'historique
+  // Supprimer une room de l'historique (avec confirmation)
   const handleDeleteFromHistory = async (roomId: string, roomName: string) => {
     Alert.alert(
       'Supprimer de l\'historique',
@@ -125,18 +126,23 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           text: 'Supprimer', 
           style: 'destructive',
           onPress: async () => {
-            try {
-              await roomHistoryService.removeRoomFromHistory(roomId);
-              loadRoomsHistory();
-              console.log('[HomeScreen] Room supprimée de l\'historique:', roomName);
-            } catch (error) {
-              console.error('[HomeScreen] Erreur suppression historique:', error);
-              Alert.alert('Erreur', 'Impossible de supprimer la room de l\'historique');
-            }
+            await removeRoomFromHistory(roomId, roomName);
           }
         }
       ]
     );
+  };
+
+  // Supprimer une room de l'historique (sans confirmation)
+  const removeRoomFromHistory = async (roomId: string, roomName: string) => {
+    try {
+      await roomHistoryService.removeRoomFromHistory(roomId);
+      loadRoomsHistory();
+      console.log('[HomeScreen] Room supprimée de l\'historique:', roomName);
+    } catch (error) {
+      console.error('[HomeScreen] Erreur suppression historique:', error);
+      Alert.alert('Erreur', 'Impossible de supprimer la room de l\'historique');
+    }
   };
 
   // Rejoindre une room depuis l'historique
@@ -237,6 +243,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     key={item.room_id}
                     renderRightActions={() => renderDeleteAction(item.room_id, item.name || `Room ${index + 1}`)}
                     rightThreshold={40}
+                    onSwipeableRightOpen={() => removeRoomFromHistory(item.room_id, item.name || `Room ${index + 1}`)}
                   >
                     <TouchableOpacity
                       style={styles.historyItem}
@@ -420,9 +427,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     width: 100,
-    height: '100%',
+    marginBottom: SPACING.md,
     borderTopRightRadius: 12,
     borderBottomRightRadius: 12,
+    // Même hauteur que la carte historyItem
+    paddingVertical: SPACING.md,
+    // Forcer la hauteur à correspondre à la carte
+    flex: 1,
   },
   deleteActionText: {
     color: COLORS.onPrimary,
