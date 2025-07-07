@@ -57,7 +57,6 @@ export type RootStackParamList = {
   Room: { roomId: string; roomName?: string };  // Ajout du roomName optionnel
   Search: { roomId: string }; // Changé de number à string pour cohérence
   Detail: { media: Media | SearchResult; roomId?: string }; // Changé de number à string pour cohérence
-  Settings: { roomId: string }; // Changé de number à string pour cohérence
   Loading: undefined;
   CreateVote: { roomId: string };
   VoteDetail: { voteId: number; roomId: string };
@@ -66,7 +65,6 @@ export type RootStackParamList = {
 export type TabParamList = {
   RoomTab: { roomId: string }; // Changé de number à string pour cohérence
   SearchTab: { roomId: string }; // Changé de number à string pour cohérence
-  SettingsTab: { roomId: string }; // Changé de number à string pour cohérence
 };
 
 // Types pour les réponses API

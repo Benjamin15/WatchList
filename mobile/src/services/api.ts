@@ -619,6 +619,48 @@ class ApiService {
 
     await this.client.patch(`/votes/${voteId}/status`, { status });
   }
+
+  // Méthodes pour les notifications push
+  async registerPushToken(roomId: string, pushToken: string, deviceId?: string): Promise<void> {
+    if (USE_MOCK_DATA) {
+      console.log(`[API Mock] Token push enregistré pour room ${roomId}: ${pushToken}`);
+      return;
+    }
+
+    const finalDeviceId = deviceId || await getDeviceId();
+    await this.client.post('/notifications/register', {
+      roomId,
+      pushToken,
+      deviceId: finalDeviceId,
+    });
+  }
+
+  async unregisterPushToken(roomId: string, deviceId?: string): Promise<void> {
+    if (USE_MOCK_DATA) {
+      console.log(`[API Mock] Token push désenregistré pour room ${roomId}`);
+      return;
+    }
+
+    const finalDeviceId = deviceId || await getDeviceId();
+    await this.client.post('/notifications/unregister', {
+      roomId,
+      deviceId: finalDeviceId,
+    });
+  }
+
+  async updateNotificationSettings(roomId: string, enabled: boolean, deviceId?: string): Promise<void> {
+    if (USE_MOCK_DATA) {
+      console.log(`[API Mock] Paramètres notification mis à jour pour room ${roomId}: ${enabled}`);
+      return;
+    }
+
+    const finalDeviceId = deviceId || await getDeviceId();
+    await this.client.patch('/notifications/settings', {
+      roomId,
+      enabled,
+      deviceId: finalDeviceId,
+    });
+  }
 }
 
 export const apiService = new ApiService();

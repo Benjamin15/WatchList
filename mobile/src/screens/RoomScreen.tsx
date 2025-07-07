@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
+import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated, Share } from 'react-native';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -11,6 +11,7 @@ import { apiService } from '../services/api';
 import LoadingScreen from './LoadingScreen';
 import FilterButton from '../components/FilterButton';
 import FilterSidebar from '../components/FilterSidebar';
+import SettingsSidebar from '../components/SettingsSidebar';
 
 // Clé pour stocker les votes supprimés dans AsyncStorage (par room)
 const getDismissedVotesStorageKey = (roomId: string) => `dismissedVotes_${roomId}`;
@@ -632,6 +633,9 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     sortDirection: 'desc',
   });
   const [filterSidebarVisible, setFilterSidebarVisible] = useState(false);
+  
+  // État pour le sidebar des paramètres
+  const [settingsSidebarVisible, setSettingsSidebarVisible] = useState(false);
 
   const statusOrder = ['planned', 'watching', 'completed'] as const;
 
@@ -727,6 +731,59 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       loadVotes();
     }, [roomId])
   );
+
+  // Configuration des boutons du header
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <View style={{ flexDirection: 'row', gap: 8, marginRight: 8 }}>
+          {/* Bouton de partage */}
+          <TouchableOpacity
+            style={{
+              width: 40,
+              height: 40,
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              borderRadius: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+            }}
+            onPress={() => {
+              const shareContent = {
+                message: `Rejoins ma WatchList "${roomName}" avec le code: ${roomCode}`,
+                title: 'Partager ma WatchList',
+              };
+              
+              Share.share(shareContent).catch((error) => {
+                console.error('Erreur lors du partage:', error);
+                Alert.alert('Erreur', 'Impossible de partager la room');
+              });
+            }}
+          >
+            <Text style={{ fontSize: 18 }}>📤</Text>
+          </TouchableOpacity>
+          
+          {/* Bouton Settings */}
+          <TouchableOpacity
+            style={{
+              width: 40,
+              height: 40,
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              borderRadius: 20,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: 'rgba(0, 0, 0, 0.1)',
+            }}
+            onPress={() => setSettingsSidebarVisible(true)}
+          >
+            <Text style={{ fontSize: 18 }}>⚙️</Text>
+          </TouchableOpacity>
+        </View>
+      ),
+    });
+  }, [navigation, roomName, roomCode]);
 
   const loadRoomData = async () => {
     try {
@@ -1281,6 +1338,14 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
         onClose={handleCloseFilterSidebar}
         onApply={handleApplyFilters}
         resultsCount={filteredItems.length}
+      />
+
+      {/* Sidebar des paramètres */}
+      <SettingsSidebar
+        visible={settingsSidebarVisible}
+        onClose={() => setSettingsSidebarVisible(false)}
+        roomId={roomId}
+        roomName={roomName}
       />
     </View>
   );

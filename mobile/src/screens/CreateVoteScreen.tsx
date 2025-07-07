@@ -91,6 +91,10 @@ const CreateVoteScreen: React.FC = () => {
 
       const result = await apiService.createVote(voteData);
       
+      // Note: Les notifications push seront gérées côté serveur
+      // Le serveur enverra automatiquement les notifications à tous les 
+      // utilisateurs abonnés à cette room qui ont activé les notifications
+      
       Alert.alert(
         'Succès',
         'Vote créé avec succès !',

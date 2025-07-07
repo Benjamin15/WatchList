@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const pushNotificationService = require('../services/pushNotificationService');
 
 class VoteController {
   constructor() {
@@ -86,6 +87,17 @@ class VoteController {
           }
         }
       });
+
+      // Envoyer les notifications push de manière asynchrone
+      // (ne pas bloquer la réponse)
+      setTimeout(async () => {
+        try {
+          await pushNotificationService.sendVoteNotification(roomIdStr, title, createdBy);
+        } catch (notificationError) {
+          console.error('Erreur lors de l\'envoi des notifications push:', notificationError);
+          // On ne fait pas échouer la création du vote si les notifications échouent
+        }
+      }, 100);
 
       res.status(201).json({
         success: true,

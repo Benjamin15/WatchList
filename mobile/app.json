@@ -23,6 +23,22 @@
       },
       "package": "com.watchlist.mobile"
     },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#4A90E2",
+      "androidMode": "default",
+      "androidCollapsedTitle": "WatchList"
+    },
+    "plugins": [
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#4A90E2",
+          "defaultChannel": "default"
+        }
+      ]
+    ],
     "web": {
       "favicon": "./assets/favicon.png"
     },

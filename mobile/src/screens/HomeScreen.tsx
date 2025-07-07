@@ -186,7 +186,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>WatchList</Text>
-        <Text style={styles.subtitle}>Partagez vos listes de films, séries et mangas</Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Créer une nouvelle room</Text>
@@ -302,12 +301,6 @@ const styles = StyleSheet.create({
     fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
     color: COLORS.primary,
-    textAlign: 'center',
-    marginBottom: SPACING.sm,
-  },
-  subtitle: {
-    fontSize: FONT_SIZES.md,
-    color: COLORS.onBackground,
     textAlign: 'center',
     marginBottom: SPACING.xxl,
   },
