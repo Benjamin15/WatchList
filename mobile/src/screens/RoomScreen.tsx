@@ -770,7 +770,22 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
   // Vérifier s'il y a un vote actif dans la room
   const hasActiveVote = () => {
-    return votes.some(vote => vote.status === 'active');
+    const now = new Date();
+    return votes.some(vote => {
+      // Vérifier le statut
+      if (vote.status !== 'active') {
+        return false;
+      }
+      
+      // Si le vote a une date de fin, vérifier qu'elle n'est pas passée
+      if (vote.endsAt) {
+        const endsAt = new Date(vote.endsAt);
+        return endsAt > now;
+      }
+      
+      // Pas de date de fin = vote permanent actif
+      return true;
+    });
   };
 
   // États pour gérer les votes supprimés localement

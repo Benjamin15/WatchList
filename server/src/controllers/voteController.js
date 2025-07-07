@@ -16,10 +16,16 @@ class VoteController {
         });
       }
 
+      // Convertir roomId en string pour assurer la compatibilité
+      const roomIdStr = String(roomId);
+
+      // Mettre à jour les votes expirés avant de vérifier s'il y en a un actif
+      await this.updateExpiredVotes();
+
       // Vérifier s'il existe déjà un vote actif dans cette room
       const existingActiveVote = await this.prisma.vote.findFirst({
         where: {
-          roomId,
+          roomId: roomIdStr,
           status: 'active'
         }
       });
@@ -39,14 +45,28 @@ class VoteController {
       let endsAt = null;
       if (duration && duration > 0) {
         const unit = durationUnit || 'hours'; // défaut: heures pour compatibilité
-        const multiplier = unit === 'minutes' ? 60 * 1000 : 60 * 60 * 1000;
+        let multiplier;
+        
+        switch (unit) {
+          case 'seconds':
+            multiplier = 1000; // Pour les tests
+            break;
+          case 'minutes':
+            multiplier = 60 * 1000;
+            break;
+          case 'hours':
+          default:
+            multiplier = 60 * 60 * 1000;
+            break;
+        }
+        
         endsAt = new Date(Date.now() + duration * multiplier);
       }
 
       // Créer le vote avec ses options dans une transaction
       const vote = await this.prisma.vote.create({
         data: {
-          roomId,
+          roomId: roomIdStr,
           title,
           description,
           duration,
@@ -88,8 +108,11 @@ class VoteController {
         return res.status(400).json({ error: 'roomId est requis' });
       }
 
+      // Mettre à jour les votes expirés avant de les récupérer
+      await this.updateExpiredVotes();
+
       const votes = await this.prisma.vote.findMany({
-        where: { roomId },
+        where: { roomId: String(roomId) },
         include: {
           options: {
             include: {
@@ -370,6 +393,42 @@ class VoteController {
     } catch (error) {
       console.error('Erreur lors de la mise à jour du statut:', error);
       res.status(500).json({ error: 'Erreur serveur' });
+    }
+  }
+
+  // Mettre à jour automatiquement les votes expirés
+  async updateExpiredVotes() {
+    try {
+      const now = new Date();
+      
+      // Trouver tous les votes actifs dont la date de fin est passée
+      const expiredVotes = await this.prisma.vote.findMany({
+        where: {
+          status: 'active',
+          endsAt: {
+            lt: now
+          }
+        }
+      });
+
+      // Mettre à jour leur statut à 'expired'
+      if (expiredVotes.length > 0) {
+        await this.prisma.vote.updateMany({
+          where: {
+            status: 'active',
+            endsAt: {
+              lt: now
+            }
+          },
+          data: {
+            status: 'expired'
+          }
+        });
+
+        console.log(`[VoteController] ${expiredVotes.length} votes mis à jour vers 'expired'`);
+      }
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des votes expirés:', error);
     }
   }
 }
