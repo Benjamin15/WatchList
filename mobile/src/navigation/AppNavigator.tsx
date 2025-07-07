@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { TouchableOpacity, Text, Share, Alert } from 'react-native';
+import { TouchableOpacity, Text, Share, Alert, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { RootStackParamList } from '../types';
 import HomeScreen from '../screens/HomeScreen';
@@ -11,6 +11,7 @@ import LoadingScreen from '../screens/LoadingScreen';
 import MediaDetailScreen from '../screens/MediaDetailScreen';
 import CreateVoteScreen from '../screens/CreateVoteScreen';
 import VoteDetailScreen from '../screens/VoteDetailScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import { COLORS } from '../constants';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -45,36 +46,61 @@ const AppNavigator: React.FC = () => {
           options={({ route, navigation }) => ({
             title: route.params?.roomName || 'Room',
             headerRight: () => (
-              <TouchableOpacity
-                style={{
-                  width: 40,
-                  height: 40,
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                  borderRadius: 20,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  borderWidth: 1,
-                  borderColor: 'rgba(0, 0, 0, 0.1)',
-                }}
-                onPress={() => {
-                  // Fonction de partage depuis les paramètres de route
-                  const { roomId, roomName } = route.params || {};
-                  if (roomId && roomName) {
-                    const shareContent = {
-                      title: 'Rejoignez ma WatchList !',
-                      message: `🎬 Rejoignez ma room "${roomName}" !\n\nCode d'accès : ${roomId}\n\nPartagez et découvrez des films et séries ensemble ! 🍿`,
-                      url: `watchlist://room/${roomId}`,
-                    };
-                    
-                    Share.share(shareContent).catch((error) => {
-                      console.error('Erreur lors du partage:', error);
-                      Alert.alert('Erreur', 'Impossible de partager la room');
-                    });
-                  }
-                }}
-              >
-                <Text style={{ fontSize: 18 }}>📤</Text>
-              </TouchableOpacity>
+              <View style={{ flexDirection: 'row', gap: 10 }}>
+                {/* Bouton Settings */}
+                <TouchableOpacity
+                  style={{
+                    width: 40,
+                    height: 40,
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: 'rgba(0, 0, 0, 0.1)',
+                  }}
+                  onPress={() => {
+                    const { roomId } = route.params || {};
+                    if (roomId) {
+                      navigation.navigate('Settings', { roomId });
+                    }
+                  }}
+                >
+                  <Text style={{ fontSize: 18 }}>⚙️</Text>
+                </TouchableOpacity>
+                
+                {/* Bouton Partage */}
+                <TouchableOpacity
+                  style={{
+                    width: 40,
+                    height: 40,
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: 'rgba(0, 0, 0, 0.1)',
+                  }}
+                  onPress={() => {
+                    // Fonction de partage depuis les paramètres de route
+                    const { roomId, roomName } = route.params || {};
+                    if (roomId && roomName) {
+                      const shareContent = {
+                        title: 'Rejoignez ma WatchList !',
+                        message: `🎬 Rejoignez ma room "${roomName}" !\n\nCode d'accès : ${roomId}\n\nPartagez et découvrez des films et séries ensemble ! 🍿`,
+                        url: `watchlist://room/${roomId}`,
+                      };
+                      
+                      Share.share(shareContent).catch((error) => {
+                        console.error('Erreur lors du partage:', error);
+                        Alert.alert('Erreur', 'Impossible de partager la room');
+                      });
+                    }
+                  }}
+                >
+                  <Text style={{ fontSize: 18 }}>📤</Text>
+                </TouchableOpacity>
+              </View>
             ),
           })}
         />
@@ -112,6 +138,13 @@ const AppNavigator: React.FC = () => {
           component={VoteDetailScreen}
           options={{
             title: 'Détails du vote',
+          }}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{
+            title: 'Paramètres',
           }}
         />
       </Stack.Navigator>
