@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maquette - Bouton Filtrage et Tri</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 375px;
+            margin: 0 auto;
+            background: #0f3460;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            background: #16213e;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #533483;
+        }
+
+        .header h1 {
+            font-size: 18px;
+            color: #e94560;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+
+        .room-content {
+            padding: 20px;
+            min-height: 500px;
+            position: relative;
+        }
+
+        /* Simulation de films */
+        .movie-item {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .movie-poster {
+            width: 50px;
+            height: 75px;
+            background: linear-gradient(45deg, #e94560, #533483);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .movie-info {
+            flex: 1;
+        }
+
+        .movie-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        .movie-meta {
+            font-size: 12px;
+            color: #a0a0a0;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-planned { background: #FF9800; color: white; }
+        .status-watching { background: #4CAF50; color: white; }
+        .status-completed { background: #2196F3; color: white; }
+
+        /* Bouton principal de filtrage */
+        .filter-button {
+            position: fixed;
+            bottom: 30px;
+            left: 30px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #e94560 0%, #533483 100%);
+            border-radius: 50%;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(233, 69, 96, 0.4);
+            transition: all 0.3s ease;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .filter-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(233, 69, 96, 0.6);
+        }
+
+        .filter-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Overlay semi-transparent */
+        .filter-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1001;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .filter-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Panel de filtrage */
+        .filter-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #16213e;
+            border-radius: 20px 20px 0 0;
+            z-index: 1002;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .filter-panel.active {
+            transform: translateY(0);
+        }
+
+        .filter-header {
+            padding: 20px 20px 10px;
+            border-bottom: 1px solid #533483;
+            position: sticky;
+            top: 0;
+            background: #16213e;
+            z-index: 10;
+        }
+
+        .filter-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #e94560;
+            margin-bottom: 5px;
+        }
+
+        .filter-subtitle {
+            font-size: 14px;
+            color: #a0a0a0;
+        }
+
+        .filter-content {
+            padding: 20px;
+        }
+
+        .filter-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .filter-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+        }
+
+        .filter-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .filter-option.active {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+            color: #e94560;
+        }
+
+        .sort-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .sort-option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sort-option:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .sort-option.active {
+            background: rgba(233, 69, 96, 0.2);
+            border-color: #e94560;
+            color: #e94560;
+        }
+
+        .sort-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sort-direction {
+            font-size: 16px;
+        }
+
+        .filter-actions {
+            padding: 20px;
+            border-top: 1px solid #533483;
+            display: flex;
+            gap: 15px;
+            background: #16213e;
+            position: sticky;
+            bottom: 0;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #e94560 0%, #533483 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(233, 69, 96, 0.4);
+        }
+
+        /* Badge de filtres actifs */
+        .filter-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e94560;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.2s ease;
+        }
+
+        .filter-badge.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Animations */
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .filter-button.has-filters {
+            animation: bounce 2s infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .filter-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .filter-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Ma WatchList</h1>
+            <p>12 films • 3 en cours</p>
+        </div>
+        
+        <div class="room-content">
+            <!-- Simulation de films -->
+            <div class="movie-item">
+                <div class="movie-poster">🦸</div>
+                <div class="movie-info">
+                    <div class="movie-title">Avengers: Endgame</div>
+                    <div class="movie-meta">
+                        <span class="status-badge status-watching">En cours</span>
+                        • 2019 • Action
+                    </div>
+                </div>
+            </div>
+
+            <div class="movie-item">
+                <div class="movie-poster">🌌</div>
+                <div class="movie-info">
+                    <div class="movie-title">Interstellar</div>
+                    <div class="movie-meta">
+                        <span class="status-badge status-completed">Terminé</span>
+                        • 2014 • Sci-Fi
+                    </div>
+                </div>
+            </div>
+
+            <div class="movie-item">
+                <div class="movie-poster">🏰</div>
+                <div class="movie-info">
+                    <div class="movie-title">Le Seigneur des Anneaux</div>
+                    <div class="movie-meta">
+                        <span class="status-badge status-planned">Prévu</span>
+                        • 2001 • Fantasy
+                    </div>
+                </div>
+            </div>
+
+            <div class="movie-item">
+                <div class="movie-poster">🎭</div>
+                <div class="movie-info">
+                    <div class="movie-title">Joker</div>
+                    <div class="movie-meta">
+                        <span class="status-badge status-watching">En cours</span>
+                        • 2019 • Drame
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton de filtrage -->
+    <button class="filter-button" id="filterButton">
+        <span id="filterIcon">🔽</span>
+        <div class="filter-badge" id="filterBadge">2</div>
+    </button>
+
+    <!-- Overlay -->
+    <div class="filter-overlay" id="filterOverlay"></div>
+
+    <!-- Panel de filtrage -->
+    <div class="filter-panel" id="filterPanel">
+        <div class="filter-header">
+            <div class="filter-title">Filtrer et trier</div>
+            <div class="filter-subtitle">Personnalisez l'affichage de vos films</div>
+        </div>
+
+        <div class="filter-content">
+            <!-- Filtres par type -->
+            <div class="filter-section">
+                <div class="section-title">
+                    <span>🎬</span>
+                    Type de contenu
+                </div>
+                <div class="filter-grid">
+                    <div class="filter-option active" data-type="all">
+                        <div>🎯 Tous</div>
+                    </div>
+                    <div class="filter-option" data-type="movie">
+                        <div>🎬 Films</div>
+                    </div>
+                    <div class="filter-option" data-type="tv">
+                        <div>📺 Séries</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtres par genre -->
+            <div class="filter-section">
+                <div class="section-title">
+                    <span>🎭</span>
+                    Genres favoris
+                </div>
+                <div class="filter-grid">
+                    <div class="filter-option" data-genre="action">
+                        <div>💥 Action</div>
+                    </div>
+                    <div class="filter-option active" data-genre="drama">
+                        <div>🎭 Drame</div>
+                    </div>
+                    <div class="filter-option" data-genre="comedy">
+                        <div>😂 Comédie</div>
+                    </div>
+                    <div class="filter-option" data-genre="sci-fi">
+                        <div>🚀 Sci-Fi</div>
+                    </div>
+                    <div class="filter-option" data-genre="horror">
+                        <div>👻 Horreur</div>
+                    </div>
+                    <div class="filter-option" data-genre="romance">
+                        <div>💕 Romance</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options de tri -->
+            <div class="filter-section">
+                <div class="section-title">
+                    <span>🔀</span>
+                    Trier par
+                </div>
+                <div class="sort-options">
+                    <div class="sort-option active" data-sort="date_added">
+                        <div class="sort-info">
+                            <span>📅</span>
+                            <div>Date d'ajout</div>
+                        </div>
+                        <div class="sort-direction">↓</div>
+                    </div>
+                    <div class="sort-option" data-sort="title">
+                        <div class="sort-info">
+                            <span>🔤</span>
+                            <div>Titre (A-Z)</div>
+                        </div>
+                        <div class="sort-direction">↑</div>
+                    </div>
+                    <div class="sort-option" data-sort="year">
+                        <div class="sort-info">
+                            <span>📆</span>
+                            <div>Année de sortie</div>
+                        </div>
+                        <div class="sort-direction">↓</div>
+                    </div>
+                    <div class="sort-option" data-sort="rating">
+                        <div class="sort-info">
+                            <span>⭐</span>
+                            <div>Note TMDB</div>
+                        </div>
+                        <div class="sort-direction">↓</div>
+                    </div>
+                    <div class="sort-option" data-sort="duration">
+                        <div class="sort-info">
+                            <span>⏱️</span>
+                            <div>Durée</div>
+                        </div>
+                        <div class="sort-direction">↓</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-actions">
+            <button class="btn btn-secondary" id="resetFilters">
+                Réinitialiser
+            </button>
+            <button class="btn btn-primary" id="applyFilters">
+                Appliquer (24 films)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let isFilterPanelOpen = false;
+        let activeFilters = {
+            type: 'all',
+            genres: ['drama'],
+            sort: 'date_added',
+            sortDirection: 'desc'
+        };
+
+        // Éléments DOM
+        const filterButton = document.getElementById('filterButton');
+        const filterOverlay = document.getElementById('filterOverlay');
+        const filterPanel = document.getElementById('filterPanel');
+        const filterIcon = document.getElementById('filterIcon');
+        const filterBadge = document.getElementById('filterBadge');
+        const resetButton = document.getElementById('resetFilters');
+        const applyButton = document.getElementById('applyFilters');
+
+        // Ouvrir/fermer le panel
+        function toggleFilterPanel() {
+            isFilterPanelOpen = !isFilterPanelOpen;
+            
+            if (isFilterPanelOpen) {
+                filterOverlay.classList.add('active');
+                filterPanel.classList.add('active');
+                filterIcon.textContent = '✕';
+                
+                // Feedback haptique (simulation)
+                navigator.vibrate && navigator.vibrate(50);
+            } else {
+                filterOverlay.classList.remove('active');
+                filterPanel.classList.remove('active');
+                filterIcon.textContent = '🔽';
+            }
+        }
+
+        // Event listeners
+        filterButton.addEventListener('click', toggleFilterPanel);
+        filterOverlay.addEventListener('click', toggleFilterPanel);
+
+        // Gestion des filtres
+        document.querySelectorAll('.filter-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const parent = this.parentElement;
+                const filterType = this.dataset.type || this.dataset.genre;
+                
+                if (this.dataset.genre) {
+                    // Genres : multi-sélection
+                    this.classList.toggle('active');
+                } else {
+                    // Autres filtres : sélection unique
+                    parent.querySelectorAll('.filter-option').forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                }
+                
+                updateFilterBadge();
+                updateApplyButton();
+                
+                // Feedback visuel
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Gestion du tri
+        document.querySelectorAll('.sort-option').forEach(option => {
+            option.addEventListener('click', function() {
+                const currentlyActive = this.classList.contains('active');
+                
+                // Désactiver tous les autres
+                document.querySelectorAll('.sort-option').forEach(opt => opt.classList.remove('active'));
+                
+                if (currentlyActive) {
+                    // Inverser la direction
+                    const directionElement = this.querySelector('.sort-direction');
+                    const currentDirection = directionElement.textContent;
+                    directionElement.textContent = currentDirection === '↑' ? '↓' : '↑';
+                }
+                
+                this.classList.add('active');
+                updateApplyButton();
+            });
+        });
+
+        // Réinitialiser les filtres
+        resetButton.addEventListener('click', function() {
+            // Réinitialiser tous les filtres
+            document.querySelectorAll('.filter-option').forEach(opt => {
+                opt.classList.remove('active');
+                if (opt.dataset.type === 'all') {
+                    opt.classList.add('active');
+                }
+            });
+            
+            // Réinitialiser le tri
+            document.querySelectorAll('.sort-option').forEach(opt => opt.classList.remove('active'));
+            document.querySelector('[data-sort="date_added"]').classList.add('active');
+            
+            updateFilterBadge();
+            updateApplyButton();
+            
+            // Animation
+            resetButton.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                resetButton.style.transform = '';
+            }, 150);
+        });
+
+        // Appliquer les filtres
+        applyButton.addEventListener('click', function() {
+            // Animation de succès
+            applyButton.style.background = '#4CAF50';
+            applyButton.textContent = '✓ Appliqué !';
+            
+            setTimeout(() => {
+                toggleFilterPanel();
+                
+                // Retour à l'état normal après fermeture
+                setTimeout(() => {
+                    applyButton.style.background = '';
+                    applyButton.textContent = 'Appliquer (24 films)';
+                }, 300);
+            }, 800);
+        });
+
+        // Mettre à jour le badge
+        function updateFilterBadge() {
+            const activeFiltersCount = countActiveFilters();
+            const badge = document.getElementById('filterBadge');
+            
+            if (activeFiltersCount > 0) {
+                badge.textContent = activeFiltersCount;
+                badge.classList.add('active');
+                filterButton.classList.add('has-filters');
+            } else {
+                badge.classList.remove('active');
+                filterButton.classList.remove('has-filters');
+            }
+        }
+
+        // Compter les filtres actifs
+        function countActiveFilters() {
+            let count = 0;
+            
+            // Vérifier le filtre de type
+            const typeFilter = document.querySelector('.filter-option.active[data-type]');
+            if (typeFilter && typeFilter.dataset.type !== 'all') count++;
+            
+            // Compter les genres sélectionnés
+            const genreFilters = document.querySelectorAll('.filter-option.active[data-genre]');
+            count += genreFilters.length;
+            
+            return count;
+        }
+
+        // Mettre à jour le bouton d'application
+        function updateApplyButton() {
+            const mockCount = Math.floor(Math.random() * 30) + 10;
+            applyButton.textContent = `Appliquer (${mockCount} films)`;
+        }
+
+        // Gestion du swipe pour fermer (mobile)
+        let startY = 0;
+        let currentY = 0;
+        let isDragging = false;
+
+        filterPanel.addEventListener('touchstart', function(e) {
+            startY = e.touches[0].clientY;
+            isDragging = true;
+        });
+
+        filterPanel.addEventListener('touchmove', function(e) {
+            if (!isDragging) return;
+            
+            currentY = e.touches[0].clientY;
+            const deltaY = currentY - startY;
+            
+            if (deltaY > 0) {
+                const translation = Math.min(deltaY, 200);
+                filterPanel.style.transform = `translateY(${translation}px)`;
+            }
+        });
+
+        filterPanel.addEventListener('touchend', function(e) {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            const deltaY = currentY - startY;
+            
+            if (deltaY > 100) {
+                toggleFilterPanel();
+            } else {
+                filterPanel.style.transform = 'translateY(0)';
+            }
+        });
+
+        // Initialiser l'affichage
+        updateFilterBadge();
+        
+        // Démonstration automatique après 3 secondes
+        setTimeout(() => {
+            if (!isFilterPanelOpen) {
+                // Effet de pulsation pour attirer l'attention
+                filterButton.style.animation = 'bounce 0.6s ease-in-out 3';
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

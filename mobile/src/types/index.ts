@@ -182,3 +182,17 @@ export interface VoteRequest {
   voterName?: string; // null pour vote anonyme
   deviceId?: string; // Ajouté automatiquement par l'API
 }
+
+// Types pour le filtrage et tri
+export interface FilterOptions {
+  type: 'all' | 'movie' | 'series';
+  genres: string[];
+  sortBy: 'date_added' | 'title' | 'year' | 'rating' | 'duration';
+  sortDirection: 'asc' | 'desc';
+}
+
+export interface FilterState {
+  isVisible: boolean;
+  options: FilterOptions;
+  appliedFilters: FilterOptions;
+}

@@ -4,10 +4,11 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList, WatchlistItem, Vote } from '../types';
+import { RootStackParamList, WatchlistItem, Vote, FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import LoadingScreen from './LoadingScreen';
+import FilterButton from '../components/FilterButton';
 
 // Composant pour une notification de vote avec swipe-to-dismiss
 interface VoteNotificationCardProps {
@@ -588,6 +589,14 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const LONG_PRESS_DURATION = 500;
 
+  // États pour le filtrage et tri
+  const [appliedFilters, setAppliedFilters] = useState<FilterOptions>({
+    type: 'all',
+    genres: ['action'], // Test avec un genre pour voir le badge
+    sortBy: 'title', // Test avec tri par titre
+    sortDirection: 'asc',
+  });
+
   const statusOrder = ['planned', 'watching', 'completed'] as const;
 
   const handleImageError = (itemId: number) => {
@@ -904,7 +913,72 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   const getFilteredItems = () => {
-    return watchlistItems.filter(item => item.status === currentTab);
+    let filteredItems = watchlistItems.filter(item => item.status === currentTab);
+
+    // Filtrer par type
+    if (appliedFilters.type !== 'all') {
+      filteredItems = filteredItems.filter(item => item.media.type === appliedFilters.type);
+    }
+
+    // Filtrer par genres (si des genres sont sélectionnés)
+    if (appliedFilters.genres.length > 0) {
+      filteredItems = filteredItems.filter(item => {
+        if (!item.media.genre) return false;
+        const itemGenres = item.media.genre.toLowerCase();
+        return appliedFilters.genres.some(genre => itemGenres.includes(genre));
+      });
+    }
+
+    // Trier
+    filteredItems.sort((a, b) => {
+      let comparison = 0;
+
+      switch (appliedFilters.sortBy) {
+        case 'title':
+          comparison = a.media.title.localeCompare(b.media.title);
+          break;
+        case 'year':
+          const yearA = a.media.year || 0;
+          const yearB = b.media.year || 0;
+          comparison = yearA - yearB;
+          break;
+        case 'rating':
+          const ratingA = a.media.rating || 0;
+          const ratingB = b.media.rating || 0;
+          comparison = ratingA - ratingB;
+          break;
+        case 'date_added':
+          comparison = new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
+          break;
+        case 'duration':
+          // Pour la durée, on trie par titre pour l'instant (champ non disponible)
+          comparison = a.media.title.localeCompare(b.media.title);
+          break;
+        default:
+          comparison = new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
+      }
+
+      return appliedFilters.sortDirection === 'asc' ? comparison : -comparison;
+    });
+
+    return filteredItems;
+  };
+
+  // Compter le nombre de filtres actifs pour le badge
+  const getActiveFiltersCount = (): number => {
+    let count = 0;
+    if (appliedFilters.type !== 'all') count++;
+    count += appliedFilters.genres.length;
+    return count;
+  };
+
+  // Gestionnaire pour ouvrir le panel de filtrage (pour l'instant juste un log)
+  const handleOpenFilterPanel = () => {
+    console.log('[RoomScreen] Ouverture du panel de filtrage...');
+    Alert.alert(
+      'Filtrage', 
+      `Filtres actifs: ${getActiveFiltersCount()}\nType: ${appliedFilters.type}\nGenres: ${appliedFilters.genres.join(', ') || 'aucun'}\nTri: ${appliedFilters.sortBy} (${appliedFilters.sortDirection})`
+    );
   };
 
   const renderMediaItem = (item: WatchlistItem) => (
@@ -1043,6 +1117,12 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
+
+      {/* Bouton de filtrage */}
+      <FilterButton 
+        onPress={handleOpenFilterPanel}
+        activeFiltersCount={getActiveFiltersCount()}
+      />
     </View>
   );
 };
