@@ -47,28 +47,6 @@ const AppNavigator: React.FC = () => {
             title: route.params?.roomName || 'Room',
             headerRight: () => (
               <View style={{ flexDirection: 'row', gap: 10 }}>
-                {/* Bouton Settings */}
-                <TouchableOpacity
-                  style={{
-                    width: 40,
-                    height: 40,
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                    borderRadius: 20,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderWidth: 1,
-                    borderColor: 'rgba(0, 0, 0, 0.1)',
-                  }}
-                  onPress={() => {
-                    const { roomId } = route.params || {};
-                    if (roomId) {
-                      navigation.navigate('Settings', { roomId });
-                    }
-                  }}
-                >
-                  <Text style={{ fontSize: 18 }}>⚙️</Text>
-                </TouchableOpacity>
-                
                 {/* Bouton Partage */}
                 <TouchableOpacity
                   style={{
@@ -99,6 +77,28 @@ const AppNavigator: React.FC = () => {
                   }}
                 >
                   <Text style={{ fontSize: 18 }}>📤</Text>
+                </TouchableOpacity>
+                
+                {/* Bouton Settings */}
+                <TouchableOpacity
+                  style={{
+                    width: 40,
+                    height: 40,
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderWidth: 1,
+                    borderColor: 'rgba(0, 0, 0, 0.1)',
+                  }}
+                  onPress={() => {
+                    const { roomId } = route.params || {};
+                    if (roomId) {
+                      navigation.navigate('Settings', { roomId });
+                    }
+                  }}
+                >
+                  <Text style={{ fontSize: 18 }}>⚙️</Text>
                 </TouchableOpacity>
               </View>
             ),

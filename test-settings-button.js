@@ -10,17 +10,17 @@ console.log('⚙️  TEST: Bouton Settings dans RoomScreen');
 console.log('========================================');
 
 console.log('\n📱 Interface mise à jour:');
-console.log('• Ajout bouton Settings (⚙️) en haut à droite');
-console.log('• Bouton Partage (📤) déplacé à droite du bouton Settings');
+console.log('• Bouton Partage (📤) en position gauche dans le header');
+console.log('• Bouton Settings (⚙️) à droite du bouton Partage');
 console.log('• Deux boutons alignés horizontalement dans le header');
 console.log('• Navigation vers écran Settings avec roomId');
 
 console.log('\n🏗️  Architecture des boutons header:');
 console.log('┌─────────────────────────────────────────┐');
-console.log('│ Room Name                    [⚙️] [📤] │');
+console.log('│ Room Name                    [📤] [⚙️] │');
 console.log('└─────────────────────────────────────────┘');
-console.log('  Settings: Navigation vers SettingsScreen');
 console.log('  Partage:  Partage de la room (existant)');
+console.log('  Settings: Navigation vers SettingsScreen');
 
 console.log('\n⚙️  Fonctionnalités du SettingsScreen:');
 console.log('');
