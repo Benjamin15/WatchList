@@ -2,7 +2,7 @@
 export interface Media {
   id: number;
   title: string;
-  type: 'movie' | 'series' | 'manga';
+  type: 'movie' | 'series' | 'tv' | 'manga'; // Ajout de 'tv' pour compatibilité TMDB
   year?: number;
   genre?: string;
   description?: string;
@@ -37,7 +37,7 @@ export interface WatchlistItem {
 export interface SearchResult {
   id: number;
   title: string;
-  type: 'movie' | 'series' | 'manga';
+  type: 'movie' | 'series' | 'tv' | 'manga'; // Ajout de 'tv' pour compatibilité TMDB
   year?: number;
   genre?: string;
   description?: string;
@@ -61,6 +61,7 @@ export type RootStackParamList = {
   Loading: undefined;
   CreateVote: { roomId: string };
   VoteDetail: { voteId: number; roomId: string };
+  FilterTest: undefined; // Nouveau écran de test
 };
 
 export type TabParamList = {
@@ -187,7 +188,7 @@ export interface VoteRequest {
 export interface FilterOptions {
   type: 'all' | 'movie' | 'series';
   genres: string[];
-  sortBy: 'date_added' | 'title' | 'year' | 'rating' | 'duration';
+  sortBy: 'none' | 'date_added' | 'title' | 'year' | 'rating' | 'duration' | 'popularity';
   sortDirection: 'asc' | 'desc';
 }
 

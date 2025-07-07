@@ -116,7 +116,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
           <View style={styles.poster}>
             <Text style={styles.posterEmoji}>
               {item.media.type === 'movie' ? '🎬' : 
-               item.media.type === 'series' ? '📺' : '📚'}
+               (item.media.type === 'series' || item.media.type === 'tv') ? '📺' : '📚'}
             </Text>
           </View>
         </View>
