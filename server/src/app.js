@@ -8,6 +8,7 @@ const roomRoutes = require('./routes/rooms');
 const itemRoutes = require('./routes/items');
 const searchRoutes = require('./routes/search');
 const mediaRoutes = require('./routes/media');
+const voteRoutes = require('./routes/votes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -22,6 +23,7 @@ app.use('/api/rooms', roomRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/votes', voteRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

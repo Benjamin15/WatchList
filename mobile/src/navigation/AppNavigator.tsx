@@ -9,6 +9,8 @@ import RoomScreen from '../screens/RoomScreen';
 import SearchScreen from '../screens/SearchScreen';
 import LoadingScreen from '../screens/LoadingScreen';
 import MediaDetailScreen from '../screens/MediaDetailScreen';
+import CreateVoteScreen from '../screens/CreateVoteScreen';
+import VoteDetailScreen from '../screens/VoteDetailScreen';
 import { COLORS } from '../constants';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -96,6 +98,20 @@ const AppNavigator: React.FC = () => {
           component={LoadingScreen}
           options={{
             headerShown: false,
+          }}
+        />
+        <Stack.Screen
+          name="CreateVote"
+          component={CreateVoteScreen}
+          options={{
+            title: 'Créer un vote',
+          }}
+        />
+        <Stack.Screen
+          name="VoteDetail"
+          component={VoteDetailScreen}
+          options={{
+            title: 'Détails du vote',
           }}
         />
       </Stack.Navigator>

@@ -59,6 +59,8 @@ export type RootStackParamList = {
   Detail: { media: Media | SearchResult; roomId?: string }; // Changé de number à string pour cohérence
   Settings: { roomId: string }; // Changé de number à string pour cohérence
   Loading: undefined;
+  CreateVote: { roomId: string };
+  VoteDetail: { voteId: number; roomId: string };
 };
 
 export type TabParamList = {
@@ -128,4 +130,55 @@ export interface MediaDetails extends Media {
 export interface ApiError {
   message: string;
   status: number;
+}
+
+// Types pour les votes
+export interface Vote {
+  id: number;
+  roomId: string;
+  title: string;
+  description?: string;
+  duration?: number; // en heures
+  status: 'active' | 'completed' | 'expired';
+  createdBy: string; // nom du créateur
+  createdAt: string;
+  endsAt?: string;
+  totalVotes: number;
+  userHasVoted: boolean;
+  options: VoteOption[];
+}
+
+export interface VoteOption {
+  id: number;
+  voteId: number;
+  mediaId: number;
+  media: Media;
+  voteCount: number;
+  percentage: number;
+  isWinner?: boolean;
+}
+
+export interface VoteResult {
+  id: number;
+  voteId: number;
+  optionId: number;
+  voterName?: string; // null pour les votes anonymes
+  votedAt: string;
+}
+
+export interface CreateVoteRequest {
+  roomId: string;
+  title: string;
+  description?: string;
+  duration?: number; // valeur numérique
+  durationUnit?: 'minutes' | 'hours'; // unité de temps
+  mediaIds: number[];
+  createdBy: string;
+}
+
+export interface VoteRequest {
+  voteId: number;
+  optionId: number;
+  voterName?: string; // null pour vote anonyme
+  deviceId?: string; // Ajouté automatiquement par l'API
 }

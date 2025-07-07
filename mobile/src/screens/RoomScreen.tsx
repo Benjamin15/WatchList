@@ -1,12 +1,139 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Animated } from 'react-native';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList, WatchlistItem } from '../types';
+import { RootStackParamList, WatchlistItem, Vote } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import LoadingScreen from './LoadingScreen';
+
+// Composant pour une notification de vote avec swipe-to-dismiss
+interface VoteNotificationCardProps {
+  vote: Vote;
+  onPress: () => void;
+  onDismiss: () => void;
+  getVoteStatusText: (vote: Vote) => string;
+  getVoteBadgeInfo: (vote: Vote) => { text: string; color: string };
+  getVoteTimeRemaining: (vote: Vote) => string;
+  getVoteEndTime: (vote: Vote) => string | null;
+}
+
+const VoteNotificationCard: React.FC<VoteNotificationCardProps> = ({
+  vote,
+  onPress,
+  onDismiss,
+  getVoteStatusText,
+  getVoteBadgeInfo,
+  getVoteTimeRemaining,
+  getVoteEndTime
+}) => {
+  const translateX = useRef(new Animated.Value(0)).current;
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  const handleGesture = (event: any) => {
+    const { translationX } = event.nativeEvent;
+    
+    // Permettre seulement le swipe vers la gauche
+    if (translationX < 0) {
+      translateX.setValue(translationX);
+    }
+  };
+
+  const handleGestureEnd = (event: any) => {
+    const { translationX, velocityX } = event.nativeEvent;
+    
+    // Seuil pour déclencher la suppression (30% de la largeur ou vélocité élevée)
+    const dismissThreshold = -120;
+    const shouldDismiss = translationX < dismissThreshold || velocityX < -500;
+
+    if (shouldDismiss) {
+      // Animation de suppression
+      Animated.parallel([
+        Animated.timing(translateX, {
+          toValue: -400,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        onDismiss();
+      });
+    } else {
+      // Retour à la position initiale
+      Animated.spring(translateX, {
+        toValue: 0,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }).start();
+    }
+  };
+
+  const badgeInfo = getVoteBadgeInfo(vote);
+
+  return (
+    <PanGestureHandler
+      onGestureEvent={handleGesture}
+      onHandlerStateChange={(event) => {
+        if (event.nativeEvent.state === State.END) {
+          handleGestureEnd(event);
+        }
+      }}
+    >
+      <Animated.View
+        style={[
+          styles.voteNotificationWrapper,
+          {
+            transform: [{ translateX }],
+            opacity,
+          },
+        ]}
+      >
+        <TouchableOpacity
+          style={styles.voteNotification}
+          onPress={onPress}
+          activeOpacity={0.8}
+        >
+          <View style={styles.voteNotificationHeader}>
+            <View style={styles.voteNotificationTitle}>
+              <Text style={styles.voteIcon}>🗳️</Text>
+              <Text style={styles.voteTitle}>{getVoteStatusText(vote)}</Text>
+            </View>
+            <View style={[styles.voteBadge, { backgroundColor: badgeInfo.color }]}>
+              <Text style={styles.voteBadgeText}>{badgeInfo.text}</Text>
+            </View>
+          </View>
+          <Text style={styles.voteDescription}>
+            <Text style={styles.voteDescriptionBold}>{vote.title}</Text> - {vote.createdBy} propose {vote.options.length} films
+          </Text>
+          <View style={styles.voteNotificationMeta}>
+            <View style={styles.voteTimeInfo}>
+              <Text style={styles.voteTimeRemaining}>
+                ⏱️ {getVoteTimeRemaining(vote)}
+              </Text>
+              {getVoteEndTime(vote) && (
+                <Text style={styles.voteEndTime}>
+                  {getVoteEndTime(vote)}
+                </Text>
+              )}
+            </View>
+          </View>
+        </TouchableOpacity>
+        
+        {/* Indicateur de swipe */}
+        <View style={styles.swipeIndicator}>
+          <Text style={styles.voteSwipeIndicatorText}>← Glisser pour supprimer</Text>
+        </View>
+      </Animated.View>
+    </PanGestureHandler>
+  );
+};
 
 type RoomScreenRouteProp = RouteProp<RootStackParamList, 'Room'>;
 type RoomScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Room'>;
@@ -452,6 +579,14 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const [currentTab, setCurrentTab] = useState<'planned' | 'watching' | 'completed'>('planned');
   const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [votes, setVotes] = useState<Vote[]>([]);
+  const [loadingVotes, setLoadingVotes] = useState(false);
+
+  // FAB long press state
+  const [fabMenuVisible, setFabMenuVisible] = useState(false);
+  const [longPressActive, setLongPressActive] = useState(false);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const LONG_PRESS_DURATION = 500;
 
   const statusOrder = ['planned', 'watching', 'completed'] as const;
 
@@ -525,6 +660,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   useFocusEffect(
     useCallback(() => {
       loadWatchlistItems();
+      loadVotes();
     }, [roomId])
   );
 
@@ -556,6 +692,141 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       setWatchlistItems(mockWatchlistItems);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadVotes = async () => {
+    try {
+      setLoadingVotes(true);
+      const votesData = await apiService.getVotesByRoom(roomId);
+      setVotes(votesData);
+    } catch (error) {
+      console.error('Error loading votes:', error);
+      // En cas d'erreur, on continue sans votes
+      setVotes([]);
+    } finally {
+      setLoadingVotes(false);
+    }
+  };
+
+  // Fonctions pour le FAB avec appui long
+  const handleFabPress = () => {
+    if (!longPressActive) {
+      // Clic normal - naviguer vers la recherche
+      navigation.navigate('Search', { roomId });
+    }
+  };
+
+  const handleFabLongPressStart = () => {
+    setLongPressActive(false);
+    longPressTimer.current = setTimeout(() => {
+      setLongPressActive(true);
+      setFabMenuVisible(true);
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleFabLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const closeFabMenu = () => {
+    setFabMenuVisible(false);
+  };
+
+  const handleCreateVote = () => {
+    // Vérifier s'il y a déjà un vote actif
+    if (hasActiveVote()) {
+      Alert.alert(
+        'Vote actif existant',
+        'Il y a déjà un vote en cours dans cette room. Attendez qu\'il se termine pour en créer un nouveau.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    
+    closeFabMenu();
+    navigation.navigate('CreateVote', { roomId });
+  };
+
+  const handleAddMedia = () => {
+    closeFabMenu();
+    navigation.navigate('Search', { roomId });
+  };
+
+  const handleVotePress = (vote: Vote) => {
+    navigation.navigate('VoteDetail', { voteId: vote.id, roomId });
+  };
+
+  // Vérifier si un média est dans un vote actif
+  const isMediaInActiveVote = (mediaId: number) => {
+    return votes.some(vote => 
+      vote.status === 'active' && 
+      vote.options.some(option => option.mediaId === mediaId)
+    );
+  };
+
+  // Vérifier s'il y a un vote actif dans la room
+  const hasActiveVote = () => {
+    return votes.some(vote => vote.status === 'active');
+  };
+
+  // États pour gérer les votes supprimés localement
+  const [dismissedVotes, setDismissedVotes] = useState<Set<number>>(new Set());
+
+  // Obtenir les votes à afficher (actifs et récemment terminés, non supprimés)
+  const getDisplayableVotes = () => {
+    return votes.filter(vote => {
+      // Ne pas afficher les votes supprimés par l'utilisateur
+      if (dismissedVotes.has(vote.id)) return false;
+      
+      // Afficher les votes actifs
+      if (vote.status === 'active') return true;
+      
+      // Afficher les votes récemment terminés (moins de 24h)
+      if (vote.status === 'completed' || vote.status === 'expired') {
+        const voteEndTime = vote.endsAt ? new Date(vote.endsAt) : new Date(vote.createdAt);
+        const now = new Date();
+        const diffHours = (now.getTime() - voteEndTime.getTime()) / (1000 * 60 * 60);
+        return diffHours < 24; // Afficher pendant 24h après la fin
+      }
+      
+      return false;
+    });
+  };
+
+  // Supprimer une notification de vote (localement)
+  const dismissVoteNotification = (voteId: number) => {
+    setDismissedVotes(prev => new Set([...prev, voteId]));
+  };
+
+  // Obtenir le texte de statut du vote
+  const getVoteStatusText = (vote: Vote) => {
+    switch (vote.status) {
+      case 'active':
+        return 'Vote en cours';
+      case 'completed':
+        return 'Vote terminé';
+      case 'expired':
+        return 'Vote expiré';
+      default:
+        return 'Vote en cours';
+    }
+  };
+
+  // Obtenir la couleur du badge selon le statut
+  const getVoteBadgeInfo = (vote: Vote) => {
+    switch (vote.status) {
+      case 'active':
+        return { text: 'EN COURS', color: '#4CAF50' };
+      case 'completed':
+        return { text: 'TERMINÉ', color: '#2196F3' };
+      case 'expired':
+        return { text: 'EXPIRÉ', color: '#FF9800' };
+      default:
+        return { text: 'EN COURS', color: '#4CAF50' };
     }
   };
 
@@ -653,6 +924,24 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
   return (
     <View style={styles.container}>
+      {/* Notification de vote */}
+      {getDisplayableVotes().length > 0 && (
+        <View style={styles.voteNotificationContainer}>
+          {getDisplayableVotes().map((vote) => (
+            <VoteNotificationCard
+              key={vote.id}
+              vote={vote}
+              onPress={() => handleVotePress(vote)}
+              onDismiss={() => dismissVoteNotification(vote.id)}
+              getVoteStatusText={getVoteStatusText}
+              getVoteBadgeInfo={getVoteBadgeInfo}
+              getVoteTimeRemaining={getVoteTimeRemaining}
+              getVoteEndTime={getVoteEndTime}
+            />
+          ))}
+        </View>
+      )}
+
       <View style={styles.tabs}>
         {[
           { key: 'planned', label: 'À regarder' },
@@ -679,10 +968,63 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
         )}
       </ScrollView>
       
-      {/* Bouton flottant pour ajouter des médias */}
+      {/* Menu contextuel du FAB */}
+      {fabMenuVisible && (
+        <TouchableOpacity 
+          style={styles.fabMenuOverlay}
+          onPress={closeFabMenu}
+          activeOpacity={1}
+        />
+      )}
+      
+      {fabMenuVisible && (
+        <View style={styles.fabMenu}>
+          <TouchableOpacity
+            style={styles.fabMenuItem}
+            onPress={handleAddMedia}
+          >
+            <Text style={styles.fabMenuIcon}>🎬</Text>
+            <View style={styles.fabMenuTextContainer}>
+              <Text style={styles.fabMenuText}>Ajouter un média</Text>
+              <Text style={styles.fabMenuDescription}>Film ou série</Text>
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.fabMenuItem,
+              hasActiveVote() && styles.fabMenuItemDisabled
+            ]}
+            onPress={handleCreateVote}
+            disabled={hasActiveVote()}
+          >
+            <Text style={[
+              styles.fabMenuIcon,
+              hasActiveVote() && styles.fabMenuIconDisabled
+            ]}>🗳️</Text>
+            <View style={styles.fabMenuTextContainer}>
+              <Text style={[
+                styles.fabMenuText,
+                hasActiveVote() && styles.fabMenuTextDisabled
+              ]}>Créer un vote</Text>
+              <Text style={[
+                styles.fabMenuDescription,
+                hasActiveVote() && styles.fabMenuDescriptionDisabled
+              ]}>
+                {hasActiveVote() ? 'Vote en cours...' : 'Proposer des films'}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Bouton flottant pour ajouter des médias avec appui long */}
       <TouchableOpacity 
         style={styles.fab}
-        onPress={() => navigation.navigate('Search', { roomId })}
+        onPress={handleFabPress}
+        onPressIn={handleFabLongPressStart}
+        onPressOut={handleFabLongPressEnd}
+        onLongPress={() => {}} // Désactiver le long press natif
+        delayLongPress={LONG_PRESS_DURATION}
       >
         <Text style={styles.fabText}>+</Text>
       </TouchableOpacity>
@@ -694,6 +1036,96 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  // Vote notification styles
+  voteNotificationContainer: {
+    margin: SPACING.md,
+  },
+  voteNotification: {
+    backgroundColor: COLORS.error,
+    borderRadius: 12,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    shadowColor: COLORS.error,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  voteNotificationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: SPACING.sm,
+  },
+  voteNotificationTitle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+  },
+  voteIcon: {
+    fontSize: FONT_SIZES.lg,
+  },
+  voteTitle: {
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
+    color: COLORS.onError,
+  },
+  voteBadge: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  voteBadgeText: {
+    fontSize: FONT_SIZES.xs,
+    fontWeight: '600',
+    color: COLORS.onError,
+  },
+  voteDescription: {
+    fontSize: FONT_SIZES.sm,
+    color: 'rgba(255,255,255,0.9)',
+    marginBottom: SPACING.sm,
+  },
+  voteDescriptionBold: {
+    fontWeight: '600',
+  },
+  voteNotificationMeta: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  voteTimeInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  voteTimeRemaining: {
+    fontSize: FONT_SIZES.sm,
+    color: '#FFE082',
+    fontWeight: '600',
+  },
+  voteEndTime: {
+    fontSize: FONT_SIZES.xs,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  voteMetaText: {
+    fontSize: FONT_SIZES.xs,
+    color: 'rgba(255,255,255,0.8)',
+  },
+  voteNotificationWrapper: {
+    position: 'relative',
+  },
+  swipeIndicator: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    transform: [{ translateY: -10 }],
+    opacity: 0.7,
+  },
+  voteSwipeIndicatorText: {
+    fontSize: FONT_SIZES.xs,
+    color: 'rgba(255,255,255,0.6)',
+    fontStyle: 'italic',
   },
   tabs: {
     flexDirection: 'row',
@@ -818,11 +1250,75 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
+    zIndex: 1000,
   },
   fabText: {
     fontSize: 24,
     color: COLORS.onPrimary,
     fontWeight: 'bold',
+  },
+  // FAB Menu styles
+  fabMenuOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'transparent',
+    zIndex: 998,
+  },
+  fabMenu: {
+    position: 'absolute',
+    bottom: 80,
+    right: SPACING.md,
+    backgroundColor: COLORS.surface,
+    borderRadius: 12,
+    padding: SPACING.sm,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 12,
+    zIndex: 999,
+    minWidth: 180,
+  },
+  fabMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    padding: SPACING.sm,
+    borderRadius: 8,
+  },
+  fabMenuIcon: {
+    fontSize: FONT_SIZES.lg,
+    width: 20,
+    textAlign: 'center',
+  },
+  fabMenuTextContainer: {
+    flex: 1,
+  },
+  fabMenuText: {
+    fontSize: FONT_SIZES.sm,
+    fontWeight: '500',
+    color: COLORS.onSurface,
+  },
+  fabMenuDescription: {
+    fontSize: FONT_SIZES.xs,
+    color: COLORS.placeholder,
+    marginTop: 2,
+  },
+  fabMenuItemDisabled: {
+    opacity: 0.5,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  fabMenuIconDisabled: {
+    opacity: 0.5,
+  },
+  fabMenuTextDisabled: {
+    opacity: 0.5,
+  },
+  fabMenuDescriptionDisabled: {
+    opacity: 0.5,
   },
   touchableContent: {
     flexDirection: 'row',
@@ -840,8 +1336,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   retryText: {
-    color: COLORS.onPrimary,
     fontSize: 12,
+    color: COLORS.onPrimary,
     fontWeight: 'bold',
   },
   swipeIndicatorLeft: {
@@ -887,5 +1383,61 @@ const styles = StyleSheet.create({
     lineHeight: 12,
   },
 });
+
+/**
+ * Calcule le temps restant pour un vote
+ */
+const getVoteTimeRemaining = (vote: Vote) => {
+  if (!vote.endsAt) {
+    return 'Permanent';
+  }
+
+  const now = new Date();
+  const endsAt = new Date(vote.endsAt);
+  const diffMs = endsAt.getTime() - now.getTime();
+
+  if (diffMs <= 0) {
+    return 'Expiré';
+  }
+
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (diffHours > 24) {
+    const diffDays = Math.floor(diffHours / 24);
+    return `${diffDays}j ${diffHours % 24}h`;
+  } else if (diffHours > 0) {
+    return `${diffHours}h ${diffMinutes}m`;
+  } else {
+    return `${diffMinutes}m`;
+  }
+};
+
+/**
+ * Formate l'heure de fin d'un vote
+ */
+const getVoteEndTime = (vote: Vote) => {
+  if (!vote.endsAt) {
+    return null;
+  }
+
+  const endsAt = new Date(vote.endsAt);
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const timeString = endsAt.toLocaleTimeString('fr-FR', { 
+    hour: '2-digit', 
+    minute: '2-digit' 
+  });
+
+  if (endsAt.toDateString() === today.toDateString()) {
+    return `Fin aujourd'hui à ${timeString}`;
+  } else if (endsAt.toDateString() === tomorrow.toDateString()) {
+    return `Fin demain à ${timeString}`;
+  } else {
+    return `Fin le ${endsAt.toLocaleDateString('fr-FR')} à ${timeString}`;
+  }
+};
 
 export default RoomScreen;

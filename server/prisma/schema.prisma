@@ -34,6 +34,7 @@ model Item {
   createdAt   DateTime @default(now()) @map("created_at")
   
   rooms       ItemInRoom[]
+  voteOptions VoteOption[]
   
   @@map("items")
 }
@@ -48,4 +49,48 @@ model ItemInRoom {
   
   @@id([roomId, itemId])
   @@map("item_in_room")
+}
+
+model Vote {
+  id          Int      @id @default(autoincrement())
+  roomId      String   @map("room_id")
+  title       String
+  description String?
+  duration    Int?     // durée en heures
+  status      String   @default("active") // active, completed, expired
+  createdBy   String   @map("created_by")
+  createdAt   DateTime @default(now()) @map("created_at")
+  endsAt      DateTime? @map("ends_at")
+  
+  options     VoteOption[]
+  results     VoteResult[]
+  
+  @@map("votes")
+}
+
+model VoteOption {
+  id        Int      @id @default(autoincrement())
+  voteId    Int      @map("vote_id")
+  itemId    Int      @map("item_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  vote      Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  item      Item     @relation(fields: [itemId], references: [id])
+  results   VoteResult[]
+  
+  @@map("vote_options")
+}
+
+model VoteResult {
+  id        Int      @id @default(autoincrement())
+  voteId    Int      @map("vote_id")
+  optionId  Int      @map("option_id")
+  voterName String?  @map("voter_name") // null pour les votes anonymes
+  deviceId  String?  @map("device_id")  // identifiant de l'appareil
+  votedAt   DateTime @default(now()) @map("voted_at")
+  
+  vote      Vote     @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  option    VoteOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  
+  @@map("vote_results")
 }

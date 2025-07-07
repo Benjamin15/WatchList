@@ -2,6 +2,7 @@ import axios, { AxiosInstance, AxiosError } from 'axios';
 import { API_ENDPOINTS, ERROR_MESSAGES } from '../constants';
 import { getApiBaseUrl, USE_MOCK_DATA, TIMEOUTS } from '../constants/config';
 import { mockApiService } from './mockData';
+import { getDeviceId } from './deviceId';
 import {
   Room,
   WatchlistItem,
@@ -12,6 +13,10 @@ import {
   ApiError,
   MediaDetails,
   Trailer,
+  Vote,
+  VoteOption,
+  CreateVoteRequest,
+  VoteRequest,
 } from '../types';
 
 class ApiService {
@@ -540,6 +545,79 @@ class ApiService {
       console.error('Erreur lors de la récupération des trailers:', error);
       throw this.handleError(error as AxiosError);
     }
+  }
+
+  // === VOTES ===
+
+  async createVote(voteData: CreateVoteRequest): Promise<{ voteId: number }> {
+    if (USE_MOCK_DATA) {
+      // TODO: Implémenter le mock pour les votes
+      return { voteId: Math.floor(Math.random() * 1000) };
+    }
+
+    const response = await this.client.post<ApiResponse<{ voteId: number }>>(
+      '/votes',
+      voteData
+    );
+    return response.data.data;
+  }
+
+  async getVotesByRoom(roomId: string): Promise<Vote[]> {
+    if (USE_MOCK_DATA) {
+      // TODO: Implémenter le mock pour les votes
+      return [];
+    }
+
+    const deviceId = await getDeviceId();
+    const response = await this.client.get<ApiResponse<Vote[]>>(
+      `/votes/room/${roomId}?deviceId=${deviceId}`
+    );
+    return response.data.data;
+  }
+
+  async getVoteById(voteId: number): Promise<Vote> {
+    if (USE_MOCK_DATA) {
+      // TODO: Implémenter le mock pour les votes
+      throw new Error('Vote not found');
+    }
+
+    const deviceId = await getDeviceId();
+    const response = await this.client.get<ApiResponse<Vote>>(
+      `/votes/${voteId}?deviceId=${deviceId}`
+    );
+    return response.data.data;
+  }
+
+  async submitVote(voteData: VoteRequest): Promise<{ resultId: number }> {
+    if (USE_MOCK_DATA) {
+      // TODO: Implémenter le mock pour les votes
+      return { resultId: Math.floor(Math.random() * 1000) };
+    }
+
+    const deviceId = await getDeviceId();
+    const response = await this.client.post<ApiResponse<{ resultId: number }>>(
+      '/votes/submit',
+      { ...voteData, deviceId }
+    );
+    return response.data.data;
+  }
+
+  async deleteVote(voteId: number): Promise<void> {
+    if (USE_MOCK_DATA) {
+      // TODO: Implémenter le mock pour les votes
+      return;
+    }
+
+    await this.client.delete(`/votes/${voteId}`);
+  }
+
+  async updateVoteStatus(voteId: number, status: 'active' | 'completed' | 'expired'): Promise<void> {
+    if (USE_MOCK_DATA) {
+      // TODO: Implémenter le mock pour les votes
+      return;
+    }
+
+    await this.client.patch(`/votes/${voteId}/status`, { status });
   }
 }
 
