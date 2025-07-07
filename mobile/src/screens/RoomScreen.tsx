@@ -12,30 +12,30 @@ import LoadingScreen from './LoadingScreen';
 import FilterButton from '../components/FilterButton';
 import FilterSidebar from '../components/FilterSidebar';
 
-// Clé pour stocker les votes supprimés dans AsyncStorage
-const DISMISSED_VOTES_STORAGE_KEY = 'dismissedVotes';
+// Clé pour stocker les votes supprimés dans AsyncStorage (par room)
+const getDismissedVotesStorageKey = (roomId: string) => `dismissedVotes_${roomId}`;
 
-// Fonctions utilitaires pour la persistance des votes supprimés
-const loadDismissedVotes = async (): Promise<Set<number>> => {
+// Fonctions utilitaires pour la persistance des votes supprimés (par room)
+const loadDismissedVotes = async (roomId: string): Promise<Set<number>> => {
   try {
-    const stored = await AsyncStorage.getItem(DISMISSED_VOTES_STORAGE_KEY);
+    const stored = await AsyncStorage.getItem(getDismissedVotesStorageKey(roomId));
     if (stored) {
       const votesArray = JSON.parse(stored) as number[];
       return new Set(votesArray);
     }
   } catch (error) {
-    console.error('[RoomScreen] Erreur lors du chargement des votes supprimés:', error);
+    console.error(`[RoomScreen] Erreur lors du chargement des votes supprimés pour room ${roomId}:`, error);
   }
   return new Set();
 };
 
-const saveDismissedVotes = async (dismissedVotes: Set<number>): Promise<void> => {
+const saveDismissedVotes = async (roomId: string, dismissedVotes: Set<number>): Promise<void> => {
   try {
     const votesArray = Array.from(dismissedVotes);
-    await AsyncStorage.setItem(DISMISSED_VOTES_STORAGE_KEY, JSON.stringify(votesArray));
-    console.log(`[RoomScreen] ${votesArray.length} votes supprimés sauvegardés`);
+    await AsyncStorage.setItem(getDismissedVotesStorageKey(roomId), JSON.stringify(votesArray));
+    console.log(`[RoomScreen] ${votesArray.length} votes supprimés sauvegardés pour room ${roomId}`);
   } catch (error) {
-    console.error('[RoomScreen] Erreur lors de la sauvegarde des votes supprimés:', error);
+    console.error(`[RoomScreen] Erreur lors de la sauvegarde des votes supprimés pour room ${roomId}:`, error);
   }
 };
 
@@ -705,16 +705,20 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   useEffect(() => {
     const loadSavedDismissedVotes = async () => {
       try {
-        const savedDismissedVotes = await loadDismissedVotes();
+        const savedDismissedVotes = await loadDismissedVotes(roomId);
         setDismissedVotes(savedDismissedVotes);
-        console.log(`[RoomScreen] ${savedDismissedVotes.size} votes supprimés chargés depuis AsyncStorage`);
+        console.log(`[RoomScreen] ${savedDismissedVotes.size} votes supprimés chargés depuis AsyncStorage pour room ${roomId}`);
       } catch (error) {
         console.error('[RoomScreen] Erreur lors du chargement des votes supprimés:', error);
       }
     };
     
     loadSavedDismissedVotes();
-  }, []);
+    
+    // Réinitialiser les votes temporairement cachés à chaque changement de room
+    setTemporarilyHiddenVotes(new Set());
+    console.log(`[RoomScreen] Votes temporairement cachés réinitialisés pour room ${roomId}`);
+  }, [roomId]); // Ajouter roomId en dépendance pour recharger lors du changement
 
   // Utiliser useFocusEffect pour recharger les données quand on revient sur cet écran
   useFocusEffect(
@@ -740,7 +744,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   // Nettoyer les votes supprimés anciens (votes qui ne sont plus affichables)
   const cleanupOldDismissedVotes = async (currentVotes: Vote[]) => {
     try {
-      const currentDismissed = await loadDismissedVotes();
+      const currentDismissed = await loadDismissedVotes(roomId);
       const currentVoteIds = new Set(currentVotes.map(vote => vote.id));
       
       // Garder seulement les votes supprimés qui existent encore
@@ -750,9 +754,9 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       
       // Si des votes ont été nettoyés, sauvegarder la nouvelle liste
       if (validDismissedVotes.size !== currentDismissed.size) {
-        await saveDismissedVotes(validDismissedVotes);
+        await saveDismissedVotes(roomId, validDismissedVotes);
         setDismissedVotes(validDismissedVotes);
-        console.log(`[RoomScreen] Nettoyage: ${currentDismissed.size - validDismissedVotes.size} votes supprimés anciens retirés`);
+        console.log(`[RoomScreen] Nettoyage: ${currentDismissed.size - validDismissedVotes.size} votes supprimés anciens retirés pour room ${roomId}`);
       } else {
         setDismissedVotes(currentDismissed);
       }
@@ -915,15 +919,15 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       setDismissedVotes(newDismissedVotes);
       
       // Sauvegarder dans AsyncStorage pour persistance
-      await saveDismissedVotes(newDismissedVotes);
+      await saveDismissedVotes(roomId, newDismissedVotes);
       
-      console.log(`[RoomScreen] Vote expiré ${voteId} supprimé définitivement pour cet appareil`);
+      console.log(`[RoomScreen] Vote expiré ${voteId} supprimé définitivement pour room ${roomId}`);
     } else {
       // Pour les votes actifs ou terminés, les cacher temporairement (réapparaîtront au reload)
       const newTemporarilyHidden = new Set([...temporarilyHiddenVotes, voteId]);
       setTemporarilyHiddenVotes(newTemporarilyHidden);
       
-      console.log(`[RoomScreen] Vote ${vote.status} ${voteId} caché temporairement (réapparaîtra au reload)`);
+      console.log(`[RoomScreen] Vote ${vote.status} ${voteId} caché temporairement dans room ${roomId} (réapparaîtra au reload)`);
     }
   };
 
