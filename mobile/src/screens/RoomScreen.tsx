@@ -65,12 +65,12 @@ const MediaItemCard = ({
   const opacity = useRef(new Animated.Value(1)).current;
   const scale = useRef(new Animated.Value(1)).current;
   
-  // Seuils pour le swipe (ultra-ultra accessibles)
-  const SWIPE_THRESHOLD = 25; // Réduit drastiquement de 40 à 25
-  const SWIPE_VELOCITY_THRESHOLD = 0.15; // Réduit drastiquement de 0.3 à 0.15
-  const VISUAL_FEEDBACK_THRESHOLD = 10; // Réduit de 20 à 10 pour feedback immédiat
-  const RESISTANCE_THRESHOLD = 80; // Augmenté de 60 à 80 pour plus de tolérance
-  const ACTIVATION_THRESHOLD = 1; // Nouveau seuil ultra-bas pour activation
+  // Seuils pour le swipe (ultra-accessibles et très permissifs)
+  const SWIPE_THRESHOLD = 15; // Réduit drastiquement de 25 à 15
+  const SWIPE_VELOCITY_THRESHOLD = 0.08; // Réduit drastiquement de 0.15 à 0.08
+  const VISUAL_FEEDBACK_THRESHOLD = 8; // Réduit de 10 à 8 pour feedback immédiat
+  const RESISTANCE_THRESHOLD = 100; // Augmenté de 80 à 100 pour plus de tolérance
+  const ACTIVATION_THRESHOLD = 0.5; // Réduit de 1 à 0.5 pour activation ultra-sensible
   
   // Reset animation avec spring plus fluide et plus rapide
   const resetAnimation = () => {
@@ -148,9 +148,13 @@ const MediaItemCard = ({
       const horizontalMovement = Math.abs(gestureState.dx);
       const verticalMovement = Math.abs(gestureState.dy);
       
-      // Activer si mouvement horizontal > 1px ET (mouvement horizontal > 30% du vertical OU mouvement horizontal > 3px)
+      // Activer dès le moindre mouvement horizontal significatif
+      // - Mouvement horizontal > 0.5px ET
+      // - (Mouvement horizontal > 20% du vertical OU mouvement horizontal > 2px OU mouvement purement horizontal)
       const shouldSet = horizontalMovement > ACTIVATION_THRESHOLD && 
-        (horizontalMovement > verticalMovement * 0.3 || horizontalMovement > 3);
+        (horizontalMovement > verticalMovement * 0.2 || 
+         horizontalMovement > 2 || 
+         (horizontalMovement > 1 && verticalMovement < 3));
       
       console.log('[PanResponder] onMoveShouldSetPanResponder:', { 
         dx: gestureState.dx, 
@@ -226,12 +230,12 @@ const MediaItemCard = ({
       
       // Valider le swipe si:
       // 1. Direction autorisée ET
-      // 2. (Distance > seuil ultra-bas OU vélocité > seuil ultra-bas OU distance > 15px avec vélocité minimum)
+      // 2. (Distance > seuil ultra-bas OU vélocité > seuil ultra-bas OU distance > 10px avec vélocité minimum)
       const isValidSwipe = isSwipeAllowed(direction) && 
         (distance > SWIPE_THRESHOLD || 
          velocity > SWIPE_VELOCITY_THRESHOLD || 
-         (distance > 15 && velocity > 0.05) || // Seuil ultra-bas pour gestes très lents
-         (distance > 20 && velocity > 0.01)); // Seuil extrêmement bas pour gestes très intentionnels
+         (distance > 10 && velocity > 0.03) || // Seuil ultra-bas pour gestes très lents
+         (distance > 12 && velocity > 0.005)); // Seuil extrêmement bas pour gestes très intentionnels
       
       if (isValidSwipe) {
         // Swipe valide
@@ -335,20 +339,6 @@ const MediaItemCard = ({
           <View style={styles.footer}>
             <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
               <Text style={styles.badgeText}>{statusBadge.text}</Text>
-            </View>
-            {/* Indicateur visuel permanent plus visible */}
-            <View style={styles.swipeHintContainer}>
-              {currentTab === 'planned' && canRight && (
-                <Text style={styles.swipeHintPermanent}>👉 Glisser</Text>
-              )}
-              {currentTab === 'completed' && canLeft && (
-                <Text style={styles.swipeHintPermanent}>👈 Glisser</Text>
-              )}
-              {currentTab === 'watching' && (
-                <Text style={styles.swipeHintPermanent}>
-                  {canLeft && canRight ? '👈 👉 Glisser' : canLeft ? '👈 Glisser' : canRight ? '👉 Glisser' : ''}
-                </Text>
-              )}
             </View>
             {/* Indicateur visuel discret de la direction possible */}
             {currentTab === 'planned' && canRight && (
@@ -682,12 +672,6 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.hint}>
-          <Text style={styles.hintText}>
-            💡 Glissez un média horizontalement pour changer son statut (seuil réduit pour plus de facilité)
-          </Text>
-        </View>
-        
         {filteredItems.length > 0 ? (
           filteredItems.map(renderMediaItem)
         ) : (
@@ -737,19 +721,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: SPACING.md,
-  },
-  hint: {
-    backgroundColor: COLORS.surface,
-    padding: SPACING.md,
-    borderRadius: 8,
-    marginBottom: SPACING.md,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  hintText: {
-    fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
-    textAlign: 'center',
   },
   mediaItem: {
     flexDirection: 'row',
@@ -914,19 +885,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     maxWidth: 70,
     lineHeight: 12,
-  },
-  swipeHintContainer: {
-    marginLeft: 'auto',
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  swipeHintPermanent: {
-    fontSize: 10,
-    color: COLORS.primary,
-    fontWeight: '600',
-    opacity: 0.8,
   },
 });
 
