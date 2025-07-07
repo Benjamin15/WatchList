@@ -683,7 +683,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       <View style={styles.poster}>
         <Text style={styles.posterEmoji}>
           {item.media.type === 'movie' ? '🎬' : 
-           item.media.type === 'series' ? '📺' : '📚'}
+           (item.media.type === 'series' || item.media.type === 'tv') ? '📺' : '📚'}
         </Text>
         {hasImageError && posterUrl && (
           <TouchableOpacity 
@@ -1062,7 +1062,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
             const getDuration = (item: WatchlistItem) => {
               if (item.media.type === 'movie') {
                 return 120; // Minutes par défaut pour un film
-              } else if (item.media.type === 'series') {
+              } else if (item.media.type === 'series' || item.media.type === 'tv') {
                 return 45; // Minutes par épisode pour une série
               }
               return 30; // Défaut pour autres types

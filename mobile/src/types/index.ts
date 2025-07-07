@@ -61,7 +61,6 @@ export type RootStackParamList = {
   Loading: undefined;
   CreateVote: { roomId: string };
   VoteDetail: { voteId: number; roomId: string };
-  FilterTest: undefined; // Nouveau écran de test
 };
 
 export type TabParamList = {

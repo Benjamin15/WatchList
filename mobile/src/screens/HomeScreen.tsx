@@ -249,7 +249,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                       style={styles.historyItem}
                       onPress={() => handleJoinFromHistory(item)}
                       activeOpacity={0.7}
-                      android_ripple={{ color: COLORS.primary + '20' }}
                     >
                       <View style={styles.historyContent}>
                         <View style={styles.historyHeader}>

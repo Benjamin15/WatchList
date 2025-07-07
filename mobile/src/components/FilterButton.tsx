@@ -10,7 +10,7 @@ interface FilterButtonProps {
 const FilterButton: React.FC<FilterButtonProps> = ({ onPress, activeFiltersCount }) => {
   return (
     <TouchableOpacity style={styles.filterFab} onPress={onPress}>
-      <Text style={styles.filterFabIcon}>🔽</Text>
+      <Text style={styles.filterFabIcon}>☰</Text>
       {activeFiltersCount > 0 && (
         <View style={styles.filterBadge}>
           <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
