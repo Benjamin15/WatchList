@@ -4,8 +4,9 @@ class MediaController {
   async getMediaDetails(req, res) {
     try {
       const { type, tmdbId } = req.params;
+      const { language = 'fr-FR' } = req.query;
       
-      console.log(`[MediaController] Récupération des détails pour ${type} ${tmdbId}`);
+      console.log(`[MediaController] Récupération des détails pour ${type} ${tmdbId} (lang: ${language})`);
       
       if (!['movie', 'series'].includes(type)) {
         return res.status(400).json({
@@ -14,7 +15,7 @@ class MediaController {
         });
       }
 
-      const details = await tmdbService.getMediaDetails(tmdbId, type);
+      const details = await tmdbService.getMediaDetails(tmdbId, type, language);
       
       if (!details) {
         return res.status(404).json({
@@ -36,8 +37,9 @@ class MediaController {
   async getMediaTrailers(req, res) {
     try {
       const { type, tmdbId } = req.params;
+      const { language = 'fr-FR' } = req.query;
       
-      console.log(`[MediaController] Récupération des trailers pour ${type} ${tmdbId}`);
+      console.log(`[MediaController] Récupération des trailers pour ${type} ${tmdbId} (lang: ${language})`);
       
       if (!['movie', 'series'].includes(type)) {
         return res.status(400).json({
@@ -46,7 +48,7 @@ class MediaController {
         });
       }
 
-      const trailers = await tmdbService.getMediaTrailers(tmdbId, type);
+      const trailers = await tmdbService.getMediaTrailers(tmdbId, type, language);
       
       res.json({
         success: true,

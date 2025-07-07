@@ -11,8 +11,10 @@ import {
   Alert,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { useNotifications } from '../hooks/useNotifications';
+import { useLanguage } from '../hooks/useLanguage';
 
 interface SettingsSidebarProps {
   visible: boolean;
@@ -27,6 +29,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   roomId,
   roomName,
 }) => {
+  const { t } = useTranslation();
   const [slideAnim] = useState(new Animated.Value(300)); // Commence hors écran à droite
   const [opacityAnim] = useState(new Animated.Value(0));
   
@@ -38,25 +41,24 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
     testNotification 
   } = useNotifications(roomId);
   
+  // Hook pour gérer la langue
+  const { 
+    currentLanguage, 
+    changeLanguage, 
+    availableLanguages,
+    isInitialized: languageInitialized 
+  } = useLanguage();
+  
   // États pour les paramètres
-  const [selectedLanguage, setSelectedLanguage] = useState('fr');
   const [selectedTheme, setSelectedTheme] = useState('dark');
 
   const screenWidth = Dimensions.get('window').width;
   const sidebarWidth = Math.min(320, screenWidth * 0.85);
 
-  // Options pour les sélecteurs
-  const languageOptions = [
-    { key: 'fr', label: '🇫🇷 Français' },
-    { key: 'en', label: '🇺🇸 English' },
-    { key: 'es', label: '🇪🇸 Español' },
-    { key: 'pt', label: '🇧🇷 Português' },
-  ];
-
   const themeOptions = [
-    { key: 'dark', label: '🌙 Sombre' },
-    { key: 'light', label: '☀️ Clair' },
-    { key: 'auto', label: '⚡ Automatique' },
+    { key: 'dark', label: t('settings.dark') },
+    { key: 'light', label: t('settings.light') },
+    { key: 'auto', label: t('settings.auto') },
   ];
 
   // Animation d'entrée/sortie
@@ -152,7 +154,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
           
           {/* Section Notifications de vote */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📱 Notifications de vote</Text>
+            <Text style={styles.sectionTitle}>📱 {t('settings.voteNotifications')}</Text>
             
             <View style={styles.settingItem}>
               <View style={styles.settingInfo}>
@@ -174,33 +176,33 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
             {/* Bouton de test en mode développement */}
             {__DEV__ && notificationsInitialized && (
               <TouchableOpacity style={styles.testButton} onPress={testNotification}>
-                <Text style={styles.testButtonText}>🧪 Tester les notifications</Text>
+                <Text style={styles.testButtonText}>🧪 {t('settings.testNotification')}</Text>
               </TouchableOpacity>
             )}
           </View>
 
           {/* Section Langage */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🌐 Langage</Text>
+            <Text style={styles.sectionTitle}>🌐 {t('settings.language')}</Text>
             
-            {languageOptions.map((option) => (
+            {availableLanguages.map((option) => (
               <TouchableOpacity
                 key={option.key}
                 style={[
                   styles.selectionItem,
-                  selectedLanguage === option.key && styles.selectedItem
+                  currentLanguage === option.key && styles.selectedItem
                 ]}
-                onPress={() => setSelectedLanguage(option.key)}
+                onPress={() => changeLanguage(option.key)}
               >
                 <View style={styles.selectionInfo}>
                   <Text style={[
                     styles.selectionName,
-                    selectedLanguage === option.key && styles.selectedText
+                    currentLanguage === option.key && styles.selectedText
                   ]}>
                     {option.label}
                   </Text>
                 </View>
-                {selectedLanguage === option.key && (
+                {currentLanguage === option.key && (
                   <Text style={styles.checkIcon}>✓</Text>
                 )}
               </TouchableOpacity>
@@ -209,7 +211,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
 
           {/* Section Thème */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎨 Thème</Text>
+            <Text style={styles.sectionTitle}>🎨 {t('settings.theme')}</Text>
             
             {themeOptions.map((option) => (
               <TouchableOpacity

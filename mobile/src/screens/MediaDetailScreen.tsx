@@ -18,6 +18,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { WebView } from 'react-native-webview';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 import { RootStackParamList, Media, SearchResult, MediaDetails, Trailer } from '../types';
 import { apiService } from '../services/api';
@@ -28,6 +29,7 @@ const { width, height } = Dimensions.get('window');
 const MediaDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
+  const { t } = useTranslation();
   
   const { media, roomId } = route.params as { media: Media | SearchResult; roomId?: string };
   
@@ -418,17 +420,17 @@ const MediaDetailScreen: React.FC = () => {
                 onPress={handleAddToWatchlist}
               >
                 <Ionicons name="add" size={20} color="white" />
-                <Text style={styles.addButtonText}>Ajouter à ma liste</Text>
+                <Text style={styles.addButtonText}>{t('common.addToList')}</Text>
               </TouchableOpacity>
             ) : (
               <View style={styles.statusSection}>
-                <Text style={styles.statusSectionTitle}>Statut dans ma liste</Text>
+                <Text style={styles.statusSectionTitle}>{t('common.statusInList')}</Text>
                 <View style={styles.statusOptions}>
                   {[
-                    { key: 'planned', label: 'À regarder', icon: 'bookmark-outline', color: '#FF9500' },
-                    { key: 'watching', label: 'En cours', icon: 'play-circle-outline', color: '#007AFF' },
-                    { key: 'completed', label: 'Terminé', icon: 'checkmark-circle-outline', color: '#34C759' },
-                    { key: 'dropped', label: 'Supprimer', icon: 'trash-outline', color: '#FF3B30' }
+                    { key: 'planned', label: t('status.planned'), icon: 'bookmark-outline', color: '#FF9500' },
+                    { key: 'watching', label: t('status.watching'), icon: 'play-circle-outline', color: '#007AFF' },
+                    { key: 'completed', label: t('status.completed'), icon: 'checkmark-circle-outline', color: '#34C759' },
+                    { key: 'dropped', label: t('common.delete'), icon: 'trash-outline', color: '#FF3B30' }
                   ].map((statusOption) => (
                     <TouchableOpacity
                       key={statusOption.key}

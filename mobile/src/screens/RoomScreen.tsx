@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, WatchlistItem, Vote, FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
@@ -12,6 +13,8 @@ import LoadingScreen from './LoadingScreen';
 import FilterButton from '../components/FilterButton';
 import FilterSidebar from '../components/FilterSidebar';
 import SettingsSidebar from '../components/SettingsSidebar';
+import { translateStatus } from '../utils/translations';
+import { useLanguage } from '../hooks/useLanguage';
 
 // Clé pour stocker les votes supprimés dans AsyncStorage (par room)
 const getDismissedVotesStorageKey = (roomId: string) => `dismissedVotes_${roomId}`;
@@ -180,7 +183,8 @@ const MediaItemCard = ({
   statusOrder, 
   renderMediaPoster,
   currentTab,
-  onViewDetails
+  onViewDetails,
+  currentLanguage
 }: { 
   item: WatchlistItem; 
   onSwipe: (id: number, direction: 'left' | 'right') => void;
@@ -188,11 +192,24 @@ const MediaItemCard = ({
   renderMediaPoster: (item: WatchlistItem) => React.ReactNode;
   currentTab: string;
   onViewDetails: (item: WatchlistItem) => void;
+  currentLanguage: string;
 }) => {
+  // Mapper les statuts mobiles vers les statuts backend pour la traduction
+  const statusMapping: Record<string, string> = {
+    'planned': 'a_voir',
+    'watching': 'en_cours',
+    'completed': 'vu'
+  };
+
+  const getTranslatedStatus = (status: string) => {
+    const backendStatus = statusMapping[status] || status;
+    return translateStatus(backendStatus, currentLanguage);
+  };
+
   const statusConfig = {
-    planned: { text: 'Prévu', color: MEDIA_STATUS.planned.color },
-    watching: { text: 'En cours', color: MEDIA_STATUS.watching.color },
-    completed: { text: 'Terminé', color: MEDIA_STATUS.completed.color },
+    planned: { text: getTranslatedStatus('planned'), color: MEDIA_STATUS.planned.color },
+    watching: { text: getTranslatedStatus('watching'), color: MEDIA_STATUS.watching.color },
+    completed: { text: getTranslatedStatus('completed'), color: MEDIA_STATUS.completed.color },
   };
 
   const statusBadge = statusConfig[item.status as keyof typeof statusConfig];
@@ -448,8 +465,8 @@ const MediaItemCard = ({
           <>
             <Text style={styles.swipeIndicatorIcon}>←</Text>
             <Text style={styles.swipeIndicatorText}>
-              {statusOrder[statusOrder.indexOf(item.status as any) - 1] === 'planned' ? 'À regarder' :
-               statusOrder[statusOrder.indexOf(item.status as any) - 1] === 'watching' ? 'En cours' : 'Terminé'}
+              {statusOrder[statusOrder.indexOf(item.status as any) - 1] === 'planned' ? getTranslatedStatus('planned') :
+               statusOrder[statusOrder.indexOf(item.status as any) - 1] === 'watching' ? getTranslatedStatus('watching') : getTranslatedStatus('completed')}
             </Text>
           </>
         )}
@@ -476,8 +493,8 @@ const MediaItemCard = ({
           <>
             <Text style={styles.swipeIndicatorIcon}>→</Text>
             <Text style={styles.swipeIndicatorText}>
-              {statusOrder[statusOrder.indexOf(item.status as any) + 1] === 'planned' ? 'À regarder' :
-               statusOrder[statusOrder.indexOf(item.status as any) + 1] === 'watching' ? 'En cours' : 'Terminé'}
+              {statusOrder[statusOrder.indexOf(item.status as any) + 1] === 'planned' ? getTranslatedStatus('planned') :
+               statusOrder[statusOrder.indexOf(item.status as any) + 1] === 'watching' ? getTranslatedStatus('watching') : getTranslatedStatus('completed')}
             </Text>
           </>
         )}
@@ -604,6 +621,8 @@ const mockWatchlistItems: WatchlistItem[] = [
 const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const { roomId } = route.params;
   const navigation = useNavigation<RoomScreenNavigationProp>();
+  const { t } = useTranslation();
+  const { currentLanguage } = useLanguage();
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -978,7 +997,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       // Sauvegarder dans AsyncStorage pour persistance
       await saveDismissedVotes(roomId, newDismissedVotes);
       
-      console.log(`[RoomScreen] Vote expiré ${voteId} supprimé définitivement pour room ${roomId}`);
+      console.log(`[RoomScreen] ${t('vote.voteExpired')} ${voteId} supprimé définitivement pour room ${roomId}`);
     } else {
       // Pour les votes actifs ou terminés, les cacher temporairement (réapparaîtront au reload)
       const newTemporarilyHidden = new Set([...temporarilyHiddenVotes, voteId]);
@@ -992,13 +1011,13 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const getVoteStatusText = (vote: Vote) => {
     switch (vote.status) {
       case 'active':
-        return 'Vote en cours';
+        return t('vote.voteInProgress');
       case 'completed':
-        return 'Vote terminé';
+        return t('vote.voteCompleted');
       case 'expired':
-        return 'Vote expiré';
+        return t('vote.voteExpired');
       default:
-        return 'Vote en cours';
+        return t('vote.voteInProgress');
     }
   };
 
@@ -1006,13 +1025,13 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const getVoteBadgeInfo = (vote: Vote) => {
     switch (vote.status) {
       case 'active':
-        return { text: 'EN COURS', color: '#4CAF50' };
+        return { text: t('vote.activeLabel'), color: '#4CAF50' };
       case 'completed':
-        return { text: 'TERMINÉ', color: '#2196F3' };
+        return { text: t('vote.completedLabel'), color: '#2196F3' };
       case 'expired':
-        return { text: 'EXPIRÉ', color: '#FF9800' };
+        return { text: t('vote.expiredLabel'), color: '#FF9800' };
       default:
-        return { text: 'EN COURS', color: '#4CAF50' };
+        return { text: t('vote.activeLabel'), color: '#4CAF50' };
     }
   };
 
@@ -1050,12 +1069,15 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       // Log du changement sans modal
       const item = watchlistItems.find(item => item.id === itemId);
       if (item) {
-        const statusLabels = {
-          planned: 'À regarder',
-          watching: 'En cours',
-          completed: 'Terminé'
+        // Mapper les statuts mobiles vers les statuts backend pour la traduction
+        const statusMapping: Record<string, string> = {
+          'planned': 'a_voir',
+          'watching': 'en_cours',
+          'completed': 'vu'
         };
-        console.log(`[RoomScreen] Statut modifié: "${item.media.title}" déplacé vers "${statusLabels[newStatus]}"`);
+        const backendStatus = statusMapping[newStatus] || newStatus;
+        const translatedStatus = translateStatus(backendStatus, currentLanguage);
+        console.log(`[RoomScreen] Statut modifié: "${item.media.title}" déplacé vers "${translatedStatus}"`);
       }
     } catch (error) {
       console.error('Error updating item status:', error);
@@ -1197,17 +1219,18 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       renderMediaPoster={renderMediaPoster} 
       currentTab={currentTab}
       onViewDetails={handleViewMediaDetails}
+      currentLanguage={currentLanguage}
     />
   );
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Text style={styles.emptyIcon}>📱</Text>
-      <Text style={styles.emptyTitle}>Aucun média</Text>
+      <Text style={styles.emptyTitle}>{t('room.noMedia')}</Text>
       <Text style={styles.emptyMessage}>
-        {currentTab === 'planned' && 'Ajoutez des médias à votre watchlist !'}
-        {currentTab === 'watching' && 'Commencez à regarder des médias !'}
-        {currentTab === 'completed' && 'Terminez des médias pour les voir ici !'}
+        {currentTab === 'planned' && t('room.emptyPlanned')}
+        {currentTab === 'watching' && t('room.emptyWatching')}
+        {currentTab === 'completed' && t('room.emptyCompleted')}
       </Text>
     </View>
   );
@@ -1240,9 +1263,9 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
       <View style={styles.tabs}>
         {[
-          { key: 'planned', label: 'À regarder' },
-          { key: 'watching', label: 'En cours' },
-          { key: 'completed', label: 'Terminé' },
+          { key: 'planned', label: t('status.planned') },
+          { key: 'watching', label: t('status.watching') },
+          { key: 'completed', label: t('status.completed') },
         ].map((tab) => (
           <TouchableOpacity
             key={tab.key}
@@ -1301,12 +1324,12 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
               <Text style={[
                 styles.fabMenuText,
                 hasActiveVote() && styles.fabMenuTextDisabled
-              ]}>Créer un vote</Text>
+              ]}>{t('vote.createVote')}</Text>
               <Text style={[
                 styles.fabMenuDescription,
                 hasActiveVote() && styles.fabMenuDescriptionDisabled
               ]}>
-                {hasActiveVote() ? 'Vote en cours...' : 'Proposer des films'}
+                {hasActiveVote() ? t('vote.voteInProgress') + '...' : t('common.proposeMovies')}
               </Text>
             </View>
           </TouchableOpacity>

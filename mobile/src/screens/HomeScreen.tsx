@@ -14,6 +14,7 @@ import {
 import { Swipeable } from 'react-native-gesture-handler';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
@@ -27,6 +28,7 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -179,7 +181,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   };
 
   if (isLoading) {
-    return <LoadingScreen message="Connexion en cours..." />;
+    return <LoadingScreen message={t('loading.connecting')} />;
   }
 
   return (
@@ -188,27 +190,27 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <Text style={styles.title}>WatchList</Text>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Créer une nouvelle room</Text>
+          <Text style={styles.sectionTitle}>{t('home.createRoom')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Nom de la room"
+            placeholder={t('home.roomName')}
             placeholderTextColor={COLORS.placeholder}
             value={roomName}
             onChangeText={setRoomName}
             maxLength={50}
           />
           <TouchableOpacity style={styles.button} onPress={handleCreateRoom}>
-            <Text style={styles.buttonText}>Créer</Text>
+            <Text style={styles.buttonText}>{t('home.create')}</Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.divider} />
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rejoindre une room</Text>
+          <Text style={styles.sectionTitle}>{t('home.joinRoom')}</Text>
           <TextInput
             style={styles.input}
-            placeholder="Code de la room (ex: ABC123)"
+            placeholder={t('home.roomCode')}
             placeholderTextColor={COLORS.placeholder}
             value={roomCode}
             onChangeText={setRoomCode}
@@ -216,7 +218,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             autoCapitalize="characters"
           />
           <TouchableOpacity style={styles.button} onPress={handleJoinRoom}>
-            <Text style={styles.buttonText}>Rejoindre</Text>
+            <Text style={styles.buttonText}>{t('home.join')}</Text>
           </TouchableOpacity>
         </View>
 
@@ -226,7 +228,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
             <View style={styles.divider} />
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Rooms récentes</Text>
+                <Text style={styles.sectionTitle}>{t('home.recentRooms')}</Text>
                 <Text style={styles.sectionCount}>({roomsHistory.length})</Text>
               </View>
               <ScrollView

@@ -9,8 +9,11 @@ import Animated, {
   withTiming,
   runOnJS,
 } from 'react-native-reanimated';
+import { useTranslation } from 'react-i18next';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { WatchlistItem } from '../types';
+import { translateStatus } from '../utils/translations';
+import { useLanguage } from '../hooks/useLanguage';
 
 const { width: screenWidth } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 100;
@@ -29,6 +32,8 @@ const MediaItem: React.FC<MediaItemProps> = ({
   canSwipeLeft, 
   canSwipeRight 
 }) => {
+  const { t } = useTranslation();
+  const { currentLanguage } = useLanguage();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
 
@@ -96,11 +101,22 @@ const MediaItem: React.FC<MediaItemProps> = ({
   });
 
   const getStatusBadge = () => {
+    // Mapper les statuts mobiles vers les statuts backend pour la traduction
+    const statusMapping: Record<string, string> = {
+      'planned': 'a_voir',
+      'watching': 'en_cours',
+      'completed': 'vu',
+      'dropped': 'abandonne'
+    };
+
+    const backendStatus = statusMapping[item.status] || item.status;
+    const translatedText = translateStatus(backendStatus, currentLanguage);
+
     const statusConfig = {
-      planned: { text: 'Prévu', color: MEDIA_STATUS.planned.color },
-      watching: { text: 'En cours', color: MEDIA_STATUS.watching.color },
-      completed: { text: 'Terminé', color: MEDIA_STATUS.completed.color },
-      dropped: { text: 'Abandonné', color: MEDIA_STATUS.dropped.color },
+      planned: { text: translatedText, color: MEDIA_STATUS.planned.color },
+      watching: { text: translatedText, color: MEDIA_STATUS.watching.color },
+      completed: { text: translatedText, color: MEDIA_STATUS.completed.color },
+      dropped: { text: translatedText, color: MEDIA_STATUS.dropped.color },
     };
 
     const config = statusConfig[item.status] || statusConfig.planned;

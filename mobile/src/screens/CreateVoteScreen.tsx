@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, Media, WatchlistItem } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
@@ -26,6 +27,7 @@ const CreateVoteScreen: React.FC = () => {
   const route = useRoute<CreateVoteRouteProp>();
   const navigation = useNavigation<CreateVoteNavigationProp>();
   const { roomId } = route.params;
+  const { t } = useTranslation();
 
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState('');
@@ -112,7 +114,7 @@ const CreateVoteScreen: React.FC = () => {
       if (error.response?.status === 409) {
         const errorData = error.response.data;
         Alert.alert(
-          'Vote déjà en cours',
+          t('vote.alreadyInProgress'),
           `Il y a déjà un vote actif dans cette room :\n\n"${errorData.details?.existingVoteTitle}" par ${errorData.details?.existingVoteCreatedBy}\n\nTerminez d'abord ce vote avant d'en créer un nouveau.`,
           [
             {
@@ -269,10 +271,10 @@ const CreateVoteScreen: React.FC = () => {
               ) : roomItems.length === 0 ? (
                 <View style={styles.emptyContainer}>
                   <Text style={styles.emptyText}>
-                    Aucun média dans cette room
+                    {t('room.noMedia')}
                   </Text>
                   <Text style={styles.emptySubtext}>
-                    Ajoutez des films pour créer un vote
+                    {t('common.addMoviesForVote')}
                   </Text>
                 </View>
               ) : (

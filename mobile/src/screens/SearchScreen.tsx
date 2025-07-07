@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Alert 
 import { Image } from 'expo-image';
 import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, SearchResult } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
@@ -76,6 +77,7 @@ const mockSearchResults: SearchResult[] = [
 
 const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   const { roomId } = route.params;
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -333,7 +335,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
         {isSearching ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyIcon}>⏳</Text>
-            <Text style={styles.emptyTitle}>Recherche en cours...</Text>
+            <Text style={styles.emptyTitle}>{t('loading.searching')}</Text>
             <Text style={styles.emptyMessage}>
               Veuillez patienter
             </Text>

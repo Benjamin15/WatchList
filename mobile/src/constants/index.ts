@@ -61,19 +61,15 @@ export const FONT_SIZES = {
 // Statuts de média avec leurs couleurs
 export const MEDIA_STATUS = {
   watching: {
-    label: 'En cours',
     color: '#2196F3',
   },
   completed: {
-    label: 'Terminé',
     color: '#4CAF50',
   },
   planned: {
-    label: 'Prévu',
     color: '#FF9800',
   },
   dropped: {
-    label: 'Abandonné',
     color: '#F44336',
   },
 } as const;
@@ -81,15 +77,12 @@ export const MEDIA_STATUS = {
 // Types de média avec leurs couleurs
 export const MEDIA_TYPES = {
   movie: {
-    label: 'Film',
     color: '#E91E63',
   },
   series: {
-    label: 'Série',
     color: '#9C27B0',
   },
   manga: {
-    label: 'Manga',
     color: '#FF5722',
   },
 } as const;

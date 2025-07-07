@@ -3,6 +3,8 @@ import { API_ENDPOINTS, ERROR_MESSAGES } from '../constants';
 import { getApiBaseUrl, USE_MOCK_DATA, TIMEOUTS } from '../constants/config';
 import { mockApiService } from './mockData';
 import { getDeviceId } from './deviceId';
+import { getLanguageForTMDB } from '../utils/translations';
+import i18n from '../i18n';
 import {
   Room,
   WatchlistItem,
@@ -38,6 +40,12 @@ class ApiService {
         return Promise.reject(this.handleError(error));
       }
     );
+  }
+
+  // Helper pour obtenir la langue courante au format TMDB
+  private getCurrentLanguageForTMDB(): string {
+    const currentLanguage = i18n.language || 'fr';
+    return getLanguageForTMDB(currentLanguage);
   }
 
   private handleError(error: AxiosError): ApiError {
@@ -439,10 +447,13 @@ class ApiService {
     }
     
     // Nouvelle API unifiée - cherche dans tous les types
+    const language = this.getCurrentLanguageForTMDB();
     const url = `/search/autocomplete/${encodeURIComponent(query)}`;
-    console.log('API: searchMedia URL:', this.client.defaults.baseURL + url);
+    console.log('API: searchMedia URL:', this.client.defaults.baseURL + url, `(lang: ${language})`);
     
-    const response = await this.client.get<{query: string, type: string, results: any[]}>(url);
+    const response = await this.client.get<{query: string, type: string, results: any[]}>(url, {
+      params: { language }
+    });
     
     // Transformer les résultats vers le format attendu par l'application mobile
     const transformedResults: SearchResult[] = response.data.results.map(item => {
@@ -477,10 +488,13 @@ class ApiService {
     }
     
     // Nouvelle API unifiée avec filtrage par room
+    const language = this.getCurrentLanguageForTMDB();
     const url = `/search/autocomplete/${encodeURIComponent(query)}/${roomId}`;
-    console.log('API: searchMediaWithRoomFilter URL:', this.client.defaults.baseURL + url);
+    console.log('API: searchMediaWithRoomFilter URL:', this.client.defaults.baseURL + url, `(lang: ${language})`);
     
-    const response = await this.client.get<{query: string, type: string, results: any[], roomId: string}>(url);
+    const response = await this.client.get<{query: string, type: string, results: any[], roomId: string}>(url, {
+      params: { language }
+    });
     
     // Transformer les résultats vers le format attendu par l'application mobile
     const transformedResults: SearchResult[] = response.data.results.map(item => {
@@ -529,7 +543,10 @@ class ApiService {
   // Méthodes pour les détails des médias TMDB
   async getMediaDetailsFromTMDB(tmdbId: number, type: 'movie' | 'series'): Promise<MediaDetails> {
     try {
-      const response = await this.client.get<MediaDetails>(`/media/${type}/${tmdbId}/details`);
+      const language = this.getCurrentLanguageForTMDB();
+      const response = await this.client.get<MediaDetails>(`/media/${type}/${tmdbId}/details`, {
+        params: { language }
+      });
       return response.data;
     } catch (error) {
       console.error('Erreur lors de la récupération des détails du média:', error);
@@ -539,7 +556,10 @@ class ApiService {
 
   async getMediaTrailers(tmdbId: number, type: 'movie' | 'series'): Promise<Trailer[]> {
     try {
-      const response = await this.client.get<{ trailers: Trailer[] }>(`/media/${type}/${tmdbId}/trailers`);
+      const language = this.getCurrentLanguageForTMDB();
+      const response = await this.client.get<{ trailers: Trailer[] }>(`/media/${type}/${tmdbId}/trailers`, {
+        params: { language }
+      });
       return response.data.trailers;
     } catch (error) {
       console.error('Erreur lors de la récupération des trailers:', error);

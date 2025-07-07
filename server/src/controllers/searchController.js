@@ -18,6 +18,7 @@ class SearchController {
   async autocomplete(req, res) {
     try {
       const { query, roomId } = req.params;
+      const { language = 'fr-FR' } = req.query;
 
       if (!query || query.trim() === '') {
         return res.status(400).json({ error: 'Query is required' });
@@ -25,16 +26,16 @@ class SearchController {
 
       const normalizedQuery = query.trim().toLowerCase();
       
-      // Créer une clé de cache qui inclut roomId si fourni
-      const cacheKey = roomId ? `autocomplete:${normalizedQuery}:${roomId}` : `autocomplete:${normalizedQuery}`;
+      // Créer une clé de cache qui inclut roomId et language si fournis
+      const cacheKey = roomId ? `autocomplete:${normalizedQuery}:${roomId}:${language}` : `autocomplete:${normalizedQuery}:${language}`;
       const cached = this.searchCache.get(cacheKey);
       
       if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
-        console.log('SearchController: Using cached results for:', normalizedQuery, roomId ? `(room: ${roomId})` : '');
+        console.log('SearchController: Using cached results for:', normalizedQuery, roomId ? `(room: ${roomId})` : '', `(lang: ${language})`);
         return res.json(cached.data);
       }
 
-      let results = await this.searchService.searchAutocomplete(query.trim());
+      let results = await this.searchService.searchAutocomplete(query.trim(), language);
       
       // Filtrer les résultats si roomId est fourni
       if (roomId) {

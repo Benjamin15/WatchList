@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList, Vote, VoteOption } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
@@ -25,6 +26,7 @@ const VoteDetailScreen: React.FC = () => {
   const route = useRoute<VoteDetailRouteProp>();
   const navigation = useNavigation<VoteDetailNavigationProp>();
   const { voteId, roomId } = route.params;
+  const { t } = useTranslation();
 
   const [vote, setVote] = useState<Vote | null>(null);
   const [loading, setLoading] = useState(true);
@@ -110,9 +112,9 @@ const VoteDetailScreen: React.FC = () => {
           `Se termine le ${new Date(vote.endsAt).toLocaleDateString()}` : 
           'Vote permanent';
       case 'completed':
-        return 'Vote terminé';
+        return t('vote.voteCompleted');
       case 'expired':
-        return 'Vote expiré';
+        return t('vote.voteExpired');
       default:
         return '';
     }

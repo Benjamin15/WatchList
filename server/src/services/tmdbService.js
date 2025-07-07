@@ -9,15 +9,16 @@ class TMDBService {
   /**
    * Search for movies
    * @param {string} query - Search query
+   * @param {string} language - Language code (e.g., 'fr-FR', 'en-US')
    * @returns {Promise<Array>} Array of movie results
    */
-  async searchMovies(query) {
+  async searchMovies(query, language = 'fr-FR') {
     try {
       const response = await axios.get(`${this.baseUrl}/search/movie`, {
         params: {
           api_key: this.apiKey,
           query,
-          language: 'fr-FR'
+          language
         }
       });
 
@@ -42,9 +43,10 @@ class TMDBService {
   /**
    * Search for TV shows
    * @param {string} query - Search query
+   * @param {string} language - Language code (e.g., 'fr-FR', 'en-US')
    * @returns {Promise<Array>} Array of TV show results
    */
-  async searchTVShows(query) {
+  async searchTVShows(query, language = 'fr-FR') {
     try {
       console.log('TMDBService: Searching TV shows for:', query);
       console.log('TMDBService: API Key available:', !!this.apiKey);
@@ -53,7 +55,7 @@ class TMDBService {
         params: {
           api_key: this.apiKey,
           query,
-          language: 'fr-FR'
+          language
         }
       });
 
@@ -83,15 +85,16 @@ class TMDBService {
    * Get detailed information about a movie or TV show
    * @param {string} tmdbId - TMDB ID
    * @param {string} type - 'movie' or 'series'
+   * @param {string} language - Language code (e.g., 'fr-FR', 'en-US')
    * @returns {Promise<Object>} Detailed media information
    */
-  async getMediaDetails(tmdbId, type) {
+  async getMediaDetails(tmdbId, type, language = 'fr-FR') {
     try {
       const endpoint = type === 'movie' ? 'movie' : 'tv';
       const response = await axios.get(`${this.baseUrl}/${endpoint}/${tmdbId}`, {
         params: {
           api_key: this.apiKey,
-          language: 'fr-FR',
+          language,
           append_to_response: 'credits,keywords,videos'
         }
       });
@@ -168,15 +171,16 @@ class TMDBService {
    * Get trailers for a movie or TV show
    * @param {string} tmdbId - TMDB ID
    * @param {string} type - 'movie' or 'series'
+   * @param {string} language - Language code (e.g., 'fr-FR', 'en-US')
    * @returns {Promise<Array>} Array of trailers
    */
-  async getMediaTrailers(tmdbId, type) {
+  async getMediaTrailers(tmdbId, type, language = 'fr-FR') {
     try {
       const endpoint = type === 'movie' ? 'movie' : 'tv';
       const response = await axios.get(`${this.baseUrl}/${endpoint}/${tmdbId}/videos`, {
         params: {
           api_key: this.apiKey,
-          language: 'fr-FR'
+          language
         }
       });
 

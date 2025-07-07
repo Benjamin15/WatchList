@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { useTranslation } from 'react-i18next';
 
 interface TabHeaderProps {
   currentTab: 'planned' | 'watching' | 'completed';
@@ -8,10 +9,12 @@ interface TabHeaderProps {
 }
 
 const TabHeader: React.FC<TabHeaderProps> = ({ currentTab, onTabChange }) => {
+  const { t } = useTranslation();
+  
   const tabs = [
-    { key: 'planned', label: 'À regarder' },
-    { key: 'watching', label: 'En cours' },
-    { key: 'completed', label: 'Terminé' },
+    { key: 'planned', label: t('status.planned') },
+    { key: 'watching', label: t('status.watching') },
+    { key: 'completed', label: t('status.completed') },
   ] as const;
 
   return (

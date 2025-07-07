@@ -10,13 +10,14 @@ class SearchService {
   /**
    * Search for items externally via TMDB (movies and TV shows)
    * @param {string} query - Search query
+   * @param {string} language - Language code (e.g., 'fr-FR', 'en-US')
    * @returns {Promise<Array>} Array of external results sorted by popularity then rating
    */
-  async searchExternal(query) {
+  async searchExternal(query, language = 'fr-FR') {
     try {
       const [movieResults, tvResults] = await Promise.all([
-        this.tmdbService.searchMovies(query),
-        this.tmdbService.searchTVShows(query)
+        this.tmdbService.searchMovies(query, language),
+        this.tmdbService.searchTVShows(query, language)
       ]);
 
       // Combine movies and TV shows
@@ -49,14 +50,15 @@ class SearchService {
   /**
    * Search only on TMDB (no local cache)
    * @param {string} query - Search query
+   * @param {string} language - Language code (e.g., 'fr-FR', 'en-US')
    * @returns {Promise<Array>} Array of TMDB results sorted by popularity and rating
    */
-  async searchAutocomplete(query) {
+  async searchAutocomplete(query, language = 'fr-FR') {
     try {
-      console.log('SearchService: Searching on TMDB only for:', query);
+      console.log('SearchService: Searching on TMDB only for:', query, 'in language:', language);
       
       // Get external results from TMDB (already sorted by popularity and rating)
-      const externalResults = await this.searchExternal(query);
+      const externalResults = await this.searchExternal(query, language);
       console.log('SearchService: TMDB results:', externalResults.length);
       
       // Return TMDB results directly (already limited to 10 and sorted)
