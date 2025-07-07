@@ -4,11 +4,40 @@ import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import { Image } from 'expo-image';
 import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootStackParamList, WatchlistItem, Vote, FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import LoadingScreen from './LoadingScreen';
 import FilterButton from '../components/FilterButton';
+import FilterSidebar from '../components/FilterSidebar';
+
+// Clé pour stocker les votes supprimés dans AsyncStorage
+const DISMISSED_VOTES_STORAGE_KEY = 'dismissedVotes';
+
+// Fonctions utilitaires pour la persistance des votes supprimés
+const loadDismissedVotes = async (): Promise<Set<number>> => {
+  try {
+    const stored = await AsyncStorage.getItem(DISMISSED_VOTES_STORAGE_KEY);
+    if (stored) {
+      const votesArray = JSON.parse(stored) as number[];
+      return new Set(votesArray);
+    }
+  } catch (error) {
+    console.error('[RoomScreen] Erreur lors du chargement des votes supprimés:', error);
+  }
+  return new Set();
+};
+
+const saveDismissedVotes = async (dismissedVotes: Set<number>): Promise<void> => {
+  try {
+    const votesArray = Array.from(dismissedVotes);
+    await AsyncStorage.setItem(DISMISSED_VOTES_STORAGE_KEY, JSON.stringify(votesArray));
+    console.log(`[RoomScreen] ${votesArray.length} votes supprimés sauvegardés`);
+  } catch (error) {
+    console.error('[RoomScreen] Erreur lors de la sauvegarde des votes supprimés:', error);
+  }
+};
 
 // Composant pour une notification de vote avec swipe-to-dismiss
 interface VoteNotificationCardProps {
@@ -582,6 +611,12 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loadingVotes, setLoadingVotes] = useState(false);
+  
+  // État pour les votes supprimés localement (swipe-to-dismiss)
+  const [dismissedVotes, setDismissedVotes] = useState<Set<number>>(new Set());
+  
+  // État pour les votes cachés temporairement (disparaissent au reload de la room)
+  const [temporarilyHiddenVotes, setTemporarilyHiddenVotes] = useState<Set<number>>(new Set());
 
   // FAB long press state
   const [fabMenuVisible, setFabMenuVisible] = useState(false);
@@ -592,10 +627,11 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   // États pour le filtrage et tri
   const [appliedFilters, setAppliedFilters] = useState<FilterOptions>({
     type: 'all',
-    genres: ['action'], // Test avec un genre pour voir le badge
-    sortBy: 'title', // Test avec tri par titre
-    sortDirection: 'asc',
+    genres: [],
+    sortBy: 'none',
+    sortDirection: 'desc',
   });
+  const [filterSidebarVisible, setFilterSidebarVisible] = useState(false);
 
   const statusOrder = ['planned', 'watching', 'completed'] as const;
 
@@ -665,6 +701,21 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     loadRoomData();
   }, [roomId]);
 
+  // Charger les votes supprimés sauvegardés au démarrage
+  useEffect(() => {
+    const loadSavedDismissedVotes = async () => {
+      try {
+        const savedDismissedVotes = await loadDismissedVotes();
+        setDismissedVotes(savedDismissedVotes);
+        console.log(`[RoomScreen] ${savedDismissedVotes.size} votes supprimés chargés depuis AsyncStorage`);
+      } catch (error) {
+        console.error('[RoomScreen] Erreur lors du chargement des votes supprimés:', error);
+      }
+    };
+    
+    loadSavedDismissedVotes();
+  }, []);
+
   // Utiliser useFocusEffect pour recharger les données quand on revient sur cet écran
   useFocusEffect(
     useCallback(() => {
@@ -683,6 +734,30 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     } catch (error) {
       console.error('Error loading room:', error);
       Alert.alert('Erreur', 'Impossible de charger les données de la room');
+    }
+  };
+
+  // Nettoyer les votes supprimés anciens (votes qui ne sont plus affichables)
+  const cleanupOldDismissedVotes = async (currentVotes: Vote[]) => {
+    try {
+      const currentDismissed = await loadDismissedVotes();
+      const currentVoteIds = new Set(currentVotes.map(vote => vote.id));
+      
+      // Garder seulement les votes supprimés qui existent encore
+      const validDismissedVotes = new Set(
+        Array.from(currentDismissed).filter(voteId => currentVoteIds.has(voteId))
+      );
+      
+      // Si des votes ont été nettoyés, sauvegarder la nouvelle liste
+      if (validDismissedVotes.size !== currentDismissed.size) {
+        await saveDismissedVotes(validDismissedVotes);
+        setDismissedVotes(validDismissedVotes);
+        console.log(`[RoomScreen] Nettoyage: ${currentDismissed.size - validDismissedVotes.size} votes supprimés anciens retirés`);
+      } else {
+        setDismissedVotes(currentDismissed);
+      }
+    } catch (error) {
+      console.error('[RoomScreen] Erreur lors du nettoyage des votes supprimés:', error);
     }
   };
 
@@ -709,6 +784,13 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       setLoadingVotes(true);
       const votesData = await apiService.getVotesByRoom(roomId);
       setVotes(votesData);
+      
+      // Réinitialiser les votes cachés temporairement (ils réapparaissent)
+      setTemporarilyHiddenVotes(new Set());
+      console.log('[RoomScreen] Votes cachés temporairement réinitialisés - ils réapparaissent');
+      
+      // Nettoyer les votes supprimés anciens après chargement
+      await cleanupOldDismissedVotes(votesData);
     } catch (error) {
       console.error('Error loading votes:', error);
       // En cas d'erreur, on continue sans votes
@@ -797,14 +879,14 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     });
   };
 
-  // États pour gérer les votes supprimés localement
-  const [dismissedVotes, setDismissedVotes] = useState<Set<number>>(new Set());
-
   // Obtenir les votes à afficher (actifs et récemment terminés, non supprimés)
   const getDisplayableVotes = () => {
     return votes.filter(vote => {
-      // Ne pas afficher les votes supprimés par l'utilisateur
+      // Ne pas afficher les votes supprimés définitivement (expirés)
       if (dismissedVotes.has(vote.id)) return false;
+      
+      // Ne pas afficher les votes cachés temporairement
+      if (temporarilyHiddenVotes.has(vote.id)) return false;
       
       // Afficher les votes actifs
       if (vote.status === 'active') return true;
@@ -821,9 +903,28 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     });
   };
 
-  // Supprimer une notification de vote (localement)
-  const dismissVoteNotification = (voteId: number) => {
-    setDismissedVotes(prev => new Set([...prev, voteId]));
+  // Supprimer une notification de vote (logique différenciée selon le statut)
+  const dismissVoteNotification = async (voteId: number) => {
+    // Trouver le vote correspondant
+    const vote = votes.find(v => v.id === voteId);
+    if (!vote) return;
+    
+    // Si le vote est expiré, le supprimer définitivement
+    if (vote.status === 'expired') {
+      const newDismissedVotes = new Set([...dismissedVotes, voteId]);
+      setDismissedVotes(newDismissedVotes);
+      
+      // Sauvegarder dans AsyncStorage pour persistance
+      await saveDismissedVotes(newDismissedVotes);
+      
+      console.log(`[RoomScreen] Vote expiré ${voteId} supprimé définitivement pour cet appareil`);
+    } else {
+      // Pour les votes actifs ou terminés, les cacher temporairement (réapparaîtront au reload)
+      const newTemporarilyHidden = new Set([...temporarilyHiddenVotes, voteId]);
+      setTemporarilyHiddenVotes(newTemporarilyHidden);
+      
+      console.log(`[RoomScreen] Vote ${vote.status} ${voteId} caché temporairement (réapparaîtra au reload)`);
+    }
   };
 
   // Obtenir le texte de statut du vote
@@ -917,7 +1018,9 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
     // Filtrer par type
     if (appliedFilters.type !== 'all') {
-      filteredItems = filteredItems.filter(item => item.media.type === appliedFilters.type);
+      // Mapper le type de filtre vers le type de données stockées
+      const typeToMatch = appliedFilters.type === 'series' ? 'tv' : appliedFilters.type;
+      filteredItems = filteredItems.filter(item => item.media.type === typeToMatch);
     }
 
     // Filtrer par genres (si des genres sont sélectionnés)
@@ -929,37 +1032,60 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       });
     }
 
-    // Trier
-    filteredItems.sort((a, b) => {
-      let comparison = 0;
+    // Trier seulement si un tri est sélectionné
+    if (appliedFilters.sortBy !== 'none') {
+      filteredItems.sort((a, b) => {
+        let comparison = 0;
 
-      switch (appliedFilters.sortBy) {
-        case 'title':
-          comparison = a.media.title.localeCompare(b.media.title);
-          break;
-        case 'year':
-          const yearA = a.media.year || 0;
-          const yearB = b.media.year || 0;
-          comparison = yearA - yearB;
-          break;
-        case 'rating':
-          const ratingA = a.media.rating || 0;
-          const ratingB = b.media.rating || 0;
-          comparison = ratingA - ratingB;
-          break;
-        case 'date_added':
-          comparison = new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
-          break;
-        case 'duration':
-          // Pour la durée, on trie par titre pour l'instant (champ non disponible)
-          comparison = a.media.title.localeCompare(b.media.title);
-          break;
-        default:
-          comparison = new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
-      }
+        switch (appliedFilters.sortBy) {
+          case 'title':
+            comparison = a.media.title.localeCompare(b.media.title);
+            break;
+          case 'year':
+            const yearA = a.media.year || 0;
+            const yearB = b.media.year || 0;
+            comparison = yearA - yearB;
+            break;
+          case 'rating':
+            const ratingA = a.media.rating || 0;
+            const ratingB = b.media.rating || 0;
+            comparison = ratingA - ratingB;
+            break;
+          case 'date_added':
+            const dateA = new Date(a.addedAt).getTime();
+            const dateB = new Date(b.addedAt).getTime();
+            comparison = dateA - dateB;
+            break;
+          case 'duration':
+            // Durée : on peut estimer selon le type de média
+            // Films: ~120min, Séries: ~45min par épisode
+            const getDuration = (item: WatchlistItem) => {
+              if (item.media.type === 'movie') {
+                return 120; // Minutes par défaut pour un film
+              } else if (item.media.type === 'series') {
+                return 45; // Minutes par épisode pour une série
+              }
+              return 30; // Défaut pour autres types
+            };
+            const durationA = getDuration(a);
+            const durationB = getDuration(b);
+            comparison = durationA - durationB;
+            break;
+          case 'popularity':
+            // Popularité : on peut utiliser la note comme proxy
+            // ou implémenter un vrai système de popularité plus tard
+            const popA = a.media.rating || 0;
+            const popB = b.media.rating || 0;
+            comparison = popA - popB;
+            break;
+          default:
+            // Pas de tri pour 'none' ou cas non géré
+            comparison = 0;
+        }
 
-      return appliedFilters.sortDirection === 'asc' ? comparison : -comparison;
-    });
+        return appliedFilters.sortDirection === 'asc' ? comparison : -comparison;
+      });
+    }
 
     return filteredItems;
   };
@@ -969,16 +1095,36 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     let count = 0;
     if (appliedFilters.type !== 'all') count++;
     count += appliedFilters.genres.length;
+    if (appliedFilters.sortBy !== 'none') count++; // Compter le tri seulement s'il est actif
     return count;
   };
 
-  // Gestionnaire pour ouvrir le panel de filtrage (pour l'instant juste un log)
-  const handleOpenFilterPanel = () => {
-    console.log('[RoomScreen] Ouverture du panel de filtrage...');
-    Alert.alert(
-      'Filtrage', 
-      `Filtres actifs: ${getActiveFiltersCount()}\nType: ${appliedFilters.type}\nGenres: ${appliedFilters.genres.join(', ') || 'aucun'}\nTri: ${appliedFilters.sortBy} (${appliedFilters.sortDirection})`
-    );
+  // Gestionnaire pour ouvrir le sidebar de filtrage
+  const handleOpenFilterSidebar = () => {
+    console.log('[RoomScreen] Ouverture du sidebar de filtrage...');
+    setFilterSidebarVisible(true);
+  };
+
+  // Gestionnaires pour le sidebar de filtrage
+  const handleCloseFilterSidebar = () => {
+    setFilterSidebarVisible(false);
+  };
+
+  const handleApplyFilters = (newFilters: FilterOptions) => {
+    console.log('[RoomScreen] Application des filtres:', newFilters);
+    setAppliedFilters(newFilters);
+    setFilterSidebarVisible(false);
+  };
+
+  const handleResetFilters = () => {
+    console.log('[RoomScreen] Réinitialisation des filtres');
+    const defaultFilters: FilterOptions = {
+      type: 'all',
+      genres: [],
+      sortBy: 'none',
+      sortDirection: 'desc',
+    };
+    setAppliedFilters(defaultFilters);
   };
 
   const renderMediaItem = (item: WatchlistItem) => (
@@ -1120,8 +1266,17 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
 
       {/* Bouton de filtrage */}
       <FilterButton 
-        onPress={handleOpenFilterPanel}
+        onPress={handleOpenFilterSidebar}
         activeFiltersCount={getActiveFiltersCount()}
+      />
+
+      {/* Sidebar de filtrage */}
+      <FilterSidebar 
+        visible={filterSidebarVisible}
+        options={appliedFilters}
+        onClose={handleCloseFilterSidebar}
+        onApply={handleApplyFilters}
+        resultsCount={filteredItems.length}
       />
     </View>
   );
