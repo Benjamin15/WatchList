@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchList - Votes en cours</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .notification-banner {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideIn 0.5s ease, pulse 2s infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .notification-banner:hover {
+            transform: translateY(-2px);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3); }
+            50% { box-shadow: 0 8px 25px rgba(255, 107, 107, 0.5); }
+        }
+
+        .notification-icon {
+            font-size: 24px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .notification-subtitle {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .notification-badge {
+            background: rgba(255,255,255,0.3);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .votes-section {
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vote-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .vote-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .vote-card.new {
+            border-color: #ff6b6b;
+            background: linear-gradient(135deg, #ff6b6b05, #ee5a2405);
+            animation: newVoteGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes newVoteGlow {
+            0%, 100% { box-shadow: 0 0 0 rgba(255, 107, 107, 0); }
+            50% { box-shadow: 0 0 20px rgba(255, 107, 107, 0.3); }
+        }
+
+        .vote-card.new::before {
+            content: 'NOUVEAU';
+            position: absolute;
+            top: -8px;
+            right: 15px;
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .vote-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .vote-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .vote-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            animation: statusPulse 2s infinite;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .vote-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .vote-creator {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .vote-time {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .vote-movies {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .movie-thumbnail {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #667eea20, #764ba220);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .movies-count {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .vote-progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .vote-action {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .vote-action:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .vote-action.voted {
+            background: #28a745;
+            cursor: default;
+        }
+
+        .vote-action.voted:hover {
+            transform: none;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state-text {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .empty-state-subtext {
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        .create-vote-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .create-vote-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .badge-container {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 600;
+            animation: badgePulse 2s infinite;
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .tab-bar {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 20px;
+        }
+
+        .tab-item {
+            flex: 1;
+            padding: 8px 12px;
+            text-align: center;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-item.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .tab-item .badge {
+            position: absolute;
+            top: -5px;
+            right: 5px;
+            background: #ff6b6b;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h1>🗳️ Votes</h1>
+            <p>Room: Les Cinéphiles</p>
+        </div>
+
+        <div class="content">
+            <!-- Notification de nouveau vote -->
+            <div class="notification-banner" onclick="openNewVote()">
+                <div class="notification-icon">🔥</div>
+                <div class="notification-content">
+                    <div class="notification-title">Nouveau vote disponible !</div>
+                    <div class="notification-subtitle">Film du weekend - 3 options</div>
+                </div>
+                <div class="notification-badge">NOUVEAU</div>
+            </div>
+
+            <!-- Onglets -->
+            <div class="tab-bar">
+                <div class="tab-item active">
+                    En cours
+                    <div class="badge">2</div>
+                </div>
+                <div class="tab-item">
+                    Terminés
+                </div>
+            </div>
+
+            <!-- Votes en cours -->
+            <div class="votes-section">
+                <div class="section-title">
+                    🔥 Votes actifs
+                </div>
+
+                <!-- Nouveau vote avec animation -->
+                <div class="vote-card new" onclick="openVote('vote1')">
+                    <div class="vote-header">
+                        <div class="vote-title">Film du weekend</div>
+                        <div class="vote-status">
+                            <div class="status-dot"></div>
+                            <span>En cours</span>
+                        </div>
+                    </div>
+                    <div class="vote-info">
+                        <div class="vote-creator">Créé par Alex</div>
+                        <div class="vote-time">Il y a 2 minutes</div>
+                    </div>
+                    <div class="vote-movies">
+                        <div class="movie-thumbnail">🎭</div>
+                        <div class="movie-thumbnail">🚀</div>
+                        <div class="movie-thumbnail">🦇</div>
+                        <div class="movies-count">3 films</div>
+                    </div>
+                    <div class="vote-progress">
+                        <div class="progress-text">0/4 ont voté</div>
+                        <button class="vote-action" onclick="event.stopPropagation(); vote('vote1')">
+                            Voter
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Vote existant -->
+                <div class="vote-card" onclick="openVote('vote2')">
+                    <div class="vote-header">
+                        <div class="vote-title">Film du dimanche soir</div>
+                        <div class="vote-status">
+                            <div class="status-dot"></div>
+                            <span>En cours</span>
+                        </div>
+                    </div>
+                    <div class="vote-info">
+                        <div class="vote-creator">Créé par Sarah</div>
+                        <div class="vote-time">Il y a 1 heure</div>
+                    </div>
+                    <div class="vote-movies">
+                        <div class="movie-thumbnail">🌊</div>
+                        <div class="movie-thumbnail">🎸</div>
+                        <div class="movies-count">2 films</div>
+                    </div>
+                    <div class="vote-progress">
+                        <div class="progress-text">2/4 ont voté</div>
+                        <button class="vote-action voted" onclick="event.stopPropagation()">
+                            ✓ Voté
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bouton créer un vote -->
+            <button class="create-vote-btn" onclick="createNewVote()">
+                <span>➕</span>
+                Créer un nouveau vote
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function openNewVote() {
+            // Animation pour indiquer que le vote est ouvert
+            const banner = document.querySelector('.notification-banner');
+            banner.style.animation = 'none';
+            banner.style.opacity = '0.7';
+            
+            setTimeout(() => {
+                alert('Ouverture du nouveau vote "Film du weekend"');
+                // Ici on naviguerait vers l'interface de vote
+            }, 200);
+        }
+
+        function openVote(voteId) {
+            alert(`Ouverture du vote ${voteId}`);
+            // Ici on naviguerait vers l'interface de vote
+        }
+
+        function vote(voteId) {
+            alert(`Interface de vote pour ${voteId}`);
+            // Ici on naviguerait vers l'interface de vote
+        }
+
+        function createNewVote() {
+            alert('Navigation vers la création de vote');
+            // Ici on naviguerait vers l'interface de création
+        }
+
+        function goBack() {
+            alert('Retour à l\'écran précédent');
+        }
+
+        // Simulation d'arrivée d'un nouveau vote
+        setTimeout(() => {
+            const banner = document.querySelector('.notification-banner');
+            banner.style.display = 'flex';
+        }, 1000);
+    </script>
+</body>
+</html>

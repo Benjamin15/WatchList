@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchList - Vote Anonyme</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .anonymous-notice {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 12px;
+            margin: 15px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: #856404;
+            text-align: center;
+        }
+
+        .nickname-setup {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nickname-setup.hidden {
+            display: none;
+        }
+
+        .nickname-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .nickname-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .random-nickname {
+            font-size: 12px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .join-btn {
+            width: 100%;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .vote-info {
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .vote-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .vote-description {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .vote-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #888;
+        }
+
+        .device-info {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .timer {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            color: #e74c3c;
+        }
+
+        .options {
+            padding: 20px;
+        }
+
+        .option-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .option-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .option-card.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea08, #764ba208);
+        }
+
+        .option-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .option-poster {
+            width: 60px;
+            height: 90px;
+            background: linear-gradient(135deg, #ddd, #bbb);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .option-details {
+            flex: 1;
+        }
+
+        .option-title {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+            color: #333;
+        }
+
+        .option-meta {
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .option-votes {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .vote-count {
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .vote-progress {
+            flex: 1;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .vote-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .vote-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+        }
+
+        .vote-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .vote-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .anonymous-participants {
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .participants-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .participant {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .participant-avatar {
+            width: 32px;
+            height: 32px;
+            background: #667eea;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .participant.current-user .participant-avatar {
+            background: #28a745;
+        }
+
+        .participant-info {
+            flex: 1;
+        }
+
+        .participant-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .participant-device {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .participant-status {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .voted {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .anti-fraud {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            margin: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .quick-vote {
+            background: #e8f5e8;
+            border: 1px solid #c3e6c3;
+            padding: 15px;
+            margin: 15px;
+            border-radius: 8px;
+        }
+
+        .quick-vote-title {
+            font-weight: bold;
+            color: #2d5a2d;
+            margin-bottom: 8px;
+        }
+
+        .quick-vote-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .quick-option {
+            background: white;
+            border: 2px solid #28a745;
+            color: #28a745;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .quick-option:hover {
+            background: #28a745;
+            color: white;
+        }
+
+        .device-fingerprint {
+            font-size: 10px;
+            color: #aaa;
+            text-align: center;
+            padding: 10px;
+            font-family: monospace;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(300px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h1>🗳️ Vote Anonyme</h1>
+            <p>Room: Les Cinéphiles</p>
+        </div>
+
+        <!-- Anonymous Notice -->
+        <div class="anonymous-notice">
+            🔒 Aucune inscription requise ! Votre vote est anonyme et sécurisé par votre appareil.
+        </div>
+
+        <!-- Nickname Setup (shown initially) -->
+        <div class="nickname-setup" id="nicknameSetup">
+            <input 
+                type="text" 
+                class="nickname-input" 
+                id="nicknameInput" 
+                placeholder="Votre pseudo (optionnel)"
+                maxlength="20"
+            >
+            <div class="random-nickname">
+                Suggestion: <span id="randomNickname">Cinéphile42</span>
+                <button onclick="generateRandomNickname()" style="background:none;border:none;color:#667eea;cursor:pointer;margin-left:5px;">🎲</button>
+            </div>
+            <button class="join-btn" onclick="joinVote()">🚀 Rejoindre le vote</button>
+        </div>
+
+        <!-- Vote Content (hidden initially) -->
+        <div id="voteContent" style="display: none;">
+            <!-- Vote Information -->
+            <div class="vote-info">
+                <div class="vote-title">🎬 Film du dimanche soir</div>
+                <div class="vote-description">
+                    Vote rapide pour choisir notre film de ce soir ! Chaque appareil peut voter une seule fois.
+                </div>
+                <div class="vote-stats">
+                    <div class="device-info">
+                        <span>📱</span>
+                        <span>4 appareils ont voté</span>
+                    </div>
+                    <div class="timer">
+                        <span>⏰</span>
+                        <span>15 min restantes</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Vote Options -->
+            <div class="quick-vote">
+                <div class="quick-vote-title">⚡ Vote express</div>
+                <div class="quick-vote-options">
+                    <div class="quick-option" onclick="quickVote('action')">🎬 Action</div>
+                    <div class="quick-option" onclick="quickVote('comedy')">😂 Comédie</div>
+                    <div class="quick-option" onclick="quickVote('drama')">🎭 Drame</div>
+                    <div class="quick-option" onclick="quickVote('scifi')">🚀 Sci-Fi</div>
+                </div>
+            </div>
+
+            <!-- Detailed Vote Options -->
+            <div class="options">
+                <div class="option-card" onclick="selectOption(this, 0)">
+                    <div class="option-content">
+                        <div class="option-poster">🎭</div>
+                        <div class="option-details">
+                            <div class="option-title">Inception</div>
+                            <div class="option-meta">2010 • Science-fiction • 2h 28min</div>
+                            <div class="option-votes">
+                                <span class="vote-count">2</span>
+                                <div class="vote-progress">
+                                    <div class="vote-progress-fill" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="option-card" onclick="selectOption(this, 1)">
+                    <div class="option-content">
+                        <div class="option-poster">🚀</div>
+                        <div class="option-details">
+                            <div class="option-title">Interstellar</div>
+                            <div class="option-meta">2014 • Science-fiction • 2h 49min</div>
+                            <div class="option-votes">
+                                <span class="vote-count">1</span>
+                                <div class="vote-progress">
+                                    <div class="vote-progress-fill" style="width: 25%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="option-card" onclick="selectOption(this, 2)">
+                    <div class="option-content">
+                        <div class="option-poster">🦇</div>
+                        <div class="option-details">
+                            <div class="option-title">The Dark Knight</div>
+                            <div class="option-meta">2008 • Action • 2h 32min</div>
+                            <div class="option-votes">
+                                <span class="vote-count">1</span>
+                                <div class="vote-progress">
+                                    <div class="vote-progress-fill" style="width: 25%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="vote-btn" id="voteBtn" onclick="submitVote()" disabled>
+                    Sélectionnez une option pour voter
+                </button>
+            </div>
+
+            <!-- Anti-Fraud Info -->
+            <div class="anti-fraud">
+                🛡️ Protection anti-fraude : Un vote par appareil • Détection automatique des doublons
+            </div>
+
+            <!-- Anonymous Participants -->
+            <div class="anonymous-participants">
+                <div class="participants-title">👥 Participants anonymes (6)</div>
+                
+                <div class="participant">
+                    <div class="participant-avatar">🎬</div>
+                    <div class="participant-info">
+                        <div class="participant-name">Cinéphile42</div>
+                        <div class="participant-device">iPhone • IP: 192.168.1.***</div>
+                    </div>
+                    <div class="participant-status voted">✅ A voté</div>
+                </div>
+
+                <div class="participant">
+                    <div class="participant-avatar">🍿</div>
+                    <div class="participant-info">
+                        <div class="participant-name">MovieLover</div>
+                        <div class="participant-device">Android • IP: 192.168.1.***</div>
+                    </div>
+                    <div class="participant-status voted">✅ A voté</div>
+                </div>
+
+                <div class="participant">
+                    <div class="participant-avatar">🎭</div>
+                    <div class="participant-info">
+                        <div class="participant-name">DramaFan</div>
+                        <div class="participant-device">Chrome • IP: 192.168.1.***</div>
+                    </div>
+                    <div class="participant-status voted">✅ A voté</div>
+                </div>
+
+                <div class="participant">
+                    <div class="participant-avatar">🚀</div>
+                    <div class="participant-info">
+                        <div class="participant-name">SciFiAddict</div>
+                        <div class="participant-device">Safari • IP: 192.168.1.***</div>
+                    </div>
+                    <div class="participant-status voted">✅ A voté</div>
+                </div>
+
+                <div class="participant current-user">
+                    <div class="participant-avatar">V</div>
+                    <div class="participant-info">
+                        <div class="participant-name">Vous</div>
+                        <div class="participant-device">Votre appareil</div>
+                    </div>
+                    <div class="participant-status pending">⏳ En attente</div>
+                </div>
+
+                <div class="participant">
+                    <div class="participant-avatar">?</div>
+                    <div class="participant-info">
+                        <div class="participant-name">Utilisateur anonyme</div>
+                        <div class="participant-device">Mobile • IP: 192.168.1.***</div>
+                    </div>
+                    <div class="participant-status pending">⏳ En attente</div>
+                </div>
+            </div>
+
+            <!-- Device Fingerprint (for debugging) -->
+            <div class="device-fingerprint">
+                Device ID: dev_a8f2c9d1e4b7 • Session: ses_9x1m4k7p • Screen: 390x844
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        🎉 Vote enregistré avec succès !
+    </div>
+
+    <script>
+        let selectedOption = null;
+        let hasVoted = false;
+        let currentUser = null;
+        let deviceId = null;
+        let sessionId = null;
+
+        // Generate unique device ID
+        function generateDeviceId() {
+            if (!deviceId) {
+                deviceId = localStorage.getItem('watchlist_device_id');
+                if (!deviceId) {
+                    deviceId = 'dev_' + Math.random().toString(36).substr(2, 12);
+                    localStorage.setItem('watchlist_device_id', deviceId);
+                }
+            }
+            return deviceId;
+        }
+
+        // Generate session ID
+        function generateSessionId() {
+            if (!sessionId) {
+                sessionId = 'ses_' + Math.random().toString(36).substr(2, 8);
+            }
+            return sessionId;
+        }
+
+        // Generate random nickname
+        function generateRandomNickname() {
+            const prefixes = ['Cinéphile', 'MovieLover', 'FilmFan', 'CinéAddict', 'DramaLover', 'ActionFan', 'SciFiGeek'];
+            const suffixes = Math.floor(Math.random() * 999) + 1;
+            const nickname = prefixes[Math.floor(Math.random() * prefixes.length)] + suffixes;
+            document.getElementById('randomNickname').textContent = nickname;
+        }
+
+        // Join vote with nickname
+        function joinVote() {
+            const nicknameInput = document.getElementById('nicknameInput');
+            const nickname = nicknameInput.value.trim() || document.getElementById('randomNickname').textContent;
+            
+            currentUser = {
+                deviceId: generateDeviceId(),
+                sessionId: generateSessionId(),
+                nickname: nickname,
+                joinedAt: new Date().toISOString()
+            };
+
+            // Update UI
+            document.getElementById('nicknameSetup').style.display = 'none';
+            document.getElementById('voteContent').style.display = 'block';
+            
+            // Update current user display
+            const currentUserElement = document.querySelector('.participant.current-user .participant-name');
+            const currentUserAvatar = document.querySelector('.participant.current-user .participant-avatar');
+            currentUserElement.textContent = nickname;
+            currentUserAvatar.textContent = nickname.charAt(0).toUpperCase();
+
+            showNotification('✅ Connexion réussie ! Vous pouvez maintenant voter.', 'success');
+        }
+
+        // Select option
+        function selectOption(element, index) {
+            if (hasVoted) return;
+
+            // Remove previous selection
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Select new option
+            element.classList.add('selected');
+            selectedOption = index;
+
+            // Update vote button
+            const voteBtn = document.getElementById('voteBtn');
+            voteBtn.disabled = false;
+            voteBtn.textContent = '🗳️ Confirmer mon vote';
+        }
+
+        // Quick vote
+        function quickVote(category) {
+            if (hasVoted) return;
+
+            const categoryMap = {
+                'action': 2,   // The Dark Knight
+                'comedy': -1,  // Not available
+                'drama': -1,   // Not available
+                'scifi': 0     // Inception
+            };
+
+            const optionIndex = categoryMap[category];
+            if (optionIndex >= 0) {
+                const optionCard = document.querySelectorAll('.option-card')[optionIndex];
+                selectOption(optionCard, optionIndex);
+                
+                // Auto-submit after 2 seconds
+                setTimeout(() => {
+                    if (selectedOption !== null) {
+                        submitVote();
+                    }
+                }, 2000);
+                
+                showNotification(`⚡ Vote express pour ${category}. Confirmation dans 2 secondes...`, 'warning');
+            } else {
+                showNotification('❌ Aucun film de ce genre disponible', 'error');
+            }
+        }
+
+        // Submit vote
+        function submitVote() {
+            if (selectedOption === null || hasVoted) return;
+
+            // Simulate device/IP validation
+            const deviceVoted = Math.random() > 0.9; // 10% chance of fraud detection
+            if (deviceVoted) {
+                showNotification('❌ Cet appareil a déjà voté !', 'error');
+                return;
+            }
+
+            hasVoted = true;
+            
+            // Update UI
+            const voteBtn = document.getElementById('voteBtn');
+            voteBtn.textContent = '✅ Vote enregistré !';
+            voteBtn.disabled = true;
+
+            // Update current user status
+            const currentUserStatus = document.querySelector('.participant.current-user .participant-status');
+            currentUserStatus.textContent = '✅ A voté';
+            currentUserStatus.classList.remove('pending');
+            currentUserStatus.classList.add('voted');
+
+            // Show notification
+            showNotification('🎉 Vote enregistré avec succès !', 'success');
+
+            // Update vote results
+            setTimeout(() => {
+                updateVoteResults();
+            }, 1000);
+        }
+
+        // Update vote results
+        function updateVoteResults() {
+            const options = document.querySelectorAll('.option-card');
+            const voteCounts = [3, 1, 2]; // Updated counts
+            const total = 6;
+
+            options.forEach((option, index) => {
+                const voteCount = option.querySelector('.vote-count');
+                const progressFill = option.querySelector('.vote-progress-fill');
+                
+                voteCount.textContent = voteCounts[index];
+                progressFill.style.width = (voteCounts[index] / total * 100) + '%';
+            });
+
+            // Update stats
+            const deviceStats = document.querySelector('.device-info span:last-child');
+            deviceStats.textContent = '5 appareils ont voté';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Go back
+        function goBack() {
+            showNotification('🔙 Retour à la room...', 'success');
+            setTimeout(() => {
+                alert('Retour à la room !');
+            }, 1000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            generateRandomNickname();
+            generateDeviceId();
+            
+            // Auto-focus on nickname input
+            document.getElementById('nicknameInput').focus();
+        });
+
+        // Simulate real-time updates
+        setInterval(() => {
+            const timerElement = document.querySelector('.timer span:last-child');
+            const currentTime = timerElement.textContent;
+            const minutes = parseInt(currentTime);
+            
+            if (minutes > 0 && minutes <= 60) {
+                timerElement.textContent = (minutes - 1) + ' min restantes';
+            }
+        }, 60000); // Update every minute
+    </script>
+</body>
+</html>

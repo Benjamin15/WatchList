@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WatchList - Créer un Vote</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .back-btn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 10px;
+            position: relative;
+        }
+
+        .step.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .step.completed {
+            background: #28a745;
+            color: white;
+        }
+
+        .step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 2px;
+            background: #e9ecef;
+        }
+
+        .step.completed:not(:last-child)::after {
+            background: #28a745;
+        }
+
+        .form-section {
+            padding: 20px;
+        }
+
+        .form-section.hidden {
+            display: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        .vote-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .vote-type {
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .vote-type:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .vote-type.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea08, #764ba208);
+        }
+
+        .vote-type-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .vote-type-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .movie-selection {
+            margin-bottom: 20px;
+        }
+
+        .selection-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+
+        .selection-tab {
+            flex: 1;
+            padding: 8px 12px;
+            text-align: center;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .selection-tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .room-movies {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .movie-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .movie-item:hover {
+            border-color: #667eea;
+        }
+
+        .movie-item.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #667eea08, #764ba208);
+        }
+
+        .movie-poster {
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(135deg, #ddd, #bbb);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .movie-info {
+            flex: 1;
+        }
+
+        .movie-title {
+            font-weight: bold;
+            font-size: 14px;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .movie-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .movie-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 4px;
+            position: relative;
+            margin-left: 8px;
+        }
+
+        .movie-item.selected .movie-checkbox {
+            background: #667eea;
+            border-color: #667eea;
+        }
+
+        .movie-item.selected .movie-checkbox::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .search-box {
+            position: relative;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 40px 10px 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .search-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .search-results {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .add-movie-btn {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .selected-movies {
+            margin-top: 20px;
+        }
+
+        .selected-count {
+            font-size: 14px;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .selected-movie-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .selected-movie-tag {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .remove-movie {
+            background: rgba(255,255,255,0.3);
+            border: none;
+            color: white;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .settings-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .setting-description {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .toggle-switch {
+            width: 40px;
+            height: 20px;
+            background: #ccc;
+            border-radius: 10px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.active {
+            background: #667eea;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .duration-input {
+            width: 80px;
+            padding: 6px;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .preview {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .preview-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .preview-content {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            transform: translateX(300px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                margin: 0;
+                border-radius: 0;
+                min-height: 100vh;
+            }
+            
+            body {
+                padding: 0;
+            }
+
+            .vote-types {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <h1>🗳️ Créer un Vote</h1>
+            <p>Room: Les Cinéphiles</p>
+        </div>
+
+        <!-- Step Indicator -->
+        <div class="step-indicator">
+            <div class="step active" id="step1">1</div>
+            <div class="step" id="step2">2</div>
+            <div class="step" id="step3">3</div>
+        </div>
+
+        <!-- Step 1: Vote Information -->
+        <div class="form-section" id="section1">
+            <div class="form-group">
+                <label class="form-label">Titre du vote</label>
+                <input type="text" class="form-input" id="voteTitle" placeholder="Ex: Film du dimanche soir" maxlength="50">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Description (optionnel)</label>
+                <textarea class="form-input form-textarea" id="voteDescription" placeholder="Décrivez l'objectif de ce vote..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Type de vote</label>
+                <div class="vote-types">
+                    <div class="vote-type selected" onclick="selectVoteType(this, 'movie')" data-type="movie">
+                        <div class="vote-type-icon">🎬</div>
+                        <div class="vote-type-title">Choisir un film</div>
+                    </div>
+                    <div class="vote-type" onclick="selectVoteType(this, 'order')" data-type="order">
+                        <div class="vote-type-icon">📋</div>
+                        <div class="vote-type-title">Ordre de visionnage</div>
+                    </div>
+                    <div class="vote-type" onclick="selectVoteType(this, 'genre')" data-type="genre">
+                        <div class="vote-type-icon">🎭</div>
+                        <div class="vote-type-title">Genre préféré</div>
+                    </div>
+                    <div class="vote-type" onclick="selectVoteType(this, 'custom')" data-type="custom">
+                        <div class="vote-type-icon">⚙️</div>
+                        <div class="vote-type-title">Vote personnalisé</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Movie Selection -->
+        <div class="form-section hidden" id="section2">
+            <div class="movie-selection">
+                <label class="form-label">Sélectionner les films pour le vote</label>
+                
+                <div class="selection-tabs">
+                    <div class="selection-tab active" onclick="switchTab(this, 'room')" data-tab="room">
+                        📚 Films de la room (8)
+                    </div>
+                    <div class="selection-tab" onclick="switchTab(this, 'search')" data-tab="search">
+                        🔍 Rechercher
+                    </div>
+                </div>
+
+                <!-- Room Movies Tab -->
+                <div class="tab-content" id="roomTab">
+                    <div class="room-movies">
+                        <div class="movie-item" onclick="toggleMovie(this)" data-movie-id="1">
+                            <div class="movie-poster">🎭</div>
+                            <div class="movie-info">
+                                <div class="movie-title">Inception</div>
+                                <div class="movie-meta">2010 • Science-fiction • Prévu</div>
+                            </div>
+                            <div class="movie-checkbox"></div>
+                        </div>
+
+                        <div class="movie-item" onclick="toggleMovie(this)" data-movie-id="2">
+                            <div class="movie-poster">🚀</div>
+                            <div class="movie-info">
+                                <div class="movie-title">Interstellar</div>
+                                <div class="movie-meta">2014 • Science-fiction • Prévu</div>
+                            </div>
+                            <div class="movie-checkbox"></div>
+                        </div>
+
+                        <div class="movie-item" onclick="toggleMovie(this)" data-movie-id="3">
+                            <div class="movie-poster">🦇</div>
+                            <div class="movie-info">
+                                <div class="movie-title">The Dark Knight</div>
+                                <div class="movie-meta">2008 • Action • En cours</div>
+                            </div>
+                            <div class="movie-checkbox"></div>
+                        </div>
+
+                        <div class="movie-item" onclick="toggleMovie(this)" data-movie-id="4">
+                            <div class="movie-poster">🌊</div>
+                            <div class="movie-info">
+                                <div class="movie-title">La La Land</div>
+                                <div class="movie-meta">2016 • Musical • Prévu</div>
+                            </div>
+                            <div class="movie-checkbox"></div>
+                        </div>
+
+                        <div class="movie-item" onclick="toggleMovie(this)" data-movie-id="5">
+                            <div class="movie-poster">🎯</div>
+                            <div class="movie-info">
+                                <div class="movie-title">Pulp Fiction</div>
+                                <div class="movie-meta">1994 • Crime • Terminé</div>
+                            </div>
+                            <div class="movie-checkbox"></div>
+                        </div>
+
+                        <div class="movie-item" onclick="toggleMovie(this)" data-movie-id="6">
+                            <div class="movie-poster">🏔️</div>
+                            <div class="movie-info">
+                                <div class="movie-title">The Shawshank Redemption</div>
+                                <div class="movie-meta">1994 • Drame • Prévu</div>
+                            </div>
+                            <div class="movie-checkbox"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Tab -->
+                <div class="tab-content hidden" id="searchTab">
+                    <div class="search-box">
+                        <input type="text" class="search-input" id="searchInput" placeholder="Rechercher un film...">
+                        <button class="search-btn" onclick="searchMovies()">🔍</button>
+                    </div>
+                    
+                    <div class="search-results" id="searchResults">
+                        <div class="movie-item" onclick="addMovieFromSearch(this)" data-movie-id="101">
+                            <div class="movie-poster">🌌</div>
+                            <div class="movie-info">
+                                <div class="movie-title">Blade Runner 2049</div>
+                                <div class="movie-meta">2017 • Science-fiction • Non ajouté</div>
+                            </div>
+                            <button class="add-movie-btn" onclick="addMovieFromSearch(this)">+ Ajouter</button>
+                        </div>
+
+                        <div class="movie-item" onclick="addMovieFromSearch(this)" data-movie-id="102">
+                            <div class="movie-poster">🎪</div>
+                            <div class="movie-info">
+                                <div class="movie-title">The Greatest Showman</div>
+                                <div class="movie-meta">2017 • Musical • Non ajouté</div>
+                            </div>
+                            <button class="add-movie-btn" onclick="addMovieFromSearch(this)">+ Ajouter</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Movies -->
+                <div class="selected-movies">
+                    <div class="selected-count" id="selectedCount">0 film sélectionné</div>
+                    <div class="selected-movie-list" id="selectedMovies"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Settings -->
+        <div class="form-section hidden" id="section3">
+            <div class="preview">
+                <div class="preview-title">🔍 Aperçu du vote</div>
+                <div class="preview-content" id="votePreview">
+                    Titre: <strong>Film du dimanche soir</strong><br>
+                    Type: Choisir un film<br>
+                    Films: 2 sélectionnés
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Paramètres du vote</label>
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Votes multiples</div>
+                            <div class="setting-description">Autoriser plusieurs choix par personne</div>
+                        </div>
+                        <div class="toggle-switch" onclick="toggleSetting(this)" data-setting="multiple"></div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Résultats en temps réel</div>
+                            <div class="setting-description">Afficher les résultats pendant le vote</div>
+                        </div>
+                        <div class="toggle-switch active" onclick="toggleSetting(this)" data-setting="realtime"></div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Vote anonyme</div>
+                            <div class="setting-description">Cacher qui a voté pour quoi</div>
+                        </div>
+                        <div class="toggle-switch" onclick="toggleSetting(this)" data-setting="anonymous"></div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div>
+                            <div class="setting-label">Durée limitée</div>
+                            <div class="setting-description">Le vote se ferme automatiquement</div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="number" class="duration-input" value="30" min="5" max="1440" id="voteDuration">
+                            <span style="font-size: 12px; color: #666;">min</span>
+                            <div class="toggle-switch" onclick="toggleDuration(this)" data-setting="duration"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="btn btn-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">
+                ← Précédent
+            </button>
+            <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">
+                Suivant →
+            </button>
+            <button class="btn btn-primary hidden" id="createBtn" onclick="createVote()">
+                🗳️ Créer le vote
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        🎉 Vote créé avec succès !
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedMovies = [];
+        let voteSettings = {
+            multiple: false,
+            realtime: true,
+            anonymous: false,
+            duration: false,
+            durationMinutes: 30
+        };
+
+        // Step navigation
+        function nextStep() {
+            if (currentStep < 3) {
+                if (validateStep(currentStep)) {
+                    currentStep++;
+                    updateUI();
+                }
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            // Update step indicators
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                const section = document.getElementById(`section${i}`);
+                
+                if (i < currentStep) {
+                    step.className = 'step completed';
+                    section.classList.add('hidden');
+                } else if (i === currentStep) {
+                    step.className = 'step active';
+                    section.classList.remove('hidden');
+                } else {
+                    step.className = 'step';
+                    section.classList.add('hidden');
+                }
+            }
+
+            // Update buttons
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const createBtn = document.getElementById('createBtn');
+
+            prevBtn.style.display = currentStep > 1 ? 'block' : 'none';
+            
+            if (currentStep === 3) {
+                nextBtn.classList.add('hidden');
+                createBtn.classList.remove('hidden');
+                updatePreview();
+            } else {
+                nextBtn.classList.remove('hidden');
+                createBtn.classList.add('hidden');
+            }
+        }
+
+        function validateStep(step) {
+            if (step === 1) {
+                const title = document.getElementById('voteTitle').value.trim();
+                if (!title) {
+                    showNotification('❌ Veuillez entrer un titre pour le vote', 'error');
+                    return false;
+                }
+            } else if (step === 2) {
+                if (selectedMovies.length < 2) {
+                    showNotification('❌ Sélectionnez au moins 2 films pour le vote', 'error');
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        // Vote type selection
+        function selectVoteType(element, type) {
+            document.querySelectorAll('.vote-type').forEach(vt => vt.classList.remove('selected'));
+            element.classList.add('selected');
+        }
+
+        // Tab switching
+        function switchTab(element, tab) {
+            document.querySelectorAll('.selection-tab').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+
+            document.getElementById('roomTab').classList.toggle('hidden', tab !== 'room');
+            document.getElementById('searchTab').classList.toggle('hidden', tab !== 'search');
+        }
+
+        // Movie selection
+        function toggleMovie(element) {
+            const movieId = element.dataset.movieId;
+            const movieTitle = element.querySelector('.movie-title').textContent;
+            
+            if (element.classList.contains('selected')) {
+                element.classList.remove('selected');
+                selectedMovies = selectedMovies.filter(m => m.id !== movieId);
+            } else {
+                element.classList.add('selected');
+                selectedMovies.push({
+                    id: movieId,
+                    title: movieTitle
+                });
+            }
+            
+            updateSelectedMovies();
+        }
+
+        function updateSelectedMovies() {
+            const count = document.getElementById('selectedCount');
+            const list = document.getElementById('selectedMovies');
+            
+            count.textContent = `${selectedMovies.length} film${selectedMovies.length > 1 ? 's' : ''} sélectionné${selectedMovies.length > 1 ? 's' : ''}`;
+            
+            list.innerHTML = selectedMovies.map(movie => `
+                <div class="selected-movie-tag">
+                    ${movie.title}
+                    <button class="remove-movie" onclick="removeMovie('${movie.id}')">×</button>
+                </div>
+            `).join('');
+        }
+
+        function removeMovie(movieId) {
+            selectedMovies = selectedMovies.filter(m => m.id !== movieId);
+            
+            // Unselect in UI
+            const movieElement = document.querySelector(`[data-movie-id="${movieId}"]`);
+            if (movieElement) {
+                movieElement.classList.remove('selected');
+            }
+            
+            updateSelectedMovies();
+        }
+
+        // Search functionality
+        function searchMovies() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (query) {
+                showNotification(`🔍 Recherche de "${query}"...`, 'info');
+                // Simulate search results
+            }
+        }
+
+        function addMovieFromSearch(element) {
+            const movieId = element.dataset.movieId;
+            const movieTitle = element.querySelector('.movie-title').textContent;
+            
+            if (!selectedMovies.find(m => m.id === movieId)) {
+                selectedMovies.push({
+                    id: movieId,
+                    title: movieTitle
+                });
+                updateSelectedMovies();
+                showNotification(`✅ "${movieTitle}" ajouté au vote`, 'success');
+            }
+        }
+
+        // Settings
+        function toggleSetting(element) {
+            element.classList.toggle('active');
+            const setting = element.dataset.setting;
+            voteSettings[setting] = element.classList.contains('active');
+        }
+
+        function toggleDuration(element) {
+            element.classList.toggle('active');
+            voteSettings.duration = element.classList.contains('active');
+            
+            const durationInput = document.getElementById('voteDuration');
+            durationInput.disabled = !voteSettings.duration;
+            
+            if (voteSettings.duration) {
+                voteSettings.durationMinutes = parseInt(durationInput.value);
+            }
+        }
+
+        // Preview
+        function updatePreview() {
+            const title = document.getElementById('voteTitle').value || 'Sans titre';
+            const description = document.getElementById('voteDescription').value;
+            const type = document.querySelector('.vote-type.selected .vote-type-title').textContent;
+            
+            let preview = `Titre: <strong>${title}</strong><br>`;
+            if (description) preview += `Description: ${description}<br>`;
+            preview += `Type: ${type}<br>`;
+            preview += `Films: ${selectedMovies.length} sélectionnés<br>`;
+            
+            const activeSettings = Object.entries(voteSettings)
+                .filter(([key, value]) => value && key !== 'durationMinutes')
+                .map(([key]) => {
+                    switch(key) {
+                        case 'multiple': return 'Votes multiples';
+                        case 'realtime': return 'Temps réel';
+                        case 'anonymous': return 'Anonyme';
+                        case 'duration': return `Durée: ${voteSettings.durationMinutes}min`;
+                        default: return '';
+                    }
+                })
+                .filter(s => s);
+            
+            if (activeSettings.length > 0) {
+                preview += `Options: ${activeSettings.join(', ')}`;
+            }
+            
+            document.getElementById('votePreview').innerHTML = preview;
+        }
+
+        // Create vote
+        function createVote() {
+            const voteData = {
+                title: document.getElementById('voteTitle').value,
+                description: document.getElementById('voteDescription').value,
+                type: document.querySelector('.vote-type.selected').dataset.type,
+                movies: selectedMovies,
+                settings: voteSettings
+            };
+            
+            console.log('Creating vote:', voteData);
+            showNotification('🎉 Vote créé avec succès !', 'success');
+            
+            setTimeout(() => {
+                goBack();
+            }, 2000);
+        }
+
+        // Utility functions
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        function goBack() {
+            showNotification('🔙 Retour à la room...', 'info');
+            setTimeout(() => {
+                alert('Retour à la room !');
+            }, 1000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateUI();
+            
+            // Auto-focus on title input
+            document.getElementById('voteTitle').focus();
+        });
+    </script>
+</body>
+</html>
