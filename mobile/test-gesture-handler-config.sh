@@ -7,7 +7,7 @@ echo "Date: $(date)"
 
 # Vérifier l'import dans index.ts
 echo "1. Vérification de l'import dans index.ts..."
-if grep -q "react-native-gesture-handler" /Users/ben/workspace/WatchList/mobile/index.ts; then
+if grep -q "react-native-gesture-handler" /Users/ben/workspace/WatchParty/mobile/index.ts; then
     echo "✅ Import react-native-gesture-handler trouvé dans index.ts"
 else
     echo "❌ Import react-native-gesture-handler manquant dans index.ts"
@@ -16,9 +16,9 @@ fi
 
 # Vérifier la configuration Babel
 echo "2. Vérification de la configuration Babel..."
-if [ -f "/Users/ben/workspace/WatchList/mobile/babel.config.js" ]; then
+if [ -f "/Users/ben/workspace/WatchParty/mobile/babel.config.js" ]; then
     echo "✅ babel.config.js existe"
-    if grep -q "react-native-reanimated/plugin" /Users/ben/workspace/WatchList/mobile/babel.config.js; then
+    if grep -q "react-native-reanimated/plugin" /Users/ben/workspace/WatchParty/mobile/babel.config.js; then
         echo "✅ Plugin react-native-reanimated configuré"
     else
         echo "❌ Plugin react-native-reanimated manquant"
@@ -30,7 +30,7 @@ fi
 
 # Vérifier la présence de GestureHandlerRootView
 echo "3. Vérification de GestureHandlerRootView dans AppNavigator..."
-if grep -q "GestureHandlerRootView" /Users/ben/workspace/WatchList/mobile/src/navigation/AppNavigator.tsx; then
+if grep -q "GestureHandlerRootView" /Users/ben/workspace/WatchParty/mobile/src/navigation/AppNavigator.tsx; then
     echo "✅ GestureHandlerRootView trouvé dans AppNavigator"
 else
     echo "❌ GestureHandlerRootView manquant dans AppNavigator"
@@ -39,7 +39,7 @@ fi
 
 # Vérifier la présence de Swipeable dans HomeScreen
 echo "4. Vérification de Swipeable dans HomeScreen..."
-if grep -q "Swipeable" /Users/ben/workspace/WatchList/mobile/src/screens/HomeScreen.tsx; then
+if grep -q "Swipeable" /Users/ben/workspace/WatchParty/mobile/src/screens/HomeScreen.tsx; then
     echo "✅ Swipeable trouvé dans HomeScreen"
 else
     echo "❌ Swipeable manquant dans HomeScreen"
@@ -48,8 +48,8 @@ fi
 
 # Vérifier la version du package
 echo "5. Vérification de la version du package..."
-if grep -q "react-native-gesture-handler" /Users/ben/workspace/WatchList/mobile/package.json; then
-    VERSION=$(grep "react-native-gesture-handler" /Users/ben/workspace/WatchList/mobile/package.json | cut -d'"' -f4)
+if grep -q "react-native-gesture-handler" /Users/ben/workspace/WatchParty/mobile/package.json; then
+    VERSION=$(grep "react-native-gesture-handler" /Users/ben/workspace/WatchParty/mobile/package.json | cut -d'"' -f4)
     echo "✅ Package react-native-gesture-handler version: $VERSION"
 else
     echo "❌ Package react-native-gesture-handler manquant"

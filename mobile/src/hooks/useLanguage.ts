@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const LANGUAGE_STORAGE_KEY = '@WatchList:language';
+const LANGUAGE_STORAGE_KEY = '@WatchParty:language';
 
 export const useLanguage = () => {
   const { i18n } = useTranslation();

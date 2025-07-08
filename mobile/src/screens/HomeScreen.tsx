@@ -192,7 +192,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>WatchList</Text>
+        <Text style={styles.title}>WatchParty</Text>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('home.createRoom')}</Text>

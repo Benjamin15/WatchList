@@ -1,23 +1,23 @@
 // Données de test pour le développement
 
-import { Room, WatchlistItem, SearchResult } from '../types';
+import { Room, WatchPartyItem, SearchResult } from '../types';
 
 export const mockRooms: Room[] = [
   {
     id: 1,
-    name: 'Ma Watchlist',
+    name: 'Ma WatchParty',
     room_id: 'ABC123',
     created_at: '2025-01-01T00:00:00Z',
   },
   {
     id: 2,
-    name: 'Watchlist Famille',
+    name: 'WatchParty Famille',
     room_id: 'FAM456',
     created_at: '2025-01-02T00:00:00Z',
   },
 ];
 
-export const mockWatchlistItems: WatchlistItem[] = [
+export const mockWatchPartyItems: WatchPartyItem[] = [
   {
     id: 1,
     roomId: 1,
@@ -197,9 +197,9 @@ export const mockApiService = {
     return room;
   },
 
-  getWatchlist: async (roomId: number | string, filters?: any) => {
+  getWatchParty: async (roomId: number | string, filters?: any) => {
     await delay(1000);
-    let items = mockWatchlistItems.filter(item => item.roomId === roomId);
+    let items = mockWatchPartyItems.filter(item => item.roomId === roomId);
     
     if (filters?.type && filters.type !== 'all') {
       items = items.filter(item => item.media.type === filters.type);
@@ -233,7 +233,7 @@ export const mockApiService = {
     return results;
   },
 
-  addToWatchlist: async (roomId: number, mediaData: any): Promise<WatchlistItem> => {
+  addToWatchParty: async (roomId: number, mediaData: any): Promise<WatchPartyItem> => {
     await delay(1000);
     // Simulation d'ajout
     return {
@@ -248,19 +248,19 @@ export const mockApiService = {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
-    } as WatchlistItem;
+    } as WatchPartyItem;
   },
 
-  updateWatchlistItem: async (roomId: number, itemId: number, updates: any): Promise<WatchlistItem> => {
+  updateWatchPartyItem: async (roomId: number, itemId: number, updates: any): Promise<WatchPartyItem> => {
     await delay(500);
-    const item = mockWatchlistItems.find(i => i.id === itemId);
+    const item = mockWatchPartyItems.find(i => i.id === itemId);
     if (!item) {
       throw new Error('Item non trouvé');
     }
-    return { ...item, ...updates } as WatchlistItem;
+    return { ...item, ...updates } as WatchPartyItem;
   },
 
-  removeFromWatchlist: async (roomId: number, itemId: number) => {
+  removeFromWatchParty: async (roomId: number, itemId: number) => {
     await delay(500);
     // Simulation de suppression
     return;

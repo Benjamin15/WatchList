@@ -5,7 +5,7 @@
 echo "=== Commit des corrections react-native-gesture-handler ==="
 echo "Date: $(date)"
 
-cd /Users/ben/workspace/WatchList
+cd /Users/ben/workspace/WatchParty
 
 # Ajouter tous les fichiers modifiés
 git add mobile/index.ts mobile/babel.config.js mobile/app.json mobile/test-gesture-handler-config.sh

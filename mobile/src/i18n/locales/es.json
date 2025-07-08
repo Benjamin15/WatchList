@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "WatchList",
+    "name": "WatchParty",
     "loading": "Cargando...",
     "error": "Se produjo un error",
     "retry": "Reintentar",
@@ -38,7 +38,7 @@
     "results": "resultados"
   },
   "home": {
-    "title": "WatchList",
+    "title": "WatchParty",
     "createRoom": "Crear una nueva sala",
     "joinRoom": "Unirse a una sala",
     "roomName": "Nombre de la sala",
@@ -59,10 +59,10 @@
     "emptyPlanned": "¡Añade medios a tu lista!",
     "emptyWatching": "¡Empieza a ver algunos medios!",
     "emptyCompleted": "¡Completa medios para verlos aquí!",
-    "shareMessage": "Únete a mi WatchList \"{{roomName}}\" con el código: {{roomCode}}",
-    "shareTitle": "Compartir mi WatchList",
+    "shareMessage": "Únete a mi WatchParty \"{{roomName}}\" con el código: {{roomCode}}",
+    "shareTitle": "Compartir mi WatchParty",
     "errorLoadingRoom": "No se puede cargar los datos de la sala",
-    "errorLoadingWatchlist": "No se puede cargar la lista de seguimiento"
+    "errorLoadingWatchParty": "No se puede cargar la lista de seguimiento"
   },
   "media": {
     "movie": "Película",

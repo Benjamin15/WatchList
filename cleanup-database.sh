@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Script de nettoyage de la base de données WatchList
-echo "🗑️  Nettoyage de la base de données WatchList"
+# Script de nettoyage de la base de données WatchParty
+echo "🗑️  Nettoyage de la base de données WatchParty"
 echo "============================================="
 
 # Couleurs
@@ -187,4 +187,4 @@ echo -e "${BLUE}ℹ️  Vous pouvez commencer à utiliser l'application normalem
 # Retourner au répertoire racine
 cd ..
 
-echo -e "\n${GREEN}🚀 Base de données WatchList nettoyée et prête !${NC}"
+echo -e "\n${GREEN}🚀 Base de données WatchParty nettoyée et prête !${NC}"

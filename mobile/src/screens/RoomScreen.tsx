@@ -6,7 +6,7 @@ import { RouteProp, useNavigation, useFocusEffect } from '@react-navigation/nati
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
-import { RootStackParamList, WatchlistItem, Vote, FilterOptions } from '../types';
+import { RootStackParamList, WatchPartyItem, Vote, FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { useTheme } from '../contexts/ThemeContext';
 import { apiService } from '../services/api';
@@ -189,12 +189,12 @@ const MediaItemCard = ({
   onViewDetails,
   currentLanguage
 }: { 
-  item: WatchlistItem; 
+  item: WatchPartyItem; 
   onSwipe: (id: number, direction: 'left' | 'right') => void;
   statusOrder: readonly string[];
-  renderMediaPoster: (item: WatchlistItem) => React.ReactNode;
+  renderMediaPoster: (item: WatchPartyItem) => React.ReactNode;
   currentTab: string;
-  onViewDetails: (item: WatchlistItem) => void;
+  onViewDetails: (item: WatchPartyItem) => void;
   currentLanguage: string;
 }) => {
   const { theme } = useTheme();
@@ -548,7 +548,7 @@ const MediaItemCard = ({
 };
 
 // Données mock pour les tests
-const mockWatchlistItems: WatchlistItem[] = [
+const mockWatchPartyItems: WatchPartyItem[] = [
   {
     id: 1,
     roomId: 1,
@@ -642,7 +642,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState<'planned' | 'watching' | 'completed'>('planned');
-  const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>([]);
+  const [WatchPartyItems, setWatchPartyItems] = useState<WatchPartyItem[]>([]);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [votes, setVotes] = useState<Vote[]>([]);
   const [loadingVotes, setLoadingVotes] = useState(false);
@@ -688,12 +688,12 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   // Fonction pour naviguer vers les détails du média
-  const handleViewMediaDetails = (item: WatchlistItem) => {
+  const handleViewMediaDetails = (item: WatchPartyItem) => {
     navigation.navigate('Detail', { media: item.media, roomId });
   };
 
   // Fonction pour rendre l'affiche du média
-  const renderMediaPoster = (item: WatchlistItem) => (
+  const renderMediaPoster = (item: WatchPartyItem) => (
     <MediaPoster
       mediaType={item.media.type === 'tv' ? 'series' : item.media.type}
       posterUrl={item.media.posterUrl}
@@ -797,23 +797,23 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     }
   };
 
-  const loadWatchlistItems = async () => {
+  const loadWatchPartyItems = async () => {
     try {
-      console.log('Loading watchlist items for roomId:', roomId);
+      console.log('Loading WatchParty items for roomId:', roomId);
       console.log('RoomId type:', typeof roomId);
       
-      const response = await apiService.getWatchlist(roomId);
-      console.log('Watchlist loaded successfully:', response.data.length, 'items');
-      setWatchlistItems(response.data);
+      const response = await apiService.getWatchParty(roomId);
+      console.log('WatchParty loaded successfully:', response.data.length, 'items');
+      setWatchPartyItems(response.data);
     } catch (error) {
-      console.error('Error loading watchlist:', error);
+      console.error('Error loading WatchParty:', error);
       console.error('Error details:', {
         message: (error as any)?.message,
         status: (error as any)?.response?.status,
         data: (error as any)?.response?.data,
         roomId: roomId
       });
-      Alert.alert(t('common.error'), t('room.errorLoadingWatchlist'));
+      Alert.alert(t('common.error'), t('room.errorLoadingWatchParty'));
     }
   };
 
@@ -841,7 +841,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     try {
       await Promise.all([
         loadRoomData(),
-        loadWatchlistItems(),
+        loadWatchPartyItems(),
         loadVotes()
       ]);
     } catch (error) {
@@ -858,8 +858,8 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   // Recharger les données quand l'écran retrouve le focus
   useFocusEffect(
     useCallback(() => {
-      // Recharger seulement les votes et la watchlist, pas les données de base de la room
-      loadWatchlistItems();
+      // Recharger seulement les votes et la WatchParty, pas les données de base de la room
+      loadWatchPartyItems();
       loadVotes();
     }, [roomId])
   );
@@ -1011,9 +1011,9 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     return { text: t('vote.activeLabel'), color: '#4CAF50' };
   };
 
-  // Fonction pour filtrer les éléments de la watchlist
+  // Fonction pour filtrer les éléments de la WatchParty
   const getFilteredItems = () => {
-    let filtered = watchlistItems.filter(item => item.status === currentTab);
+    let filtered = WatchPartyItems.filter(item => item.status === currentTab);
 
     // Appliquer les filtres
     if (appliedFilters.type !== 'all') {
@@ -1061,7 +1061,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   // Fonction pour rendre un élément de média avec gestures
-  const renderMediaItem = (item: WatchlistItem) => (
+  const renderMediaItem = (item: WatchPartyItem) => (
     <MediaItemCard
       key={item.id}
       item={item}
@@ -1112,7 +1112,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   // Fonction pour gérer les changements de statut via glissement
   const handleSwipe = async (itemId: number, direction: 'left' | 'right') => {
     try {
-      const item = watchlistItems.find(i => i.id === itemId);
+      const item = WatchPartyItems.find(i => i.id === itemId);
       if (!item) return;
 
       const statusOrder = ['planned', 'watching', 'completed'] as const;
@@ -1131,21 +1131,21 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       console.log('Swipe detected:', { itemId, direction, currentStatus: item.status, newStatus });
 
       // Mettre à jour optimistiquement l'interface
-      setWatchlistItems(prev => 
+      setWatchPartyItems(prev => 
         prev.map(i => 
           i.id === itemId ? { ...i, status: newStatus } : i
         )
       );
 
       // Appeler l'API pour persister le changement (utiliser le roomId du screen, pas de l'item)
-      await apiService.updateWatchlistItem(roomId, itemId, { status: newStatus });
+      await apiService.updateWatchPartyItem(roomId, itemId, { status: newStatus });
       
       console.log('Status updated successfully via swipe');
     } catch (error) {
       console.error('Error updating status via swipe:', error);
       
       // En cas d'erreur, recharger les données pour revenir à l'état cohérent
-      loadWatchlistItems();
+      loadWatchPartyItems();
       
       Alert.alert(t('common.error'), t('room.errorUpdatingStatus'));
     }

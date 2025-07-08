@@ -89,6 +89,11 @@ class ItemController {
 
           if (existingItem) {
             itemId = existingItem.id;
+            // Reset status to default when adding to a new room
+            await this.prisma.item.update({
+              where: { id: itemId },
+              data: { status: 'a_voir' }
+            });
           }
         }
 
@@ -102,7 +107,8 @@ class ItemController {
               description,
               imageUrl: image_url,
               releaseDate: release_date,
-              note
+              note,
+              status: 'a_voir' // Explicitly set default status
             }
           });
           itemId = newItem.id;

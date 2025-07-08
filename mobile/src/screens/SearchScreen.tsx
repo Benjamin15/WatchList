@@ -224,7 +224,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
     );
   };
 
-  const handleAddToWatchlist = async (media: SearchResult) => {
+  const handleAddToWatchParty = async (media: SearchResult) => {
     try {
       setIsSearching(true);
       
@@ -266,10 +266,10 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
       // Retourner à l'écran précédent
       navigation.goBack();
     } catch (error) {
-      console.error('Error adding media to watchlist:', error);
+      console.error('Error adding media to WatchParty:', error);
       Alert.alert(
         'Erreur',
-        'Impossible d\'ajouter le média à la watchlist. Veuillez réessayer.'
+        'Impossible d\'ajouter le média à la WatchParty. Veuillez réessayer.'
       );
     } finally {
       setIsSearching(false);
@@ -302,7 +302,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
             style={styles.addButton}
             onPress={(e: any) => {
               e.stopPropagation();
-              handleAddToWatchlist(item);
+              handleAddToWatchParty(item);
             }}
           >
             <Text style={styles.addButtonText}>+ Ajouter</Text>

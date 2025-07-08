@@ -15,7 +15,7 @@ import {
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
-import { RootStackParamList, Media, WatchlistItem } from '../types';
+import { RootStackParamList, Media, WatchPartyItem } from '../types';
 import { SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import MediaPoster from '../components/MediaPoster';
@@ -24,7 +24,7 @@ import { useTheme } from '../contexts/ThemeContext';
 
 // Composant pour un élément de média dans la liste de vote
 const MediaItemForVote: React.FC<{
-  item: WatchlistItem;
+  item: WatchPartyItem;
   isSelected: boolean;
   onToggleSelection: (mediaId: number) => void;
   styles: any;
@@ -100,7 +100,7 @@ const CreateVoteScreen: React.FC = () => {
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState('');
   const [durationUnit, setDurationUnit] = useState<'minutes' | 'hours'>('minutes');
-  const [roomItems, setRoomItems] = useState<WatchlistItem[]>([]);
+  const [roomItems, setRoomItems] = useState<WatchPartyItem[]>([]);
   const [selectedMediaIds, setSelectedMediaIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingItems, setLoadingItems] = useState(true);
@@ -201,7 +201,7 @@ const CreateVoteScreen: React.FC = () => {
     }
   };
 
-  const renderMediaItem = (item: WatchlistItem) => {
+  const renderMediaItem = (item: WatchPartyItem) => {
     const isSelected = selectedMediaIds.includes(item.media.id);
     return (
       <MediaItemForVote

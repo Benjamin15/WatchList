@@ -1,6 +1,6 @@
-# Maquettes HTML - WatchList
+# Maquettes HTML - WatchParty
 
-Ce dossier contient les maquettes HTML interactives de l'application WatchList. Ces maquettes permettent de visualiser l'interface utilisateur et de tester les interactions avant l'implémentation finale.
+Ce dossier contient les maquettes HTML interactives de l'application WatchParty. Ces maquettes permettent de visualiser l'interface utilisateur et de tester les interactions avant l'implémentation finale.
 
 ## Pages disponibles
 
@@ -17,13 +17,13 @@ Ce dossier contient les maquettes HTML interactives de l'application WatchList. 
 - Navigation vers la room
 
 ### 2. [Room](./room.html) - `room.html`
-- Interface principale de gestion de la watchlist
-- Navigation par onglets (Watchlist, Recherche, Paramètres)
+- Interface principale de gestion de la WatchParty
+- Navigation par onglets (WatchParty, Recherche, Paramètres)
 - Liste des médias avec filtres
 - Statuts de progression
 
 **Fonctionnalités :**
-- Affichage de la watchlist avec différents statuts
+- Affichage de la WatchParty avec différents statuts
 - Filtres par type de média (Tous, Films, Séries, Manga)
 - Navigation entre onglets
 - Bouton d'ajout flottant (FAB)
@@ -33,7 +33,7 @@ Ce dossier contient les maquettes HTML interactives de l'application WatchList. 
 - Interface de recherche de médias
 - Filtres par type de contenu
 - Résultats de recherche avec détails
-- Ajout direct à la watchlist
+- Ajout direct à la WatchParty
 
 **Fonctionnalités :**
 - Barre de recherche en temps réel

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WatchList - Détail du média</title>
+    <title>WatchParty - Détail du média</title>
     <style>
         * {
             margin: 0;
@@ -342,7 +342,7 @@
             </div>
 
             <div class="actions">
-                <button class="action-button button-primary" onclick="addToWatchlist()">
+                <button class="action-button button-primary" onclick="addToWatchParty()">
                     + Ajouter à ma liste
                 </button>
                 <button class="action-button button-secondary" onclick="shareMedia()">
@@ -405,15 +405,15 @@
             window.history.back();
         }
 
-        function addToWatchlist() {
-            showToast('Ajouté à votre watchlist !', '#4CAF50');
+        function addToWatchParty() {
+            showToast('Ajouté à votre WatchParty !', '#4CAF50');
         }
 
         function shareMedia() {
             if (navigator.share) {
                 navigator.share({
-                    title: 'Inception - WatchList',
-                    text: 'Regardez ce film sur WatchList',
+                    title: 'Inception - WatchParty',
+                    text: 'Regardez ce film sur WatchParty',
                     url: window.location.href
                 });
             } else {

@@ -4,9 +4,9 @@ export const API_ENDPOINTS = {
   ROOMS: '/rooms',
   JOIN_ROOM: '/rooms/join',
   
-  // Watchlist (items)
-  WATCHLIST: (roomId: number | string) => `/rooms/${roomId}/items`,
-  WATCHLIST_ITEM: (roomId: number | string, itemId: number) => `/rooms/${roomId}/items/${itemId}/status`,
+  // WatchParty (items)
+  WatchParty: (roomId: number | string) => `/rooms/${roomId}/items`,
+  WatchParty_ITEM: (roomId: number | string, itemId: number) => `/rooms/${roomId}/items/${itemId}/status`,
   
   // Search
   SEARCH: '/search',

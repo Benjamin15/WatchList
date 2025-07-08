@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "WatchList",
+    "name": "WatchParty",
    "room": {
     "title": "Room: {{name}}",
     "members": "{{count}} member(s)",
@@ -9,14 +9,14 @@
     "noItems": "No media in this room",
     "loading": "Connecting...",
     "noMedia": "No media",
-    "emptyPlanned": "Add media to your watchlist!",
+    "emptyPlanned": "Add media to your WatchParty!",
     "emptyWatching": "Start watching media!",
     "emptyCompleted": "Complete media to see them here!",
-    "shareMessage": "Join my WatchList \"{{roomName}}\" with code: {{roomCode}}",
-    "shareTitle": "Share my WatchList"
+    "shareMessage": "Join my WatchParty \"{{roomName}}\" with code: {{roomCode}}",
+    "shareTitle": "Share my WatchParty"
   },
   "app": {
-    "name": "WatchList",
+    "name": "WatchParty",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Retry",
@@ -43,7 +43,7 @@
     "yourName": "Your name"
   },
   "home": {
-    "title": "WatchList",
+    "title": "WatchParty",
     "createRoom": "Create a new room",
     "joinRoom": "Join a room",
     "roomName": "Room name",
@@ -61,11 +61,11 @@
     "noItems": "No media in this room",
     "loading": "Connecting...",
     "noMedia": "No media",
-    "emptyPlanned": "Add media to your watchlist!",
+    "emptyPlanned": "Add media to your WatchParty!",
     "emptyWatching": "Start watching media!",
     "emptyCompleted": "Complete media to see them here!",
-    "shareMessage": "Join my WatchList \"{{roomName}}\" with code: {{roomCode}}",
-    "shareTitle": "Share my WatchList"
+    "shareMessage": "Join my WatchParty \"{{roomName}}\" with code: {{roomCode}}",
+    "shareTitle": "Share my WatchParty"
   },
   "media": {
     "movie": "Movie",

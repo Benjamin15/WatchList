@@ -23,8 +23,8 @@ export interface Room {
   created_at: string;
 }
 
-// Types pour les éléments de watchlist
-export interface WatchlistItem {
+// Types pour les éléments de WatchParty
+export interface WatchPartyItem {
   id: number;
   roomId: number;
   mediaId: number;

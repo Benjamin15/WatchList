@@ -65,6 +65,9 @@ const MediaPoster: React.FC<MediaPosterProps> = ({
   const sizeStyles = getSizeStyles(size);
   const emojiSize = getEmojiSize(size);
 
+  // Logs de debug pour identifier le problème
+  console.log(`[MediaPoster] posterUrl: ${posterUrl}, imageError: ${imageError}, mediaType: ${mediaType}`);
+
   // Si on a une URL et qu'il n'y a pas d'erreur, afficher l'image
   if (posterUrl && !imageError) {
     return (
@@ -72,7 +75,13 @@ const MediaPoster: React.FC<MediaPosterProps> = ({
         <Image
           source={{ uri: posterUrl }}
           style={[styles.posterImage, sizeStyles]}
-          onError={() => setImageError(true)}
+          onError={(error) => {
+            console.log(`[MediaPoster] Image error for ${posterUrl}:`, error.nativeEvent.error);
+            setImageError(true);
+          }}
+          onLoad={() => {
+            console.log(`[MediaPoster] Image loaded successfully: ${posterUrl}`);
+          }}
           resizeMode="cover"
         />
       </View>

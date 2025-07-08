@@ -1,4 +1,4 @@
-# Guide d'utilisation du Swipe dans WatchList
+# Guide d'utilisation du Swipe dans WatchParty
 
 ## Fonctionnalité de Swipe
 

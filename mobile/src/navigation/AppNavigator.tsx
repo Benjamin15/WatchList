@@ -39,7 +39,7 @@ const AppNavigator: React.FC = () => {
           name="Home"
           component={HomeScreen}
           options={{
-            title: 'WatchList',
+            title: 'WatchParty',
             headerShown: false,
           }}
         />

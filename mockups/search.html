@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WatchList - Recherche</title>
+    <title>WatchParty - Recherche</title>
     <style>
         * {
             margin: 0;
@@ -420,15 +420,15 @@
                         <div class="result-meta">${item.year} • ${item.genre}</div>
                         <div class="result-description">${item.description}</div>
                         <div class="result-rating">⭐ ${item.rating}/10</div>
-                        <button class="add-btn" onclick="addToWatchlist('${item.title}')">+ Ajouter</button>
+                        <button class="add-btn" onclick="addToWatchParty('${item.title}')">+ Ajouter</button>
                     </div>
                 `;
                 container.appendChild(resultElement);
             });
         }
 
-        function addToWatchlist(title) {
-            alert(`"${title}" ajouté à votre watchlist !`);
+        function addToWatchParty(title) {
+            alert(`"${title}" ajouté à votre WatchParty !`);
         }
 
         // Gestion des filtres

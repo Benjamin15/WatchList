@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEVICE_ID_KEY = 'watchlist_device_id';
+const DEVICE_ID_KEY = 'WatchParty_device_id';
 
 /**
  * Génère un identifiant unique pour l'appareil

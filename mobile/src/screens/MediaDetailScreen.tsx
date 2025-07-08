@@ -46,8 +46,8 @@ const MediaDetailScreen: React.FC = () => {
   const [currentStatus, setCurrentStatus] = useState<string>(
     'status' in media ? media.status || 'planned' : 'planned'
   );
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
-  const [watchlistItem, setWatchlistItem] = useState<any>(null);
+  const [isInWatchParty, setIsInWatchParty] = useState(false);
+  const [WatchPartyItem, setWatchPartyItem] = useState<any>(null);
   
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -104,7 +104,7 @@ const MediaDetailScreen: React.FC = () => {
   
   useEffect(() => {
     loadMediaDetails();
-    checkIfInWatchlist();
+    checkIfInWatchParty();
     // Animation d'entrée
     Animated.parallel([
       Animated.timing(fadeAnim, {
@@ -159,23 +159,23 @@ const MediaDetailScreen: React.FC = () => {
     }
   };
   
-  const checkIfInWatchlist = async () => {
+  const checkIfInWatchParty = async () => {
     try {
       if (!roomId || !tmdbId) return;
       
       const result = await apiService.checkItemInRoom(roomId, tmdbId);
-      setIsInWatchlist(result.isInWatchlist);
+      setIsInWatchParty(result.isInWatchParty);
       
       if (result.item) {
-        setWatchlistItem(result.item);
+        setWatchPartyItem(result.item);
         setCurrentStatus(result.item.status);
       }
     } catch (error) {
-      console.error('[MediaDetailScreen] Erreur vérification watchlist:', error);
+      console.error('[MediaDetailScreen] Erreur vérification WatchParty:', error);
     }
   };
   
-  const handleAddToWatchlist = async () => {
+  const handleAddToWatchParty = async () => {
     try {
       if (!roomId) {
         Alert.alert('Erreur', 'Impossible d\'ajouter le média sans room ID');
@@ -194,22 +194,22 @@ const MediaDetailScreen: React.FC = () => {
       };
       
       await apiService.addItemToRoom(roomId, mediaToAdd);
-      setIsInWatchlist(true);
+      setIsInWatchParty(true);
       setCurrentStatus('planned');
       
-      console.log(`[MediaDetailScreen] Média ajouté à la watchlist: ${media.title}`);
+      console.log(`[MediaDetailScreen] Média ajouté à la WatchParty: ${media.title}`);
       
       // Retourner à l'écran précédent après l'ajout
       navigation.goBack();
     } catch (err) {
-      console.error('[MediaDetailScreen] Erreur ajout watchlist:', err);
-      Alert.alert('Erreur', 'Impossible d\'ajouter le média à la watchlist');
+      console.error('[MediaDetailScreen] Erreur ajout WatchParty:', err);
+      Alert.alert('Erreur', 'Impossible d\'ajouter le média à la WatchParty');
     }
   };
   
   const handleStatusChange = async (newStatus: string) => {
     try {
-      if (!roomId || !watchlistItem) {
+      if (!roomId || !WatchPartyItem) {
         Alert.alert('Erreur', 'Impossible de changer le statut');
         return;
       }
@@ -226,8 +226,8 @@ const MediaDetailScreen: React.FC = () => {
               style: 'destructive',
               onPress: async () => {
                 try {
-                  await apiService.removeItemFromRoom(roomId, watchlistItem.id);
-                  console.log(`[MediaDetailScreen] Média supprimé: ${watchlistItem.media.title}`);
+                  await apiService.removeItemFromRoom(roomId, WatchPartyItem.id);
+                  console.log(`[MediaDetailScreen] Média supprimé: ${WatchPartyItem.media.title}`);
                   
                   // Retourner à l'écran précédent après suppression
                   navigation.goBack();
@@ -242,12 +242,12 @@ const MediaDetailScreen: React.FC = () => {
         return;
       }
       
-      await apiService.updateItemStatus(roomId, watchlistItem.id, newStatus as 'watching' | 'completed' | 'planned' | 'dropped');
+      await apiService.updateItemStatus(roomId, WatchPartyItem.id, newStatus as 'watching' | 'completed' | 'planned' | 'dropped');
       setCurrentStatus(newStatus);
       
       // Mettre à jour l'item local
-      setWatchlistItem({
-        ...watchlistItem,
+      setWatchPartyItem({
+        ...WatchPartyItem,
         status: newStatus
       });
       
@@ -417,10 +417,10 @@ const MediaDetailScreen: React.FC = () => {
           
           {/* Actions */}
           <View style={styles.actions}>
-            {!isInWatchlist ? (
+            {!isInWatchParty ? (
               <TouchableOpacity
                 style={styles.addButton}
-                onPress={handleAddToWatchlist}
+                onPress={handleAddToWatchParty}
               >
                 <Ionicons name="add" size={20} color="white" />
                 <Text style={styles.addButtonText}>{t('common.addToList')}</Text>

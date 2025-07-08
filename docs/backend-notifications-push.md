@@ -2,7 +2,7 @@
 
 ## Vue d'ensemble
 
-Cette documentation décrit l'implémentation complète du système de notifications push côté serveur pour l'application WatchList. Le système permet d'envoyer des notifications push aux utilisateurs lorsqu'un nouveau sondage est créé dans une room.
+Cette documentation décrit l'implémentation complète du système de notifications push côté serveur pour l'application WatchParty. Le système permet d'envoyer des notifications push aux utilisateurs lorsqu'un nouveau sondage est créé dans une room.
 
 ## Architecture
 

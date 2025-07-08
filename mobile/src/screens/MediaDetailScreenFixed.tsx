@@ -41,7 +41,7 @@ const MediaDetailScreen: React.FC = () => {
   const [currentStatus, setCurrentStatus] = useState<string>(
     'status' in media ? media.status || 'planned' : 'planned'
   );
-  const [isInWatchlist, setIsInWatchlist] = useState(false);
+  const [isInWatchParty, setIsInWatchParty] = useState(false);
   
   // Animations
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -130,7 +130,7 @@ const MediaDetailScreen: React.FC = () => {
     }
   };
   
-  const handleAddToWatchlist = async () => {
+  const handleAddToWatchParty = async () => {
     try {
       if (!roomId) {
         Alert.alert('Erreur', 'Impossible d\'ajouter le média sans room ID');
@@ -149,16 +149,16 @@ const MediaDetailScreen: React.FC = () => {
       };
       
       await apiService.addItemToRoom(roomId, mediaToAdd);
-      setIsInWatchlist(true);
+      setIsInWatchParty(true);
       setCurrentStatus('planned');
       
-      console.log(`[MediaDetailScreenFixed] Média ajouté à la watchlist: ${media.title}`);
+      console.log(`[MediaDetailScreenFixed] Média ajouté à la WatchParty: ${media.title}`);
       
       // Retourner à l'écran précédent après l'ajout
       navigation.goBack();
     } catch (err) {
-      console.error('[MediaDetailScreen] Erreur ajout watchlist:', err);
-      Alert.alert('Erreur', 'Impossible d\'ajouter le média à la watchlist');
+      console.error('[MediaDetailScreen] Erreur ajout WatchParty:', err);
+      Alert.alert('Erreur', 'Impossible d\'ajouter le média à la WatchParty');
     }
   };
   
@@ -338,10 +338,10 @@ const MediaDetailScreen: React.FC = () => {
           
           {/* Actions */}
           <View style={styles.actions}>
-            {!isInWatchlist ? (
+            {!isInWatchParty ? (
               <TouchableOpacity
                 style={styles.addButton}
-                onPress={handleAddToWatchlist}
+                onPress={handleAddToWatchParty}
               >
                 <Ionicons name="add" size={20} color="white" />
                 <Text style={styles.addButtonText}>Ajouter à ma liste</Text>

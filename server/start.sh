@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script de démarrage pour le serveur WatchList
+# Script de démarrage pour le serveur WatchParty
 
-echo "🚀 Démarrage du serveur WatchList..."
+echo "🚀 Démarrage du serveur WatchParty..."
 
 # Vérification que les dépendances sont installées
 if [ ! -d "node_modules" ]; then

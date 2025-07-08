@@ -1,7 +1,7 @@
 {
-  "name": "watchlist-server",
+  "name": "WatchParty-server",
   "version": "1.0.0",
-  "description": "Server for WatchList application",
+  "description": "Server for WatchParty application",
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
@@ -13,7 +13,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
-  "keywords": ["watchlist", "movies", "series", "manga"],
+  "keywords": ["WatchParty", "movies", "series", "manga"],
   "author": "",
   "license": "ISC",
   "dependencies": {

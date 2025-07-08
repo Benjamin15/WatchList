@@ -1,4 +1,4 @@
-# Guide des Alternatives de Filtrage - WatchList
+# Guide des Alternatives de Filtrage - WatchParty
 
 ## 🎯 Problème identifié
 Le modal de filtrage actuel présente des problèmes d'ergonomie :

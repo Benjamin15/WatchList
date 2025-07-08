@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "WatchList",
+    "name": "WatchParty",
     "loading": "Chargement...",
     "error": "Une erreur est survenue",
     "retry": "Réessayer",
@@ -38,7 +38,7 @@
     "results": "résultats"
   },
   "home": {
-    "title": "WatchList",
+    "title": "WatchParty",
     "createRoom": "Créer une nouvelle room",
     "joinRoom": "Rejoindre une room",
     "roomName": "Nom de la room",
@@ -56,13 +56,13 @@
     "noItems": "Aucun média dans cette room",
     "loading": "Connexion en cours...",
     "noMedia": "Aucun média",
-    "emptyPlanned": "Ajoutez des médias à votre watchlist !",
+    "emptyPlanned": "Ajoutez des médias à votre WatchParty !",
     "emptyWatching": "Commencez à regarder des médias !",
     "emptyCompleted": "Terminez des médias pour les voir ici !",
-    "shareMessage": "Rejoins ma WatchList \"{{roomName}}\" avec le code: {{roomCode}}",
-    "shareTitle": "Partager ma WatchList",
+    "shareMessage": "Rejoins ma WatchParty \"{{roomName}}\" avec le code: {{roomCode}}",
+    "shareTitle": "Partager ma WatchParty",
     "errorLoadingRoom": "Impossible de charger les données de la room",
-    "errorLoadingWatchlist": "Impossible de charger la watchlist"
+    "errorLoadingWatchParty": "Impossible de charger la WatchParty"
   },
   "media": {
     "movie": "Film",

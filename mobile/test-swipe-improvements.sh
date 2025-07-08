@@ -5,7 +5,7 @@
 echo "=== Test des améliorations du swipe de suppression ==="
 echo "Date: $(date)"
 
-cd /Users/ben/workspace/WatchList/mobile
+cd /Users/ben/workspace/WatchParty/mobile
 
 # Vérifier que onSwipeableRightOpen est présent
 echo "1. Vérification de la suppression automatique au swipe..."

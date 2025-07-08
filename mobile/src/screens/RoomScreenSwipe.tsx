@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Alert, ScrollView, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
-import { RootStackParamList, WatchlistItem } from '../types';
+import { RootStackParamList, WatchPartyItem } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import LoadingScreen from './LoadingScreen';
@@ -13,7 +13,7 @@ interface RoomScreenProps {
 }
 
 // Données mock pour les tests
-const mockWatchlistItems: WatchlistItem[] = [
+const mockWatchPartyItems: WatchPartyItem[] = [
   {
     id: 1,
     roomId: 1,
@@ -142,7 +142,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState<'planned' | 'watching' | 'completed'>('planned');
-  const [watchlistItems, setWatchlistItems] = useState<WatchlistItem[]>(mockWatchlistItems);
+  const [WatchPartyItems, setWatchPartyItems] = useState<WatchPartyItem[]>(mockWatchPartyItems);
 
   // Ordre des statuts pour le swipe
   const statusOrder = ['planned', 'watching', 'completed'] as const;
@@ -165,7 +165,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   const handleSwipe = (itemId: number, direction: 'left' | 'right') => {
-    const item = watchlistItems.find(item => item.id === itemId);
+    const item = WatchPartyItems.find(item => item.id === itemId);
     if (!item) return;
 
     const currentIndex = statusOrder.indexOf(item.status as any);
@@ -184,14 +184,14 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   const updateItemStatus = (itemId: number, newStatus: 'planned' | 'watching' | 'completed') => {
-    setWatchlistItems(prevItems =>
+    setWatchPartyItems(prevItems =>
       prevItems.map(item =>
         item.id === itemId ? { ...item, status: newStatus } : item
       )
     );
 
     // Afficher une notification
-    const item = watchlistItems.find(item => item.id === itemId);
+    const item = WatchPartyItems.find(item => item.id === itemId);
     if (item) {
       const statusLabels = {
         planned: 'À regarder',
@@ -206,15 +206,15 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   };
 
   const getFilteredItems = () => {
-    return watchlistItems.filter(item => item.status === currentTab);
+    return WatchPartyItems.filter(item => item.status === currentTab);
   };
 
-  const canSwipeLeft = (item: WatchlistItem) => {
+  const canSwipeLeft = (item: WatchPartyItem) => {
     const currentIndex = statusOrder.indexOf(item.status as any);
     return currentIndex > 0;
   };
 
-  const canSwipeRight = (item: WatchlistItem) => {
+  const canSwipeRight = (item: WatchPartyItem) => {
     const currentIndex = statusOrder.indexOf(item.status as any);
     return currentIndex < statusOrder.length - 1;
   };
@@ -230,7 +230,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     return config[status as keyof typeof config] || config.planned;
   };
 
-  const getSwipeIndicator = (item: WatchlistItem) => {
+  const getSwipeIndicator = (item: WatchPartyItem) => {
     const canLeft = canSwipeLeft(item);
     const canRight = canSwipeRight(item);
     
@@ -240,7 +240,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     return '';
   };
 
-  const renderMediaItem = (item: WatchlistItem) => {
+  const renderMediaItem = (item: WatchPartyItem) => {
     const statusBadge = getStatusBadge(item.status);
     const swipeIndicator = getSwipeIndicator(item);
 
@@ -301,7 +301,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       <Text style={styles.emptyIcon}>📱</Text>
       <Text style={styles.emptyTitle}>Aucun média</Text>
       <Text style={styles.emptyMessage}>
-        {currentTab === 'planned' && 'Ajoutez des médias à votre watchlist !'}
+        {currentTab === 'planned' && 'Ajoutez des médias à votre WatchParty !'}
         {currentTab === 'watching' && 'Commencez à regarder des médias !'}
         {currentTab === 'completed' && 'Terminez des médias pour les voir ici !'}
       </Text>

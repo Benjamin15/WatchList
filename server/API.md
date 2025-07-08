@@ -1,4 +1,4 @@
-# API Documentation - WatchList Server
+# API Documentation - WatchParty Server
 
 ## Base URL
 ```
@@ -26,7 +26,7 @@ Créer une nouvelle room
 **Body :**
 ```json
 {
-  "name": "Ma WatchList"
+  "name": "Ma WatchParty"
 }
 ```
 
@@ -35,7 +35,7 @@ Créer une nouvelle room
 {
   "id": 1,
   "room_id": "5d920572049e",
-  "name": "Ma WatchList",
+  "name": "Ma WatchParty",
   "created_at": "2025-07-03T14:23:43.971Z"
 }
 ```
@@ -48,7 +48,7 @@ Obtenir les informations d'une room
 {
   "id": 1,
   "room_id": "5d920572049e",
-  "name": "Ma WatchList",
+  "name": "Ma WatchParty",
   "created_at": "2025-07-03T14:23:43.971Z"
 }
 ```
@@ -60,7 +60,7 @@ Obtenir les items d'une room
 ```json
 {
   "room_id": "5d920572049e",
-  "name": "Ma WatchList",
+  "name": "Ma WatchParty",
   "items": [
     {
       "id": 1,

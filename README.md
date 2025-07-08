@@ -1,10 +1,10 @@
-# WatchList
+# WatchParty
 
-Application mobile collaborative de gestion de watchlist (films, séries, manga) avec backend Node.js.
+Application mobile collaborative de gestion de WatchParty (films, séries, manga) avec backend Node.js.
 
 ## Description
 
-WatchList est une application qui permet de créer et partager des listes de films, séries et manga à regarder/lire. Les utilisateurs peuvent créer des "rooms" accessibles par ID unique, ajouter des contenus via recherche (APIs TMDB et MyAnimeList), et suivre leur progression.
+WatchParty est une application qui permet de créer et partager des listes de films, séries et manga à regarder/lire. Les utilisateurs peuvent créer des "rooms" accessibles par ID unique, ajouter des contenus via recherche (APIs TMDB et MyAnimeList), et suivre leur progression.
 
 ## Architecture
 
@@ -92,7 +92,7 @@ npm test
 ## Structure du projet
 
 ```
-WatchList/
+WatchParty/
 ├── server/          # Backend API REST
 │   ├── src/         # Code source
 │   ├── tests/       # Tests
@@ -117,4 +117,4 @@ MIT License - voir le fichier LICENSE pour plus de détails.
 
 Benjamin - [GitHub](https://github.com/Benjamin15)
 
-Lien du projet: [https://github.com/Benjamin15/WatchList](https://github.com/Benjamin15/WatchList)
+Lien du projet: [https://github.com/Benjamin15/WatchParty](https://github.com/Benjamin15/WatchParty)

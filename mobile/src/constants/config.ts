@@ -10,7 +10,7 @@ export const getApiBaseUrl = () => {
   if (DEV_MODE) {
     // Pour le développement local
     const isAndroid = Platform.OS === 'android';
-    const LOCAL_IP = '192.168.0.14'; // IP locale détectée
+    const LOCAL_IP = '192.168.0.16'; // IP locale détectée
     
     // Configuration selon l'environnement
     let baseUrl;
@@ -53,6 +53,6 @@ export const TIMEOUTS = {
 export const LIMITS = {
   MAX_ROOM_NAME_LENGTH: 50,
   MAX_SEARCH_QUERY_LENGTH: 100,
-  WATCHLIST_PAGE_SIZE: 20,
+  WatchParty_PAGE_SIZE: 20,
   SEARCH_DEBOUNCE_MS: 500,
 };

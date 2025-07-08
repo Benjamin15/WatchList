@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WatchList - Paramètres</title>
+    <title>WatchParty - Paramètres</title>
     <style>
         * {
             margin: 0;
@@ -337,7 +337,7 @@
         <div class="settings-section">
             <div class="section-title">Informations de la Room</div>
             <div class="room-info">
-                <div class="room-name">Ma Watchlist</div>
+                <div class="room-name">Ma WatchParty</div>
                 <div class="room-detail">
                     <span class="room-detail-label">Code de la room:</span>
                     <span class="room-detail-value">ABC123</span>
@@ -438,7 +438,7 @@
         </div>
 
         <div class="version-info">
-            <div>WatchList v1.0.0</div>
+            <div>WatchParty v1.0.0</div>
             <div>Expo SDK 53</div>
         </div>
     </div>
@@ -481,13 +481,13 @@
         function shareRoom() {
             if (navigator.share) {
                 navigator.share({
-                    title: 'WatchList - Ma Watchlist',
-                    text: 'Rejoignez ma watchlist avec le code: ABC123',
+                    title: 'WatchParty - Ma WatchParty',
+                    text: 'Rejoignez ma WatchParty avec le code: ABC123',
                     url: window.location.href
                 });
             } else {
                 // Fallback pour les navigateurs qui ne supportent pas l'API de partage
-                const text = 'Rejoignez ma watchlist avec le code: ABC123';
+                const text = 'Rejoignez ma WatchParty avec le code: ABC123';
                 navigator.clipboard.writeText(text).then(() => {
                     alert('Code copié dans le presse-papiers !');
                 });

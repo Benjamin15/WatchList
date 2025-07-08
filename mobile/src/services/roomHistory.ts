@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Room } from '../types';
 
-const ROOMS_HISTORY_KEY = 'watchlist_rooms_history';
+const ROOMS_HISTORY_KEY = 'WatchParty_rooms_history';
 
 export interface RoomHistory {
   id: number;

@@ -1,8 +1,8 @@
-# 🌍 Système de Traduction Multilingue - WatchList
+# 🌍 Système de Traduction Multilingue - WatchParty
 
 ## ✅ **STATUT : IMPLÉMENTATION COMPLÈTE**
 
-L'application WatchList dispose maintenant d'un système de traduction multilingue complet, permettant aux utilisateurs de naviguer dans l'interface en français, anglais, espagnol ou portugais, avec des données TMDB localisées.
+L'application WatchParty dispose maintenant d'un système de traduction multilingue complet, permettant aux utilisateurs de naviguer dans l'interface en français, anglais, espagnol ou portugais, avec des données TMDB localisées.
 
 ---
 
@@ -172,7 +172,7 @@ curl "http://localhost:3000/api/media/movie/603/details?language=pt-BR"
 
 ## 🏆 **Résultat Final**
 
-L'application WatchList offre maintenant une **expérience multilingue complète et professionnelle** :
+L'application WatchParty offre maintenant une **expérience multilingue complète et professionnelle** :
 
 - 🌍 **4 langues** avec interface entièrement traduite
 - 📱 **UX fluide** avec changement instantané

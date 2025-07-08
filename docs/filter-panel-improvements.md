@@ -128,4 +128,4 @@ Le panel de filtrage est maintenant optimisé pour une utilisation mobile avec:
 - Meilleure visibilité de tous les éléments
 - UX améliorée pour le filtrage et le tri des médias
 
-Les utilisateurs peuvent maintenant facilement filtrer leur watchlist sans problème d'affichage ou d'accessibilité.
+Les utilisateurs peuvent maintenant facilement filtrer leur WatchParty sans problème d'affichage ou d'accessibilité.

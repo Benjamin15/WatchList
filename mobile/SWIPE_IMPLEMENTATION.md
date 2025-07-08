@@ -1,4 +1,4 @@
-# Implémentation du Swipe sur Mobile - WatchList
+# Implémentation du Swipe sur Mobile - WatchParty
 
 ## ✅ Fonctionnalités implémentées
 
@@ -43,7 +43,7 @@
 
 1. **Lancez l'app** : `cd mobile && npm start`
 2. **Ouvrez sur appareil** : Scanez le QR code ou utilisez le web
-3. **Naviguez** : Créez une room et accédez à la watchlist
+3. **Naviguez** : Créez une room et accédez à la WatchParty
 4. **Swipez** : Glissez un média horizontalement pour le déplacer
 
 ### Logique de swipe :
@@ -59,7 +59,7 @@
 
 ```typescript
 // RoomScreen.tsx
-- État : currentTab, watchlistItems
+- État : currentTab, WatchPartyItems
 - Logique : handleSwipe, updateItemStatus
 - Rendu : renderMediaItem, renderEmptyState
 
@@ -72,7 +72,7 @@
 ### Données mock :
 
 ```typescript
-const mockWatchlistItems: WatchlistItem[] = [
+const mockWatchPartyItems: WatchPartyItem[] = [
   { id: 1, status: 'planned', media: { title: 'One Piece', type: 'series' } },
   { id: 2, status: 'planned', media: { title: 'The Matrix', type: 'movie' } },
   { id: 3, status: 'watching', media: { title: 'Inception', type: 'movie' } },

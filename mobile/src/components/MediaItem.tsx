@@ -11,7 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
 import { SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
-import { WatchlistItem } from '../types';
+import { WatchPartyItem } from '../types';
 import { translateStatus } from '../utils/translations';
 import { useLanguage } from '../hooks/useLanguage';
 import { useTheme } from '../contexts/ThemeContext';
@@ -21,7 +21,7 @@ const SWIPE_THRESHOLD = 100;
 const INDICATOR_THRESHOLD = 50;
 
 interface MediaItemProps {
-  item: WatchlistItem;
+  item: WatchPartyItem;
   onSwipe: (itemId: number, direction: 'left' | 'right') => void;
   canSwipeLeft: boolean;
   canSwipeRight: boolean;

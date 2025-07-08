@@ -7,7 +7,7 @@ import { getLanguageForTMDB } from '../utils/translations';
 import i18n from '../i18n';
 import {
   Room,
-  WatchlistItem,
+  WatchPartyItem,
   Media,
   SearchResult,
   ApiResponse,
@@ -123,11 +123,11 @@ class ApiService {
     return response.data;
   }
 
-  // === WATCHLIST ITEMS ===
+  // === WatchParty ITEMS ===
 
-  async getRoomItems(roomId: number | string): Promise<WatchlistItem[]> {
+  async getRoomItems(roomId: number | string): Promise<WatchPartyItem[]> {
     if (USE_MOCK_DATA) {
-      const result = await mockApiService.getWatchlist(typeof roomId === 'string' ? parseInt(roomId) : roomId);
+      const result = await mockApiService.getWatchParty(typeof roomId === 'string' ? parseInt(roomId) : roomId);
       return result.data;
     }
     
@@ -136,7 +136,7 @@ class ApiService {
     const response = await this.client.get<{room: any, items: any[]}>(url);
     
     // Transformer les données de l'API backend vers le format attendu par l'application mobile
-    const transformedItems: WatchlistItem[] = response.data.items.map(item => {
+    const transformedItems: WatchPartyItem[] = response.data.items.map(item => {
       const tmdbId = this.extractTmdbId(item.external_id);
       console.log(`[API] Transformation item: ${item.title} (${item.id}) -> external_id: ${item.external_id} -> tmdbId: ${tmdbId}`);
       
@@ -166,8 +166,8 @@ class ApiService {
     return transformedItems;
   }
 
-  // Méthode pour vérifier si un média est déjà dans la watchlist
-  async checkItemInRoom(roomId: number | string, tmdbId: number): Promise<{ isInWatchlist: boolean, item?: WatchlistItem }> {
+  // Méthode pour vérifier si un média est déjà dans la WatchParty
+  async checkItemInRoom(roomId: number | string, tmdbId: number): Promise<{ isInWatchParty: boolean, item?: WatchPartyItem }> {
     try {
       const items = await this.getRoomItems(roomId);
       
@@ -175,12 +175,12 @@ class ApiService {
       const existingItem = items.find(item => item.media.tmdbId === tmdbId);
       
       return {
-        isInWatchlist: !!existingItem,
+        isInWatchParty: !!existingItem,
         item: existingItem
       };
     } catch (error) {
       console.error('[API] Erreur lors de la vérification du média dans la room:', error);
-      return { isInWatchlist: false };
+      return { isInWatchParty: false };
     }
   }
 
@@ -240,10 +240,10 @@ class ApiService {
     return undefined;
   }
 
-  async addItemToRoom(roomId: number | string, mediaData: Partial<Media>): Promise<WatchlistItem> {
+  async addItemToRoom(roomId: number | string, mediaData: Partial<Media>): Promise<WatchPartyItem> {
     if (USE_MOCK_DATA) {
       // Simuler l'ajout pour les mocks
-      const newItem: WatchlistItem = {
+      const newItem: WatchPartyItem = {
         id: Date.now(),
         roomId: typeof roomId === 'string' ? parseInt(roomId) : roomId,
         mediaId: Date.now(),
@@ -275,6 +275,7 @@ class ApiService {
       image_url: mediaData.posterUrl, // Mapper posterUrl vers image_url
       release_date: mediaData.year ? `${mediaData.year}-01-01` : undefined,
       note: mediaData.rating,
+      status: 'a_voir', // Forcer le statut par défaut
     };
     
     console.log('API: Adding item to room with data:', serverData);
@@ -308,10 +309,10 @@ class ApiService {
     roomId: number | string, 
     itemId: number, 
     status: 'planned' | 'watching' | 'completed' | 'dropped'
-  ): Promise<WatchlistItem> {
+  ): Promise<WatchPartyItem> {
     if (USE_MOCK_DATA) {
       // Simuler la mise à jour pour les mocks
-      const mockItem: WatchlistItem = {
+      const mockItem: WatchPartyItem = {
         id: itemId,
         roomId: typeof roomId === 'string' ? parseInt(roomId) : roomId,
         mediaId: itemId,
@@ -365,9 +366,9 @@ class ApiService {
     await this.client.delete(`/rooms/${roomId}/items/${itemId}`);
   }
 
-  // === WATCHLIST ===
+  // === WatchParty ===
 
-  async getWatchlist(
+  async getWatchParty(
     roomId: number | string,
     filters?: {
       type?: string;
@@ -375,9 +376,9 @@ class ApiService {
       page?: number;
       limit?: number;
     }
-  ): Promise<PaginatedResponse<WatchlistItem>> {
+  ): Promise<PaginatedResponse<WatchPartyItem>> {
     if (USE_MOCK_DATA) {
-      return mockApiService.getWatchlist(roomId, filters);
+      return mockApiService.getWatchParty(roomId, filters);
     }
     
     const params = new URLSearchParams();
@@ -394,16 +395,16 @@ class ApiService {
       params.append('limit', filters.limit.toString());
     }
 
-    const url = `${API_ENDPOINTS.WATCHLIST(roomId)}?${params.toString()}`;
-    console.log('API: DEBUG - API_ENDPOINTS.WATCHLIST function:', API_ENDPOINTS.WATCHLIST);
-    console.log('API: DEBUG - API_ENDPOINTS.WATCHLIST(roomId) result:', API_ENDPOINTS.WATCHLIST(roomId));
-    console.log('API: getWatchlist URL:', this.client.defaults.baseURL + url);
-    console.log('API: getWatchlist roomId:', roomId, 'type:', typeof roomId);
+    const url = `${API_ENDPOINTS.WatchParty(roomId)}?${params.toString()}`;
+    console.log('API: DEBUG - API_ENDPOINTS.WatchParty function:', API_ENDPOINTS.WatchParty);
+    console.log('API: DEBUG - API_ENDPOINTS.WatchParty(roomId) result:', API_ENDPOINTS.WatchParty(roomId));
+    console.log('API: getWatchParty URL:', this.client.defaults.baseURL + url);
+    console.log('API: getWatchParty roomId:', roomId, 'type:', typeof roomId);
 
     // L'API backend retourne { room: {...}, items: [...] }
     // Nous devons l'adapter au format PaginatedResponse attendu
     const response = await this.client.get<{ room: any; items: any[] }>(url);
-    console.log('API: getWatchlist response structure:', { 
+    console.log('API: getWatchParty response structure:', { 
       hasRoom: !!response.data.room, 
       itemsCount: response.data.items?.length || 0 
     });
@@ -425,7 +426,7 @@ class ApiService {
     };
 
     // Transformer les items pour avoir les bons statuts et la bonne structure
-    const transformedItems: WatchlistItem[] = (response.data.items || []).map(item => {
+    const transformedItems: WatchPartyItem[] = (response.data.items || []).map(item => {
       console.log('API: Transforming item status:', item.status, '→', transformStatus(item.status));
       return {
         id: item.id,
@@ -467,7 +468,7 @@ class ApiService {
     };
   }
 
-  async addToWatchlist(
+  async addToWatchParty(
     roomId: number,
     mediaData: {
       title: string;
@@ -481,13 +482,13 @@ class ApiService {
       malId?: number;
     },
     status: 'watching' | 'completed' | 'planned' | 'dropped' = 'planned'
-  ): Promise<WatchlistItem> {
+  ): Promise<WatchPartyItem> {
     if (USE_MOCK_DATA) {
-      return mockApiService.addToWatchlist(roomId, { ...mediaData, status });
+      return mockApiService.addToWatchParty(roomId, { ...mediaData, status });
     }
     
-    const response = await this.client.post<ApiResponse<WatchlistItem>>(
-      API_ENDPOINTS.WATCHLIST(roomId),
+    const response = await this.client.post<ApiResponse<WatchPartyItem>>(
+      API_ENDPOINTS.WatchParty(roomId),
       {
         ...mediaData,
         status,
@@ -496,16 +497,16 @@ class ApiService {
     return response.data.data;
   }
 
-  async updateWatchlistItem(
+  async updateWatchPartyItem(
     roomId: number | string,
     itemId: number,
     updates: {
       status?: 'watching' | 'completed' | 'planned' | 'dropped';
     }
-  ): Promise<WatchlistItem> {
+  ): Promise<WatchPartyItem> {
     if (USE_MOCK_DATA) {
       const numericRoomId = typeof roomId === 'string' ? parseInt(roomId) : roomId;
-      return mockApiService.updateWatchlistItem(numericRoomId, itemId, updates);
+      return mockApiService.updateWatchPartyItem(numericRoomId, itemId, updates);
     }
     
     // Transformer les statuts frontend vers backend
@@ -525,12 +526,12 @@ class ApiService {
       backendUpdates.status = transformStatusToBackend(updates.status);
     }
 
-    console.log('API: updateWatchlistItem - Frontend status:', updates.status, '-> Backend status:', backendUpdates.status);
-    console.log('API: updateWatchlistItem - RoomId:', roomId, 'type:', typeof roomId);
-    console.log('API: updateWatchlistItem URL:', this.client.defaults.baseURL + API_ENDPOINTS.WATCHLIST_ITEM(roomId, itemId));
+    console.log('API: updateWatchPartyItem - Frontend status:', updates.status, '-> Backend status:', backendUpdates.status);
+    console.log('API: updateWatchPartyItem - RoomId:', roomId, 'type:', typeof roomId);
+    console.log('API: updateWatchPartyItem URL:', this.client.defaults.baseURL + API_ENDPOINTS.WatchParty_ITEM(roomId, itemId));
 
     const response = await this.client.put<any>(
-      API_ENDPOINTS.WATCHLIST_ITEM(roomId, itemId),
+      API_ENDPOINTS.WatchParty_ITEM(roomId, itemId),
       backendUpdates
     );
     
@@ -553,12 +554,12 @@ class ApiService {
     };
   }
 
-  async removeFromWatchlist(roomId: number, itemId: number): Promise<void> {
+  async removeFromWatchParty(roomId: number, itemId: number): Promise<void> {
     if (USE_MOCK_DATA) {
-      return mockApiService.removeFromWatchlist(roomId, itemId);
+      return mockApiService.removeFromWatchParty(roomId, itemId);
     }
     
-    await this.client.delete(API_ENDPOINTS.WATCHLIST_ITEM(roomId, itemId));
+    await this.client.delete(API_ENDPOINTS.WatchParty_ITEM(roomId, itemId));
   }
 
   // === SEARCH ===

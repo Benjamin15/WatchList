@@ -19,7 +19,7 @@ Chaque résultat affiche :
 - **Meta** : Année et genre
 - **Description** : Résumé court
 - **Note** : ⭐ Note moyenne
-- **Bouton "Ajouter"** : Pour ajouter à la watchlist
+- **Bouton "Ajouter"** : Pour ajouter à la WatchParty
 
 ## 🔍 **Données de recherche mock**
 
@@ -44,7 +44,7 @@ L'écran de recherche contient 5 médias d'exemple :
 4. **Appuyez** sur un résultat pour l'ajouter
 5. **Confirmez** l'ajout dans la popup
 
-### **Retour à la watchlist :**
+### **Retour à la WatchParty :**
 - L'ajout vous ramène automatiquement à la Room
 - Le nouveau média apparaît dans la section "À regarder"
 - Vous pouvez ensuite le déplacer par swipe
@@ -88,7 +88,7 @@ L'écran de recherche contient 5 médias d'exemple :
 
 ## 🎉 **Résultat final**
 
-L'application WatchList dispose maintenant d'un système complet :
+L'application WatchParty dispose maintenant d'un système complet :
 
 - ✅ **Swipe** pour déplacer les médias entre statuts
 - ✅ **Bouton d'ajout** pour rechercher de nouveaux médias
@@ -96,4 +96,4 @@ L'application WatchList dispose maintenant d'un système complet :
 - ✅ **Navigation fluide** entre les écrans
 - ✅ **Feedback utilisateur** optimal
 
-L'expérience utilisateur est maintenant complète pour gérer sa watchlist ! 🚀
+L'expérience utilisateur est maintenant complète pour gérer sa WatchParty ! 🚀

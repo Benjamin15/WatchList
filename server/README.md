@@ -1,6 +1,6 @@
-# WatchList Server
+# WatchParty Server
 
-Serveur pour l'application WatchList - Gestionnaire de listes de films, séries et manga collaboratif.
+Serveur pour l'application WatchParty - Gestionnaire de listes de films, séries et manga collaboratif.
 
 ## Fonctionnalités
 
