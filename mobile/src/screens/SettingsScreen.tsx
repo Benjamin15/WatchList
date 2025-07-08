@@ -11,8 +11,9 @@ import {
 import { RouteProp, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types';
-import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
 
 type SettingsScreenRouteProp = RouteProp<RootStackParamList, 'Settings'>;
 type SettingsScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Settings'>;

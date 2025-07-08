@@ -13,6 +13,7 @@ import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import FilterHeaderBar from './FilterHeaderBar';
 import FilterSidebar from './FilterSidebar';
 import { showFilterActionSheet, showSortActionSheet } from './FilterActionSheet';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FilterAlternativesProps {
   options: FilterOptions;
@@ -26,6 +27,8 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
   resultsCount,
 }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [currentMode, setCurrentMode] = useState<'header' | 'sidebar' | 'actionsheet'>('header');
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
@@ -178,20 +181,20 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
   },
   modeSelector: {
     padding: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   selectorTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.sm,
   },
   modeButton: {
@@ -204,31 +207,31 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   modeButtonActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   modeButtonText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: '500',
   },
   modeButtonTextActive: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: '600',
   },
   modeDescription: {
     padding: SPACING.md,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
   },
   descriptionTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: theme.primary,
     marginBottom: SPACING.xs,
   },
   descriptionText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.md,
   },
   prosConsContainer: {
@@ -255,12 +258,12 @@ const styles = StyleSheet.create({
   },
   proText: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: 2,
   },
   conText: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: 2,
   },
   interfaceContainer: {
@@ -273,7 +276,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   sidebarTrigger: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 12,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
@@ -281,7 +284,7 @@ const styles = StyleSheet.create({
   sidebarTriggerText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
   actionSheetDemo: {
     padding: SPACING.lg,
@@ -291,7 +294,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actionButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 12,
     paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
@@ -301,23 +304,23 @@ const styles = StyleSheet.create({
   actionButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
   statusContainer: {
     padding: SPACING.md,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: theme.border,
   },
   statusTitle: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.sm,
   },
   statusText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: 2,
   },
 });

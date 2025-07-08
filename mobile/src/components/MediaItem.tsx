@@ -10,10 +10,11 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { useTranslation } from 'react-i18next';
-import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
+import { SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { WatchlistItem } from '../types';
 import { translateStatus } from '../utils/translations';
 import { useLanguage } from '../hooks/useLanguage';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width: screenWidth } = Dimensions.get('window');
 const SWIPE_THRESHOLD = 100;
@@ -34,8 +35,11 @@ const MediaItem: React.FC<MediaItemProps> = ({
 }) => {
   const { t } = useTranslation();
   const { currentLanguage } = useLanguage();
+  const { theme } = useTheme();
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(1);
+
+  const styles = createStyles(theme);
 
   const handleSwipe = (direction: 'left' | 'right') => {
     onSwipe(item.id, direction);
@@ -91,7 +95,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
       ? translateX.value > 0
         ? MEDIA_STATUS.watching.color // Bleu pour avancer
         : MEDIA_STATUS.completed.color // Vert pour reculer
-      : COLORS.surface;
+      : theme.surface;
 
     return {
       transform: [{ translateX: translateX.value }],
@@ -169,15 +173,15 @@ const MediaItem: React.FC<MediaItemProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: SPACING.md,
     marginBottom: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
   },
   posterContainer: {
     marginRight: SPACING.md,
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
   poster: {
     width: 60,
     height: 90,
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.border,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -199,17 +203,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.xs,
   },
   meta: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: SPACING.xs,
   },
   description: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     lineHeight: 18,
     marginBottom: SPACING.sm,
   },
@@ -226,7 +230,7 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: FONT_SIZES.xs,
     fontWeight: 'bold',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
   swipeIndicator: {
     padding: SPACING.xs,

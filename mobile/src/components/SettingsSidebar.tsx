@@ -12,9 +12,10 @@ import {
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
-import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { SPACING, FONT_SIZES } from '../constants';
 import { useNotifications } from '../hooks/useNotifications';
 import { useLanguage } from '../hooks/useLanguage';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface SettingsSidebarProps {
   visible: boolean;
@@ -49,8 +50,11 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
     isInitialized: languageInitialized 
   } = useLanguage();
   
+  // Hook pour gérer le thème
+  const { theme, themeMode, setThemeMode } = useTheme();
+  
   // États pour les paramètres
-  const [selectedTheme, setSelectedTheme] = useState('dark');
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const screenWidth = Dimensions.get('window').width;
   const sidebarWidth = Math.min(320, screenWidth * 0.85);
@@ -60,6 +64,9 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
     { key: 'light', label: t('settings.light') },
     { key: 'auto', label: t('settings.auto') },
   ];
+
+  // Créer les styles avec le thème actuel
+  const styles = createStyles(theme);
 
   // Animation d'entrée/sortie
   useEffect(() => {
@@ -167,8 +174,8 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
               <Switch
                 value={voteNotificationsEnabled && notificationsInitialized}
                 onValueChange={setVoteNotificationsEnabled}
-                trackColor={{ false: COLORS.placeholder, true: COLORS.primary }}
-                thumbColor={voteNotificationsEnabled ? COLORS.onPrimary : COLORS.onSurface}
+                trackColor={{ false: theme.placeholder, true: theme.primary }}
+                thumbColor={voteNotificationsEnabled ? theme.onPrimary : theme.onSurface}
                 disabled={!notificationsInitialized}
               />
             </View>
@@ -218,19 +225,19 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
                 key={option.key}
                 style={[
                   styles.selectionItem,
-                  selectedTheme === option.key && styles.selectedItem
+                  themeMode === option.key && styles.selectedItem
                 ]}
-                onPress={() => setSelectedTheme(option.key)}
+                onPress={() => setThemeMode(option.key as any)}
               >
                 <View style={styles.selectionInfo}>
                   <Text style={[
                     styles.selectionName,
-                    selectedTheme === option.key && styles.selectedText
+                    themeMode === option.key && styles.selectedText
                   ]}>
                     {option.label}
                   </Text>
                 </View>
-                {selectedTheme === option.key && (
+                {themeMode === option.key && (
                   <Text style={styles.checkIcon}>✓</Text>
                 )}
               </TouchableOpacity>
@@ -248,7 +255,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   overlay: {
     position: 'absolute',
     top: 0,
@@ -273,7 +280,7 @@ const styles = StyleSheet.create({
     top: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     elevation: 8,
     shadowColor: '#000',
     shadowOffset: { width: -2, height: 0 },
@@ -286,7 +293,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   headerLeft: {
     flex: 1,
@@ -294,12 +301,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.xs,
   },
   subtitle: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
   },
   closeButton: {
     width: 32,
@@ -311,7 +318,7 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     fontSize: 16,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: 'bold',
   },
   content: {
@@ -324,7 +331,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.md,
   },
   settingItem: {
@@ -333,7 +340,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: SPACING.md,
     paddingHorizontal: SPACING.md,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
     borderRadius: 12,
     marginBottom: SPACING.sm,
   },
@@ -344,12 +351,12 @@ const styles = StyleSheet.create({
   settingName: {
     fontSize: FONT_SIZES.md,
     fontWeight: '500',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.xs,
   },
   settingDescription: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
   },
   footer: {
     marginTop: SPACING.md,
@@ -358,7 +365,7 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: SPACING.xs,
   },
   // Styles pour les sélecteurs (Langage et Thème)
@@ -376,7 +383,7 @@ const styles = StyleSheet.create({
   },
   selectedItem: {
     backgroundColor: 'rgba(74, 144, 226, 0.15)',
-    borderColor: COLORS.primary,
+    borderColor: theme.primary,
   },
   selectionInfo: {
     flex: 1,
@@ -384,17 +391,17 @@ const styles = StyleSheet.create({
   },
   selectionName: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: '500',
     marginBottom: 2,
   },
   selectedText: {
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: '600',
   },
   checkIcon: {
     fontSize: 18,
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: 'bold',
   },
   testButton: {
@@ -407,7 +414,7 @@ const styles = StyleSheet.create({
   },
   testButtonText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.primary,
+    color: theme.primary,
     textAlign: 'center',
     fontWeight: '500',
   },

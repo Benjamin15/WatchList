@@ -9,6 +9,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FilterHeaderBarProps {
   options: FilterOptions;
@@ -22,6 +23,8 @@ const FilterHeaderBar: React.FC<FilterHeaderBarProps> = ({
   resultsCount,
 }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [expanded, setExpanded] = useState(false);
 
   const typeOptions = [
@@ -137,11 +140,11 @@ const FilterHeaderBar: React.FC<FilterHeaderBarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   mainBar: {
     flexDirection: 'row',
@@ -159,7 +162,7 @@ const styles = StyleSheet.create({
   },
   resultsText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     fontWeight: '500',
   },
   quickFilters: {
@@ -181,8 +184,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   quickFilterActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   quickFilterEmoji: {
     fontSize: 12,
@@ -190,11 +193,11 @@ const styles = StyleSheet.create({
   },
   quickFilterText: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: '500',
   },
   quickFilterTextActive: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: '600',
   },
   expandButton: {
@@ -204,18 +207,18 @@ const styles = StyleSheet.create({
   },
   expandIcon: {
     fontSize: 14,
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: 'bold',
   },
   expandedSection: {
     padding: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: theme.border,
     backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   sectionTitle: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: '600',
     marginBottom: SPACING.sm,
   },
@@ -234,8 +237,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   sortOptionActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   sortEmoji: {
     fontSize: 12,
@@ -243,16 +246,16 @@ const styles = StyleSheet.create({
   },
   sortText: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: '500',
   },
   sortTextActive: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: '600',
   },
   sortDirection: {
     fontSize: 12,
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: 'bold',
     marginLeft: 4,
   },

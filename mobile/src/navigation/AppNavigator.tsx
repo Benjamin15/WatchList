@@ -12,11 +12,13 @@ import MediaDetailScreen from '../screens/MediaDetailScreen';
 import CreateVoteScreen from '../screens/CreateVoteScreen';
 import VoteDetailScreen from '../screens/VoteDetailScreen';
 import { COLORS } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator: React.FC = () => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
   
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -25,9 +27,9 @@ const AppNavigator: React.FC = () => {
         initialRouteName="Home"
         screenOptions={{
           headerStyle: {
-            backgroundColor: COLORS.surface,
+            backgroundColor: theme.surface,
           },
-          headerTintColor: COLORS.onSurface,
+          headerTintColor: theme.onSurface,
           headerTitleStyle: {
             fontWeight: 'bold',
           },

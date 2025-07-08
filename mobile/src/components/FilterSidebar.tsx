@@ -12,6 +12,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FilterSidebarProps {
   visible: boolean;
@@ -29,6 +30,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   resultsCount,
 }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [localOptions, setLocalOptions] = useState<FilterOptions>(options);
   const [slideAnim] = useState(new Animated.Value(-300)); // Commence hors écran à gauche
   const [opacityAnim] = useState(new Animated.Value(0));
@@ -269,7 +272,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   overlay: {
     position: 'absolute',
     top: 0,
@@ -290,7 +293,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 0 },
     shadowOpacity: 0.25,
@@ -303,7 +306,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: SPACING.lg,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   headerLeft: {
     flex: 1,
@@ -311,11 +314,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZES.xl,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   subtitle: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginTop: 2,
   },
   closeButton: {
@@ -325,7 +328,7 @@ const styles = StyleSheet.create({
   },
   closeIcon: {
     fontSize: 16,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: 'bold',
   },
   content: {
@@ -338,7 +341,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.md,
   },
   optionsGrid: {
@@ -357,8 +360,8 @@ const styles = StyleSheet.create({
     minWidth: 80,
   },
   optionActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   optionEmoji: {
     fontSize: 16,
@@ -366,11 +369,11 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: '500',
   },
   optionTextActive: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: '600',
   },
   sortOptions: {
@@ -387,8 +390,8 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   sortOptionActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   sortInfo: {
     flexDirection: 'row',
@@ -401,11 +404,11 @@ const styles = StyleSheet.create({
   },
   sortText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     fontWeight: '500',
   },
   sortTextActive: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: '600',
   },
   sortIndicator: {
@@ -418,7 +421,7 @@ const styles = StyleSheet.create({
   },
   sortArrow: {
     fontSize: 16,
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: 'bold',
   },
   actions: {
@@ -426,7 +429,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     gap: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: theme.border,
   },
   resetButton: {
     flex: 1,
@@ -435,16 +438,16 @@ const styles = StyleSheet.create({
     paddingVertical: SPACING.md,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
   },
   resetButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   applyButton: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 12,
     paddingVertical: SPACING.md,
     alignItems: 'center',
@@ -452,7 +455,7 @@ const styles = StyleSheet.create({
   applyButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
 });
 

@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../hooks/useLanguage';
 import { RootStackParamList } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 import { apiService } from '../services/api';
 import { roomHistoryService, RoomHistory } from '../services/roomHistory';
 import LoadingScreen from './LoadingScreen';
@@ -31,6 +32,8 @@ interface HomeScreenProps {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const { currentLanguage } = useLanguage();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -196,7 +199,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder={t('home.roomName')}
-            placeholderTextColor={COLORS.placeholder}
+            placeholderTextColor={theme.placeholder}
             value={roomName}
             onChangeText={setRoomName}
             maxLength={50}
@@ -213,7 +216,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder={t('home.roomCode')}
-            placeholderTextColor={COLORS.placeholder}
+            placeholderTextColor={theme.placeholder}
             value={roomCode}
             onChangeText={setRoomCode}
             maxLength={12}
@@ -285,10 +288,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
   },
   content: {
     flex: 1,
@@ -304,7 +307,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
     textAlign: 'center',
     marginBottom: SPACING.xxl,
   },
@@ -314,7 +317,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.md,
   },
   sectionHeader: {
@@ -325,42 +328,42 @@ const styles = StyleSheet.create({
   },
   sectionCount: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     fontWeight: 'bold',
   },
   input: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 8,
     padding: SPACING.md,
     fontSize: FONT_SIZES.md,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
   },
   button: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 8,
     padding: SPACING.md,
     alignItems: 'center',
   },
   buttonText: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontSize: FONT_SIZES.md,
     fontWeight: 'bold',
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.border,
     marginVertical: SPACING.xl,
   },
   historyItem: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: SPACING.md,
     marginBottom: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
     flexDirection: 'row',
     alignItems: 'center',
     shadowColor: '#000',
@@ -384,12 +387,12 @@ const styles = StyleSheet.create({
   historyRoomName: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     minHeight: 24,
     flex: 1,
   },
   historyRoomBadge: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 16,
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs / 2,
@@ -397,13 +400,13 @@ const styles = StyleSheet.create({
   },
   historyRoomCode: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: 'bold',
     letterSpacing: 0.5,
   },
   historyLastJoined: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     fontStyle: 'italic',
   },
   historyArrow: {
@@ -415,11 +418,11 @@ const styles = StyleSheet.create({
   },
   historyArrowText: {
     fontSize: FONT_SIZES.xl,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     fontWeight: 'bold',
   },
   deleteAction: {
-    backgroundColor: COLORS.error,
+    backgroundColor: theme.error,
     justifyContent: 'center',
     alignItems: 'center',
     width: 100,
@@ -432,7 +435,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   deleteActionText: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontSize: FONT_SIZES.sm,
     fontWeight: 'bold',
   },

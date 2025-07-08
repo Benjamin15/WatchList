@@ -16,7 +16,7 @@ export const API_ENDPOINTS = {
   MEDIA_DETAIL: (id: number) => `/media/${id}`,
 } as const;
 
-// Couleurs du thème
+// Couleurs du thème - DEPRECATED: Utiliser useTheme() à la place
 export const COLORS = {
   primary: '#6200EE',
   primaryVariant: '#3700B3',

@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList, WatchlistItem, Vote, FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 import { apiService } from '../services/api';
 import LoadingScreen from './LoadingScreen';
 import FilterButton from '../components/FilterButton';
@@ -66,6 +67,8 @@ const VoteNotificationCard: React.FC<VoteNotificationCardProps> = ({
   getVoteEndTime
 }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -194,6 +197,8 @@ const MediaItemCard = ({
   onViewDetails: (item: WatchlistItem) => void;
   currentLanguage: string;
 }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
   const shouldTranslate = item.media.type !== 'manga' && item.media.tmdbId;
   const { title: translatedTitle } = useTranslatedTitle(
@@ -631,6 +636,8 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const navigation = useNavigation<RoomScreenNavigationProp>();
   const { t } = useTranslation();
   const { currentLanguage } = useLanguage();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -1283,21 +1290,21 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
   },
   // Vote notification styles
   voteNotificationContainer: {
     margin: SPACING.md,
   },
   voteNotification: {
-    backgroundColor: COLORS.error,
+    backgroundColor: theme.error,
     borderRadius: 12,
     padding: SPACING.md,
     marginBottom: SPACING.md,
-    shadowColor: COLORS.error,
+    shadowColor: theme.error,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -1320,7 +1327,7 @@ const styles = StyleSheet.create({
   voteTitle: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onError,
+    color: theme.onError,
   },
   voteBadge: {
     backgroundColor: 'rgba(255,255,255,0.2)',
@@ -1331,7 +1338,7 @@ const styles = StyleSheet.create({
   voteBadgeText: {
     fontSize: FONT_SIZES.xs,
     fontWeight: '600',
-    color: COLORS.onError,
+    color: theme.onError,
   },
   voteDescription: {
     fontSize: FONT_SIZES.sm,
@@ -1380,9 +1387,9 @@ const styles = StyleSheet.create({
   },
   tabs: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   tab: {
     flex: 1,
@@ -1391,15 +1398,15 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: theme.primary,
   },
   tabText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     fontWeight: '500',
   },
   activeTabText: {
-    color: COLORS.primary,
+    color: theme.primary,
   },
   content: {
     flex: 1,
@@ -1408,7 +1415,7 @@ const styles = StyleSheet.create({
   },
   mediaItem: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 14,
     padding: SPACING.md,
     marginBottom: SPACING.sm,
@@ -1424,7 +1431,7 @@ const styles = StyleSheet.create({
   poster: {
     width: 60,
     height: 90,
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.border,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1453,14 +1460,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.xs,
     lineHeight: 20,
     letterSpacing: 0.1,
   },
   meta: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: SPACING.sm,
     lineHeight: 16,
     opacity: 0.8,
@@ -1484,13 +1491,13 @@ const styles = StyleSheet.create({
   badgeText: {
     fontSize: 10,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
   },
   swipeHint: {
     fontSize: FONT_SIZES.lg,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     fontWeight: '300',
     marginLeft: SPACING.sm,
     opacity: 0.6,
@@ -1506,12 +1513,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.sm,
   },
   emptyMessage: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     textAlign: 'center',
     paddingHorizontal: SPACING.lg,
   },
@@ -1521,7 +1528,7 @@ const styles = StyleSheet.create({
     right: SPACING.md,
     width: 56,
     height: 56,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
@@ -1534,7 +1541,7 @@ const styles = StyleSheet.create({
   },
   fabText: {
     fontSize: 24,
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: 'bold',
   },
   // FAB Menu styles
@@ -1551,7 +1558,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 80,
     right: SPACING.md,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: SPACING.sm,
     shadowColor: '#000',
@@ -1580,11 +1587,11 @@ const styles = StyleSheet.create({
   fabMenuText: {
     fontSize: FONT_SIZES.sm,
     fontWeight: '500',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   fabMenuDescription: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginTop: 2,
   },
   fabMenuItemDisabled: {
@@ -1609,7 +1616,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 2,
     right: 2,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 10,
     width: 20,
     height: 20,
@@ -1618,7 +1625,7 @@ const styles = StyleSheet.create({
   },
   retryText: {
     fontSize: 12,
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: 'bold',
   },
   swipeIndicatorLeft: {

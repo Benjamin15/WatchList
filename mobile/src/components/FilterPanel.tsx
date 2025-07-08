@@ -12,6 +12,7 @@ import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
 import { useTranslation } from 'react-i18next';
 import { FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface FilterPanelProps {
   visible: boolean;
@@ -31,6 +32,8 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   resultsCount,
 }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   const [localOptions, setLocalOptions] = useState<FilterOptions>(options);
   const [panY] = useState(new Animated.Value(0));
   const [scaleValue] = useState(new Animated.Value(0));
@@ -370,7 +373,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
@@ -380,7 +383,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   panel: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '85%',
@@ -394,25 +397,25 @@ const styles = StyleSheet.create({
   header: {
     padding: SPACING.md,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
     alignItems: 'center',
   },
   dragIndicator: {
     width: 40,
     height: 4,
-    backgroundColor: COLORS.placeholder,
+    backgroundColor: theme.placeholder,
     borderRadius: 2,
     marginBottom: SPACING.md,
   },
   title: {
     fontSize: FONT_SIZES.xl,
     fontWeight: '600',
-    color: COLORS.primary,
+    color: theme.primary,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
   },
   content: {
     flex: 1,
@@ -431,7 +434,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   optionsGrid: {
     flexDirection: 'row',
@@ -450,7 +453,7 @@ const styles = StyleSheet.create({
   },
   optionActive: {
     backgroundColor: 'rgba(233, 69, 96, 0.2)',
-    borderColor: COLORS.primary,
+    borderColor: theme.primary,
   },
   optionEmoji: {
     fontSize: 14,
@@ -458,11 +461,11 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     textAlign: 'center',
   },
   optionTextActive: {
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: '600',
   },
   sortOptions: {
@@ -480,7 +483,7 @@ const styles = StyleSheet.create({
   },
   sortOptionActive: {
     backgroundColor: 'rgba(233, 69, 96, 0.2)',
-    borderColor: COLORS.primary,
+    borderColor: theme.primary,
   },
   sortInfo: {
     flexDirection: 'row',
@@ -492,15 +495,15 @@ const styles = StyleSheet.create({
   },
   sortText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   sortTextActive: {
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: '600',
   },
   sortDirection: {
     fontSize: 16,
-    color: COLORS.primary,
+    color: theme.primary,
     fontWeight: 'bold',
     minWidth: 20,
     textAlign: 'center',
@@ -510,8 +513,8 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     gap: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
-    backgroundColor: COLORS.surface,
+    borderTopColor: theme.border,
+    backgroundColor: theme.surface,
   },
   resetButton: {
     flex: 1,
@@ -532,11 +535,11 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     flex: 2,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 12,
     paddingVertical: SPACING.lg,
     alignItems: 'center',
-    shadowColor: COLORS.primary,
+    shadowColor: theme.primary,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,

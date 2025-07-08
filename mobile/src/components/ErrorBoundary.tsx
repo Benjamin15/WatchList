@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface ErrorBoundaryState {
   hasError: boolean;

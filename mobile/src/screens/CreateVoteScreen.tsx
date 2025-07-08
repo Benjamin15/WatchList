@@ -16,17 +16,20 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList, Media, WatchlistItem } from '../types';
-import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
+import { SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import MediaPoster from '../components/MediaPoster';
 import { useTranslatedTitle } from '../hooks/useTranslatedTitle';
+import { useTheme } from '../contexts/ThemeContext';
 
 // Composant pour un élément de média dans la liste de vote
 const MediaItemForVote: React.FC<{
   item: WatchlistItem;
   isSelected: boolean;
   onToggleSelection: (mediaId: number) => void;
-}> = ({ item, isSelected, onToggleSelection }) => {
+  styles: any;
+  theme: any;
+}> = ({ item, isSelected, onToggleSelection, styles, theme }) => {
   const { t } = useTranslation();
   
   // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
@@ -92,6 +95,7 @@ const CreateVoteScreen: React.FC = () => {
   const navigation = useNavigation<CreateVoteNavigationProp>();
   const { roomId } = route.params;
   const { t } = useTranslation();
+  const { theme } = useTheme();
 
   const [title, setTitle] = useState('');
   const [duration, setDuration] = useState('');
@@ -101,6 +105,8 @@ const CreateVoteScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [loadingItems, setLoadingItems] = useState(true);
   const [creatorName, setCreatorName] = useState('');
+
+  const styles = createStyles(theme);
 
   useEffect(() => {
     loadRoomItems();
@@ -203,6 +209,8 @@ const CreateVoteScreen: React.FC = () => {
         item={item}
         isSelected={isSelected}
         onToggleSelection={toggleMediaSelection}
+        styles={styles}
+        theme={theme}
       />
     );
   };
@@ -227,7 +235,7 @@ const CreateVoteScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Entrez votre nom"
-                placeholderTextColor={COLORS.placeholder}
+                placeholderTextColor={theme.placeholder}
                 value={creatorName}
                 onChangeText={setCreatorName}
                 maxLength={50}
@@ -239,7 +247,7 @@ const CreateVoteScreen: React.FC = () => {
               <TextInput
                 style={styles.input}
                 placeholder="Ex: Film du weekend"
-                placeholderTextColor={COLORS.placeholder}
+                placeholderTextColor={theme.placeholder}
                 value={title}
                 onChangeText={setTitle}
                 maxLength={100}
@@ -252,7 +260,7 @@ const CreateVoteScreen: React.FC = () => {
                 <TextInput
                   style={[styles.input, styles.durationInput]}
                   placeholder="Ex: 30"
-                  placeholderTextColor={COLORS.placeholder}
+                  placeholderTextColor={theme.placeholder}
                   value={duration}
                   onChangeText={setDuration}
                   keyboardType="numeric"
@@ -301,7 +309,7 @@ const CreateVoteScreen: React.FC = () => {
               
               {loadingItems ? (
                 <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={COLORS.primary} />
+                  <ActivityIndicator size="large" color={theme.primary} />
                   <Text style={styles.loadingText}>Chargement des médias...</Text>
                 </View>
               ) : roomItems.length === 0 ? (
@@ -340,7 +348,7 @@ const CreateVoteScreen: React.FC = () => {
             disabled={loading || !title.trim() || selectedMediaIds.length === 0 || !creatorName.trim()}
           >
             {loading ? (
-              <ActivityIndicator size="small" color={COLORS.onPrimary} />
+              <ActivityIndicator size="small" color={theme.onPrimary} />
             ) : (
               <Text style={styles.createButtonText}>Créer le vote</Text>
             )}
@@ -351,10 +359,10 @@ const CreateVoteScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
   },
   flex: {
     flex: 1,
@@ -369,12 +377,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: 24,
   },
   form: {
@@ -386,21 +394,21 @@ const styles = StyleSheet.create({
   label: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: 8,
   },
   input: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: SPACING.md,
     fontSize: FONT_SIZES.md,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
   },
   helperText: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginTop: 4,
   },
   loadingContainer: {
@@ -409,7 +417,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginTop: 8,
   },
   emptyContainer: {
@@ -419,12 +427,12 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: 8,
   },
   emptySubtext: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     textAlign: 'center',
   },
   mediaList: {
@@ -438,11 +446,11 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   selectedMediaContainer: {
-    borderColor: COLORS.primary,
+    borderColor: theme.primary,
   },
   mediaContent: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     padding: SPACING.md,
     gap: SPACING.md,
   },
@@ -453,12 +461,12 @@ const styles = StyleSheet.create({
   mediaTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: 4,
   },
   mediaMeta: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: 8,
   },
   statusBadge: {
@@ -470,7 +478,7 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: FONT_SIZES.xs,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
   selectedIndicator: {
     position: 'absolute',
@@ -479,12 +487,12 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   selectedText: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontSize: FONT_SIZES.sm,
     fontWeight: 'bold',
   },
@@ -493,12 +501,12 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     paddingTop: SPACING.md,
     borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderTopColor: theme.border,
     gap: 12,
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: SPACING.md,
     alignItems: 'center',
@@ -507,23 +515,23 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   createButton: {
     flex: 2,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 12,
     padding: SPACING.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   createButtonDisabled: {
-    backgroundColor: COLORS.placeholder,
+    backgroundColor: theme.placeholder,
   },
   createButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
   durationContainer: {
     flexDirection: 'row',
@@ -535,7 +543,7 @@ const styles = StyleSheet.create({
   },
   unitSelector: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 8,
     padding: 2,
   },
@@ -545,15 +553,15 @@ const styles = StyleSheet.create({
     borderRadius: 6,
   },
   unitButtonActive: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
   },
   unitButtonText: {
     fontSize: FONT_SIZES.sm,
     fontWeight: '600',
-    color: COLORS.placeholder,
+    color: theme.placeholder,
   },
   unitButtonTextActive: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
 });
 

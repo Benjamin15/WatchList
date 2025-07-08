@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Image } from 'react-native';
-import { COLORS } from '../constants';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface MediaPosterProps {
   posterUrl?: string;
@@ -15,6 +15,9 @@ const MediaPoster: React.FC<MediaPosterProps> = ({
   size = 'medium' 
 }) => {
   const [imageError, setImageError] = useState(false);
+  const { theme } = useTheme();
+  
+  const styles = createStyles(theme);
   
   const getEmojiForType = (type: string) => {
     switch (type) {
@@ -86,11 +89,11 @@ const MediaPoster: React.FC<MediaPosterProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   posterContainer: {
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.border,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.15,
@@ -104,7 +107,7 @@ const styles = StyleSheet.create({
   fallbackContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.border,
   },
   fallbackEmoji: {
     textAlign: 'center',

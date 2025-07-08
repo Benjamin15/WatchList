@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { useTranslation } from 'react-i18next';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface TabHeaderProps {
   currentTab: 'planned' | 'watching' | 'completed';
@@ -10,6 +11,8 @@ interface TabHeaderProps {
 
 const TabHeader: React.FC<TabHeaderProps> = ({ currentTab, onTabChange }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   
   const tabs = [
     { key: 'planned', label: t('status.planned') },
@@ -42,12 +45,12 @@ const TabHeader: React.FC<TabHeaderProps> = ({ currentTab, onTabChange }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   tab: {
     flex: 1,
@@ -56,15 +59,15 @@ const styles = StyleSheet.create({
   },
   activeTab: {
     borderBottomWidth: 2,
-    borderBottomColor: COLORS.primary,
+    borderBottomColor: theme.primary,
   },
   tabText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     fontWeight: '500',
   },
   activeTabText: {
-    color: COLORS.primary,
+    color: theme.primary,
   },
 });
 

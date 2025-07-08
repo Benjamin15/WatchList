@@ -5,8 +5,9 @@ import { RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import { RootStackParamList, SearchResult } from '../types';
-import { COLORS, SPACING, FONT_SIZES } from '../constants';
+import { SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
+import { useTheme } from '../contexts/ThemeContext';
 
 type SearchScreenRouteProp = RouteProp<RootStackParamList, 'Search'>;
 type SearchScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Search'>;
@@ -78,12 +79,15 @@ const mockSearchResults: SearchResult[] = [
 const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   const { roomId } = route.params;
   const { t } = useTranslation();
+  const { theme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
   const [currentSearchQuery, setCurrentSearchQuery] = useState('');
   const [existingMediaIds, setExistingMediaIds] = useState<Set<string>>(new Set());
+
+  const styles = createStyles(theme);
 
   // Charger les médias existants dans la room
   useEffect(() => {
@@ -314,7 +318,7 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
         <TextInput
           style={styles.searchInput}
           placeholder="Tapez pour rechercher (min. 2 caractères)..."
-          placeholderTextColor={COLORS.placeholder}
+          placeholderTextColor={theme.placeholder}
           value={searchQuery}
           onChangeText={setSearchQuery}
           returnKeyType="search"
@@ -369,32 +373,32 @@ const SearchScreen: React.FC<SearchScreenProps> = ({ route, navigation }) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
   },
   searchContainer: {
     flexDirection: 'row',
     padding: SPACING.md,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   searchInput: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
     borderRadius: 8,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
     fontSize: FONT_SIZES.md,
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
     marginRight: SPACING.sm,
   },
   searchButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 8,
     paddingHorizontal: SPACING.md,
     paddingVertical: SPACING.sm,
@@ -412,22 +416,22 @@ const styles = StyleSheet.create({
   resultsTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.md,
   },
   resultItem: {
     flexDirection: 'row',
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     padding: SPACING.md,
     marginBottom: SPACING.md,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
   },
   resultPoster: {
     width: 50,
     height: 75,
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.border,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -447,12 +451,12 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: FONT_SIZES.md,
     fontWeight: 'bold',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.xs,
   },
   resultMeta: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: SPACING.sm,
   },
   resultFooter: {
@@ -462,17 +466,17 @@ const styles = StyleSheet.create({
   },
   resultRating: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   addButton: {
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     paddingHorizontal: SPACING.sm,
     paddingVertical: 4,
     borderRadius: 12,
   },
   addButtonText: {
     fontSize: FONT_SIZES.xs,
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontWeight: 'bold',
   },
   emptyState: {
@@ -486,12 +490,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.sm,
   },
   emptyMessage: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     textAlign: 'center',
     paddingHorizontal: SPACING.lg,
   },

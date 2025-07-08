@@ -19,6 +19,7 @@ import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
 import MediaPoster from '../components/MediaPoster';
 import { useTranslatedTitle } from '../hooks/useTranslatedTitle';
+import { useTheme } from '../contexts/ThemeContext';
 
 const VoteOptionItem: React.FC<{
   option: VoteOption;
@@ -26,6 +27,8 @@ const VoteOptionItem: React.FC<{
   onSelect: (option: VoteOption) => void;
 }> = ({ option, vote, onSelect }) => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   
   // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
   const shouldTranslate = option.media.type !== 'manga' && option.media.tmdbId;
@@ -74,6 +77,8 @@ const VoteOptionItem: React.FC<{
 const SelectedOptionPreview: React.FC<{
   selectedOption: VoteOption;
 }> = ({ selectedOption }) => {
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
   const shouldTranslate = selectedOption.media.type !== 'manga' && selectedOption.media.tmdbId;
   const { title: translatedTitle } = useTranslatedTitle(
@@ -106,6 +111,8 @@ const VoteDetailScreen: React.FC = () => {
   const navigation = useNavigation<VoteDetailNavigationProp>();
   const { voteId, roomId } = route.params;
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
 
   const [vote, setVote] = useState<Vote | null>(null);
   const [loading, setLoading] = useState(true);
@@ -200,17 +207,17 @@ const VoteDetailScreen: React.FC = () => {
   };
 
   const getStatusColor = () => {
-    if (!vote) return COLORS.placeholder;
+    if (!vote) return theme.placeholder;
     
     switch (vote.status) {
       case 'active':
-        return COLORS.secondary;
+        return theme.secondary;
       case 'completed':
-        return COLORS.primary;
+        return theme.primary;
       case 'expired':
-        return COLORS.error;
+        return theme.error;
       default:
-        return COLORS.placeholder;
+        return theme.placeholder;
     }
   };
 
@@ -232,7 +239,7 @@ const VoteDetailScreen: React.FC = () => {
               styles.progressBar, 
               { 
                 width: `${option.percentage}%`,
-                backgroundColor: isWinner ? COLORS.secondary : COLORS.primary,
+                backgroundColor: isWinner ? theme.secondary : theme.primary,
               }
             ]} 
           />
@@ -251,7 +258,7 @@ const VoteDetailScreen: React.FC = () => {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={COLORS.primary} />
+          <ActivityIndicator size="large" color={theme.primary} />
           <Text style={styles.loadingText}>Chargement du vote...</Text>
         </View>
       </SafeAreaView>
@@ -347,7 +354,7 @@ const VoteDetailScreen: React.FC = () => {
                 <TextInput
                   style={styles.nameInput}
                   placeholder={t('common.yourName')}
-                  placeholderTextColor={COLORS.placeholder}
+                  placeholderTextColor={theme.placeholder}
                   value={voterName}
                   onChangeText={setVoterName}
                   maxLength={50}
@@ -372,7 +379,7 @@ const VoteDetailScreen: React.FC = () => {
                 disabled={voting}
               >
                 {voting ? (
-                  <ActivityIndicator size="small" color={COLORS.onPrimary} />
+                  <ActivityIndicator size="small" color={theme.onPrimary} />
                 ) : (
                   <Text style={styles.confirmButtonText}>Voter</Text>
                 )}
@@ -385,10 +392,10 @@ const VoteDetailScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
   },
   scrollView: {
     flex: 1,
@@ -400,7 +407,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginTop: SPACING.md,
   },
   errorContainer: {
@@ -410,22 +417,22 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: FONT_SIZES.lg,
-    color: COLORS.error,
+    color: theme.error,
   },
   header: {
     padding: SPACING.lg,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    borderBottomColor: theme.border,
   },
   title: {
     fontSize: FONT_SIZES.xxxl,
     fontWeight: 'bold',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.md,
   },
   description: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: SPACING.lg,
   },
   voteInfo: {
@@ -435,7 +442,7 @@ const styles = StyleSheet.create({
   },
   creator: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
   },
   statusBadge: {
     paddingHorizontal: SPACING.sm,
@@ -445,13 +452,13 @@ const styles = StyleSheet.create({
   statusText: {
     fontSize: FONT_SIZES.xs,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
   stats: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     padding: SPACING.lg,
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     marginHorizontal: SPACING.lg,
     marginTop: SPACING.lg,
     borderRadius: 12,
@@ -462,11 +469,11 @@ const styles = StyleSheet.create({
   statNumber: {
     fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   statLabel: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginTop: SPACING.xs,
   },
   optionsContainer: {
@@ -475,11 +482,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.lg,
   },
   optionContainer: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 12,
     marginBottom: SPACING.md,
     overflow: 'hidden',
@@ -487,7 +494,7 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
   },
   winnerContainer: {
-    borderColor: COLORS.secondary,
+    borderColor: theme.secondary,
   },
   disabledContainer: {
     opacity: 0.6,
@@ -503,12 +510,12 @@ const styles = StyleSheet.create({
   optionTitle: {
     fontSize: FONT_SIZES.lg,
     fontWeight: '600',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.xs,
   },
   optionMeta: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
     marginBottom: SPACING.md,
   },
   voteStats: {
@@ -518,16 +525,16 @@ const styles = StyleSheet.create({
   },
   voteCount: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   votePercentage: {
     fontSize: FONT_SIZES.lg,
     fontWeight: 'bold',
-    color: COLORS.primary,
+    color: theme.primary,
   },
   progressBarContainer: {
     height: 4,
-    backgroundColor: COLORS.border,
+    backgroundColor: theme.border,
     marginHorizontal: SPACING.md,
     marginBottom: SPACING.md,
     borderRadius: 2,
@@ -540,7 +547,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: SPACING.md,
     right: SPACING.md,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: theme.secondary,
     paddingHorizontal: SPACING.sm,
     paddingVertical: SPACING.xs,
     borderRadius: 6,
@@ -548,19 +555,19 @@ const styles = StyleSheet.create({
   winnerText: {
     fontSize: FONT_SIZES.xs,
     fontWeight: '600',
-    color: COLORS.onSecondary,
+    color: theme.onSecondary,
   },
   votedMessage: {
     margin: SPACING.lg,
     padding: SPACING.md,
-    backgroundColor: COLORS.secondary,
+    backgroundColor: theme.secondary,
     borderRadius: 12,
     alignItems: 'center',
   },
   votedText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onSecondary,
+    color: theme.onSecondary,
   },
   modalOverlay: {
     flex: 1,
@@ -569,7 +576,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: COLORS.surface,
+    backgroundColor: theme.surface,
     borderRadius: 16,
     padding: SPACING.lg,
     width: '90%',
@@ -578,13 +585,13 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: FONT_SIZES.xl,
     fontWeight: 'bold',
-    color: COLORS.onSurface,
+    color: theme.onSurface,
     marginBottom: SPACING.lg,
     textAlign: 'center',
   },
   selectedOptionPreview: {
     flexDirection: 'row',
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
     padding: SPACING.md,
     borderRadius: 12,
     marginBottom: SPACING.lg,
@@ -596,12 +603,12 @@ const styles = StyleSheet.create({
   selectedOptionTitle: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     marginBottom: SPACING.xs,
   },
   selectedOptionMeta: {
     fontSize: FONT_SIZES.sm,
-    color: COLORS.placeholder,
+    color: theme.placeholder,
   },
   voteForm: {
     marginBottom: SPACING.lg,
@@ -615,33 +622,33 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderWidth: 2,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
     borderRadius: 4,
     marginRight: SPACING.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
   checkboxChecked: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+    backgroundColor: theme.primary,
+    borderColor: theme.primary,
   },
   checkmark: {
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
     fontSize: FONT_SIZES.xs,
     fontWeight: 'bold',
   },
   anonymousText: {
     fontSize: FONT_SIZES.md,
-    color: COLORS.onSurface,
+    color: theme.onSurface,
   },
   nameInput: {
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
     borderRadius: 12,
     padding: SPACING.md,
     fontSize: FONT_SIZES.md,
-    color: COLORS.onBackground,
+    color: theme.onBackground,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: theme.border,
   },
   modalButtons: {
     flexDirection: 'row',
@@ -649,7 +656,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: COLORS.background,
+    backgroundColor: theme.background,
     borderRadius: 12,
     padding: SPACING.md,
     alignItems: 'center',
@@ -658,23 +665,23 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onBackground,
+    color: theme.onBackground,
   },
   confirmButton: {
     flex: 1,
-    backgroundColor: COLORS.primary,
+    backgroundColor: theme.primary,
     borderRadius: 12,
     padding: SPACING.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   confirmButtonDisabled: {
-    backgroundColor: COLORS.placeholder,
+    backgroundColor: theme.placeholder,
   },
   confirmButtonText: {
     fontSize: FONT_SIZES.md,
     fontWeight: '600',
-    color: COLORS.onPrimary,
+    color: theme.onPrimary,
   },
 });
 

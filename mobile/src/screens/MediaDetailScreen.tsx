@@ -23,6 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { RootStackParamList, Media, SearchResult, MediaDetails, Trailer } from '../types';
 import { apiService } from '../services/api';
 import { extractTmdbId, extractMediaType } from '../utils/helpers';
+import { useTheme } from '../contexts/ThemeContext';
 
 const { width, height } = Dimensions.get('window');
 
@@ -30,6 +31,8 @@ const MediaDetailScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = createStyles(theme);
   
   const { media, roomId } = route.params as { media: Media | SearchResult; roomId?: string };
   
@@ -316,7 +319,7 @@ const MediaDetailScreen: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={theme.primary} />
         <Text style={styles.loadingText}>Chargement des détails...</Text>
       </View>
     );
@@ -428,9 +431,9 @@ const MediaDetailScreen: React.FC = () => {
                 <View style={styles.statusOptions}>
                   {[
                     { key: 'planned', label: t('status.planned'), icon: 'bookmark-outline', color: '#FF9500' },
-                    { key: 'watching', label: t('status.watching'), icon: 'play-circle-outline', color: '#007AFF' },
+                    { key: 'watching', label: t('status.watching'), icon: 'play-circle-outline', color: theme.primary },
                     { key: 'completed', label: t('status.completed'), icon: 'checkmark-circle-outline', color: '#34C759' },
-                    { key: 'dropped', label: t('common.delete'), icon: 'trash-outline', color: '#FF3B30' }
+                    { key: 'dropped', label: t('common.delete'), icon: 'trash-outline', color: theme.error }
                   ].map((statusOption) => (
                     <TouchableOpacity
                       key={statusOption.key}
@@ -443,7 +446,7 @@ const MediaDetailScreen: React.FC = () => {
                       <Ionicons 
                         name={statusOption.icon as any} 
                         size={20} 
-                        color={currentStatus === statusOption.key ? statusOption.color : '#666'} 
+                        color={currentStatus === statusOption.key ? statusOption.color : theme.placeholder} 
                       />
                       <Text style={[
                         styles.statusOptionText,
@@ -536,19 +539,19 @@ const MediaDetailScreen: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (theme: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
   },
   loadingText: {
-    color: 'white',
+    color: theme.onBackground,
     marginTop: 16,
     fontSize: 16,
   },
@@ -594,7 +597,7 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: theme.background,
     marginTop: -30,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
@@ -619,7 +622,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: 'white',
+    color: theme.onBackground,
     marginBottom: 8,
   },
   metadata: {
@@ -628,15 +631,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   year: {
-    color: '#ccc',
+    color: theme.placeholder,
     marginRight: 12,
   },
   genre: {
-    color: '#ccc',
+    color: theme.placeholder,
     marginRight: 12,
   },
   runtime: {
-    color: '#ccc',
+    color: theme.placeholder,
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -653,7 +656,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.primary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -662,7 +665,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
   },
   addButtonText: {
-    color: 'white',
+    color: theme.onPrimary,
     fontWeight: 'bold',
     marginLeft: 8,
   },
@@ -671,19 +674,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   statusLabel: {
-    color: 'white',
+    color: theme.onBackground,
     marginRight: 12,
   },
   statusButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C1C1E',
+    backgroundColor: theme.surface,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 15,
   },
   statusText: {
-    color: '#007AFF',
+    color: theme.primary,
     marginRight: 4,
   },
   trailerSection: {
@@ -694,21 +697,21 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   trailerTab: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: theme.surface,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     marginRight: 12,
   },
   activeTrailerTab: {
-    backgroundColor: '#007AFF',
+    backgroundColor: theme.primary,
   },
   trailerTabText: {
-    color: '#ccc',
+    color: theme.placeholder,
     fontSize: 14,
   },
   activeTrailerTabText: {
-    color: 'white',
+    color: theme.onPrimary,
   },
   trailerPlayer: {
     height: 200,
@@ -726,11 +729,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: 'white',
+    color: theme.onBackground,
     marginBottom: 12,
   },
   synopsisText: {
-    color: '#ccc',
+    color: theme.placeholder,
     lineHeight: 22,
   },
   detailRow: {
@@ -738,12 +741,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   detailLabel: {
-    color: '#999',
+    color: theme.placeholder,
     width: 100,
     fontWeight: '500',
   },
   detailValue: {
-    color: '#ccc',
+    color: theme.onBackground,
     flex: 1,
   },
   statusSection: {
@@ -752,7 +755,7 @@ const styles = StyleSheet.create({
   statusSectionTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: 'white',
+    color: theme.onBackground,
     marginBottom: 12,
   },
   statusOptions: {
@@ -767,17 +770,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#444',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: theme.border,
+    backgroundColor: theme.surface,
     marginBottom: 8,
     minWidth: '48%',
   },
   statusOptionActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: theme.surface,
     borderWidth: 2,
   },
   statusOptionText: {
-    color: '#ccc',
+    color: theme.onSurface,
     marginLeft: 8,
     fontSize: 14,
     fontWeight: '500',
