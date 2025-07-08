@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
 
-export type ThemeMode = 'light' | 'dark' | 'auto';
+export type ThemeMode = 'light' | 'dark' | 'green';
 
 export interface Theme {
   primary: string;
@@ -55,6 +55,23 @@ export const darkTheme: Theme = {
   border: '#333333',
 };
 
+export const greenTheme: Theme = {
+  primary: '#4CAF50',
+  primaryVariant: '#388E3C',
+  secondary: '#81C784',
+  secondaryVariant: '#66BB6A',
+  background: '#F1F8E9',
+  surface: '#E8F5E8',
+  error: '#F44336',
+  onPrimary: '#FFFFFF',
+  onSecondary: '#000000',
+  onBackground: '#1B5E20',
+  onSurface: '#2E7D32',
+  onError: '#FFFFFF',
+  placeholder: '#4E7C4F',
+  border: '#C8E6C9',
+};
+
 interface ThemeContextType {
   theme: Theme;
   themeMode: ThemeMode;
@@ -71,7 +88,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [themeMode, setThemeModeState] = useState<ThemeMode>('auto');
+  const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(
     Appearance.getColorScheme() === 'dark' ? 'dark' : 'light'
   );
@@ -81,7 +98,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     const loadTheme = async () => {
       try {
         const savedTheme = await AsyncStorage.getItem(THEME_STORAGE_KEY);
-        if (savedTheme && ['light', 'dark', 'auto'].includes(savedTheme)) {
+        if (savedTheme && ['light', 'dark', 'green'].includes(savedTheme)) {
           setThemeModeState(savedTheme as ThemeMode);
         }
       } catch (error) {
@@ -112,16 +129,20 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   };
 
   // Déterminer le thème actuel
-  const getEffectiveTheme = (): 'light' | 'dark' => {
-    if (themeMode === 'auto') {
-      return systemTheme;
+  const getTheme = (): Theme => {
+    switch (themeMode) {
+      case 'dark':
+        return darkTheme;
+      case 'green':
+        return greenTheme;
+      case 'light':
+      default:
+        return lightTheme;
     }
-    return themeMode;
   };
 
-  const effectiveTheme = getEffectiveTheme();
-  const theme = effectiveTheme === 'dark' ? darkTheme : lightTheme;
-  const isDark = effectiveTheme === 'dark';
+  const theme = getTheme();
+  const isDark = themeMode === 'dark';
 
   const value: ThemeContextType = {
     theme,

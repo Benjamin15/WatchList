@@ -62,7 +62,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
   const themeOptions = [
     { key: 'dark', label: t('settings.dark') },
     { key: 'light', label: t('settings.light') },
-    { key: 'auto', label: t('settings.auto') },
+    { key: 'green', label: t('settings.green') },
   ];
 
   // Créer les styles avec le thème actuel
