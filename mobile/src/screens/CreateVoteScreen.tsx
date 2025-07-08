@@ -19,6 +19,70 @@ import { RootStackParamList, Media, WatchlistItem } from '../types';
 import { COLORS, SPACING, FONT_SIZES, MEDIA_STATUS } from '../constants';
 import { apiService } from '../services/api';
 import MediaPoster from '../components/MediaPoster';
+import { useTranslatedTitle } from '../hooks/useTranslatedTitle';
+
+// Composant pour un élément de média dans la liste de vote
+const MediaItemForVote: React.FC<{
+  item: WatchlistItem;
+  isSelected: boolean;
+  onToggleSelection: (mediaId: number) => void;
+}> = ({ item, isSelected, onToggleSelection }) => {
+  const { t } = useTranslation();
+  
+  // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
+  const shouldTranslate = item.media.type !== 'manga' && item.media.tmdbId;
+  const { title: translatedTitle } = useTranslatedTitle(
+    shouldTranslate ? item.media.tmdbId : undefined,
+    item.media.type === 'tv' ? 'series' : item.media.type as 'movie' | 'series',
+    item.media.title
+  );
+
+  const status = MEDIA_STATUS[item.status];
+
+  const getStatusText = (status: string) => {
+    switch(status) {
+      case 'planned': return t('status.planned');
+      case 'watching': return t('status.watching');
+      case 'completed': return t('status.completed');
+      case 'dropped': return t('status.dropped');
+      default: return status;
+    }
+  };
+  
+  return (
+    <TouchableOpacity
+      style={[
+        styles.mediaContainer,
+        isSelected && styles.selectedMediaContainer
+      ]}
+      onPress={() => onToggleSelection(item.media.id)}
+    >
+      <View style={styles.mediaContent}>
+        <MediaPoster 
+          posterUrl={item.media.posterUrl}
+          mediaType={item.media.type === 'tv' ? 'series' : item.media.type}
+          size="small"
+        />
+        <View style={styles.mediaInfo}>
+          <Text style={styles.mediaTitle} numberOfLines={2}>
+            {translatedTitle}
+          </Text>
+          <Text style={styles.mediaMeta}>
+            {item.media.genre}
+          </Text>
+          <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
+            <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
+          </View>
+        </View>
+      </View>
+      {isSelected && (
+        <View style={styles.selectedIndicator}>
+          <Text style={styles.selectedText}>✓</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
+};
 
 type CreateVoteRouteProp = RouteProp<RootStackParamList, 'CreateVote'>;
 type CreateVoteNavigationProp = NativeStackNavigationProp<RootStackParamList, 'CreateVote'>;
@@ -133,51 +197,13 @@ const CreateVoteScreen: React.FC = () => {
 
   const renderMediaItem = (item: WatchlistItem) => {
     const isSelected = selectedMediaIds.includes(item.media.id);
-    const status = MEDIA_STATUS[item.status];
-    
-    const getStatusText = (status: string) => {
-      switch (status) {
-        case 'watching': return t('status.watching');
-        case 'completed': return t('status.completed');
-        case 'planned': return t('status.planned');
-        case 'dropped': return t('status.abandoned');
-        default: return status;
-      }
-    };
-    
     return (
-      <TouchableOpacity
+      <MediaItemForVote
         key={item.id}
-        style={[
-          styles.mediaContainer,
-          isSelected && styles.selectedMediaContainer
-        ]}
-        onPress={() => toggleMediaSelection(item.media.id)}
-      >
-        <View style={styles.mediaContent}>
-          <MediaPoster 
-            posterUrl={item.media.posterUrl}
-            mediaType={item.media.type === 'tv' ? 'series' : item.media.type}
-            size="small"
-          />
-          <View style={styles.mediaInfo}>
-            <Text style={styles.mediaTitle} numberOfLines={2}>
-              {item.media.title}
-            </Text>
-            <Text style={styles.mediaMeta}>
-              {item.media.genre}
-            </Text>
-            <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
-              <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
-            </View>
-          </View>
-        </View>
-        {isSelected && (
-          <View style={styles.selectedIndicator}>
-            <Text style={styles.selectedText}>✓</Text>
-          </View>
-        )}
-      </TouchableOpacity>
+        item={item}
+        isSelected={isSelected}
+        onToggleSelection={toggleMediaSelection}
+      />
     );
   };
 

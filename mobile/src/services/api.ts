@@ -33,10 +33,26 @@ class ApiService {
       },
     });
 
+    // Intercepteur pour loguer les requêtes
+    this.client.interceptors.request.use(
+      (config) => {
+        console.log(`[API] ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`);
+        return config;
+      },
+      (error) => {
+        console.error('[API] Request error:', error);
+        return Promise.reject(error);
+      }
+    );
+
     // Intercepteur pour gérer les erreurs
     this.client.interceptors.response.use(
-      (response) => response,
+      (response) => {
+        console.log(`[API] Response ${response.status} for ${response.config.url}`);
+        return response;
+      },
       (error: AxiosError) => {
+        console.error(`[API] Error ${error.code} for ${error.config?.url}:`, error.message);
         return Promise.reject(this.handleError(error));
       }
     );
@@ -87,6 +103,9 @@ class ApiService {
     if (USE_MOCK_DATA) {
       return mockApiService.joinRoom(code);
     }
+    
+    console.log(`[API] Attempting to join room with code: ${code}`);
+    console.log(`[API] Base URL: ${this.client.defaults.baseURL}`);
     
     // Temporaire: utiliser l'endpoint GET avec le room_id
     const response = await this.client.get<Room>(`${API_ENDPOINTS.ROOMS}/${code}`);

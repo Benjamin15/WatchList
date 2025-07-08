@@ -18,6 +18,91 @@ import { RootStackParamList, Vote, VoteOption } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
 import MediaPoster from '../components/MediaPoster';
+import { useTranslatedTitle } from '../hooks/useTranslatedTitle';
+
+const VoteOptionItem: React.FC<{
+  option: VoteOption;
+  vote: Vote | null;
+  onSelect: (option: VoteOption) => void;
+}> = ({ option, vote, onSelect }) => {
+  const { t } = useTranslation();
+  
+  // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
+  const shouldTranslate = option.media.type !== 'manga' && option.media.tmdbId;
+  const { title: translatedTitle } = useTranslatedTitle(
+    shouldTranslate ? option.media.tmdbId : undefined,
+    option.media.type === 'tv' ? 'series' : option.media.type as 'movie' | 'series',
+    option.media.title
+  );
+
+  const isDisabled = vote?.status !== 'active' || vote?.userHasVoted;
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.optionContainer,
+        isDisabled && styles.disabledContainer
+      ]}
+      onPress={() => onSelect(option)}
+      disabled={isDisabled}
+    >
+      <View style={styles.optionContent}>
+        <MediaPoster 
+          posterUrl={option.media.posterUrl}
+          mediaType={option.media.type === 'tv' ? 'series' : option.media.type}
+          size="small"
+        />
+        <View style={styles.optionInfo}>
+          <Text style={styles.optionTitle} numberOfLines={2}>
+            {translatedTitle}
+          </Text>
+          <Text style={styles.optionMeta}>
+            {option.media.genre}
+          </Text>
+          <View style={styles.voteStats}>
+            <Text style={styles.voteCount}>
+              {option.voteCount} vote{option.voteCount !== 1 ? 's' : ''}
+            </Text>
+            <Text style={styles.votePercentage}>
+              {option.percentage}%
+            </Text>
+          </View>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+// Composant pour l'option sélectionnée dans la modal
+const SelectedOptionPreview: React.FC<{
+  selectedOption: VoteOption;
+}> = ({ selectedOption }) => {
+  // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
+  const shouldTranslate = selectedOption.media.type !== 'manga' && selectedOption.media.tmdbId;
+  const { title: translatedTitle } = useTranslatedTitle(
+    shouldTranslate ? selectedOption.media.tmdbId : undefined,
+    selectedOption.media.type === 'tv' ? 'series' : selectedOption.media.type as 'movie' | 'series',
+    selectedOption.media.title
+  );
+
+  return (
+    <View style={styles.selectedOptionPreview}>
+      <MediaPoster 
+        posterUrl={selectedOption.media.posterUrl}
+        mediaType={selectedOption.media.type === 'tv' ? 'series' : selectedOption.media.type}
+        size="small"
+      />
+      <View style={styles.selectedOptionInfo}>
+        <Text style={styles.selectedOptionTitle}>
+          {translatedTitle}
+        </Text>
+        <Text style={styles.selectedOptionMeta}>
+          {selectedOption.media.genre}
+        </Text>
+      </View>
+    </View>
+  );
+};
 
 type VoteDetailRouteProp = RouteProp<RootStackParamList, 'VoteDetail'>;
 type VoteDetailNavigationProp = NativeStackNavigationProp<RootStackParamList, 'VoteDetail'>;
@@ -139,39 +224,12 @@ const VoteDetailScreen: React.FC = () => {
     const isWinner = option.isWinner && vote?.status === 'completed';
     
     return (
-      <TouchableOpacity
-        key={option.id}
-        style={[
-          styles.optionContainer,
-          isWinner && styles.winnerContainer,
-          vote?.status !== 'active' && styles.disabledContainer,
-        ]}
-        onPress={() => handleVotePress(option)}
-        disabled={vote?.status !== 'active' || vote?.userHasVoted}
-      >
-        <View style={styles.optionContent}>
-          <MediaPoster 
-            posterUrl={option.media.posterUrl}
-            mediaType={option.media.type === 'tv' ? 'series' : option.media.type}
-            size="small"
-          />
-          <View style={styles.optionInfo}>
-            <Text style={styles.optionTitle} numberOfLines={2}>
-              {option.media.title}
-            </Text>
-            <Text style={styles.optionMeta}>
-              {option.media.genre}
-            </Text>
-            <View style={styles.voteStats}>
-              <Text style={styles.voteCount}>
-                {option.voteCount} vote{option.voteCount !== 1 ? 's' : ''}
-              </Text>
-              <Text style={styles.votePercentage}>
-                {option.percentage}%
-              </Text>
-            </View>
-          </View>
-        </View>
+      <View key={option.id} style={[isWinner && styles.winnerContainer]}>
+        <VoteOptionItem 
+          option={option}
+          vote={vote}
+          onSelect={handleVotePress}
+        />
         
         {/* Barre de progression */}
         <View style={styles.progressBarContainer}>
@@ -191,7 +249,7 @@ const VoteDetailScreen: React.FC = () => {
             <Text style={styles.winnerText}>🏆 Gagnant</Text>
           </View>
         )}
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -277,21 +335,7 @@ const VoteDetailScreen: React.FC = () => {
             <Text style={styles.modalTitle}>Confirmer votre vote</Text>
             
             {selectedOption && (
-              <View style={styles.selectedOptionPreview}>
-                <MediaPoster 
-                  posterUrl={selectedOption.media.posterUrl}
-                  mediaType={selectedOption.media.type === 'tv' ? 'series' : selectedOption.media.type}
-                  size="small"
-                />
-                <View style={styles.selectedOptionInfo}>
-                  <Text style={styles.selectedOptionTitle}>
-                    {selectedOption.media.title}
-                  </Text>
-                  <Text style={styles.selectedOptionMeta}>
-                    {selectedOption.media.genre}
-                  </Text>
-                </View>
-              </View>
+              <SelectedOptionPreview selectedOption={selectedOption} />
             )}
 
             <View style={styles.voteForm}>

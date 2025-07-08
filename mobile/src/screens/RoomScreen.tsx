@@ -16,6 +16,7 @@ import SettingsSidebar from '../components/SettingsSidebar';
 import MediaPoster from '../components/MediaPoster';
 import { translateStatus } from '../utils/translations';
 import { useLanguage } from '../hooks/useLanguage';
+import { useTranslatedTitle } from '../hooks/useTranslatedTitle';
 
 // Clé pour stocker les votes supprimés dans AsyncStorage (par room)
 const getDismissedVotesStorageKey = (roomId: string) => `dismissedVotes_${roomId}`;
@@ -193,6 +194,14 @@ const MediaItemCard = ({
   onViewDetails: (item: WatchlistItem) => void;
   currentLanguage: string;
 }) => {
+  // Récupérer le titre traduit (seulement pour les films et séries avec TMDB ID)
+  const shouldTranslate = item.media.type !== 'manga' && item.media.tmdbId;
+  const { title: translatedTitle } = useTranslatedTitle(
+    shouldTranslate ? item.media.tmdbId : undefined,
+    item.media.type === 'tv' ? 'series' : item.media.type as 'movie' | 'series',
+    item.media.title
+  );
+
   // Mapper les statuts mobiles vers les statuts backend pour la traduction
   const statusMapping: Record<string, string> = {
     'planned': 'a_voir',
@@ -507,7 +516,7 @@ const MediaItemCard = ({
         {renderMediaPoster(item)}
         
         <View style={styles.mediaContent}>
-          <Text style={styles.title}>{item.media.title}</Text>
+          <Text style={styles.title}>{translatedTitle}</Text>
           <Text style={styles.meta}>{item.media.genre}</Text>
           
           <View style={styles.footer}>

@@ -84,3 +84,68 @@ export const translateMediaType = (type: string, language: string): string => {
 
   return typeTranslations[language]?.[type] || typeTranslations['fr']?.[type] || type;
 };
+
+/**
+ * Cache pour les titres traduits afin d'éviter les appels API répétés
+ */
+const translatedTitlesCache = new Map<string, { title: string; timestamp: number }>();
+const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
+
+/**
+ * Récupère le titre traduit d'un média via son TMDB ID
+ * @param {number} tmdbId - ID TMDB du média
+ * @param {'movie' | 'series' | 'tv'} type - Type de média
+ * @param {string} language - Code de langue (fr, en, es, pt)
+ * @param {string} fallbackTitle - Titre de fallback si la traduction échoue
+ * @returns {Promise<string>} Titre traduit ou titre de fallback
+ */
+export const getTranslatedTitle = async (
+  tmdbId: number | undefined,
+  type: 'movie' | 'series' | 'tv',
+  language: string,
+  fallbackTitle: string
+): Promise<string> => {
+  // Si pas de TMDB ID, retourner le titre de fallback
+  if (!tmdbId) {
+    return fallbackTitle;
+  }
+
+  // Normaliser le type pour TMDB
+  const tmdbType = type === 'tv' ? 'series' : type;
+  
+  // Créer une clé unique pour le cache
+  const cacheKey = `${tmdbId}-${tmdbType}-${language}`;
+  
+  // Vérifier le cache
+  const cached = translatedTitlesCache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.title;
+  }
+
+  try {
+    // Importer dynamiquement l'API service pour éviter les dépendances circulaires
+    const { apiService } = await import('../services/api');
+    
+    // Récupérer les détails traduits depuis TMDB
+    const details = await apiService.getMediaDetailsFromTMDB(tmdbId, tmdbType);
+    const translatedTitle = details.title || fallbackTitle;
+    
+    // Mettre en cache le résultat
+    translatedTitlesCache.set(cacheKey, {
+      title: translatedTitle,
+      timestamp: Date.now()
+    });
+    
+    return translatedTitle;
+  } catch (error) {
+    console.warn(`Erreur lors de la récupération du titre traduit pour TMDB ID ${tmdbId}:`, error);
+    return fallbackTitle;
+  }
+};
+
+/**
+ * Nettoie le cache des titres traduits (utile pour libérer la mémoire)
+ */
+export const clearTranslatedTitlesCache = (): void => {
+  translatedTitlesCache.clear();
+};

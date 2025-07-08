@@ -1,6 +1,3 @@
-// Configuration de l'API
-export const API_BASE_URL = 'http://192.168.0.14:3000/api';
-
 // Endpoints API
 export const API_ENDPOINTS = {
   // Rooms
