@@ -1,5 +1,5 @@
 // Configuration de l'API
-export const API_BASE_URL = 'http://192.168.0.200:3000/api';
+export const API_BASE_URL = 'http://192.168.0.14:3000/api';
 
 // Endpoints API
 export const API_ENDPOINTS = {
@@ -7,9 +7,9 @@ export const API_ENDPOINTS = {
   ROOMS: '/rooms',
   JOIN_ROOM: '/rooms/join',
   
-  // Watchlist
-  WATCHLIST: (roomId: number) => `/rooms/${roomId}/watchlist`,
-  WATCHLIST_ITEM: (roomId: number, itemId: number) => `/rooms/${roomId}/watchlist/${itemId}`,
+  // Watchlist (items)
+  WATCHLIST: (roomId: number | string) => `/rooms/${roomId}/items`,
+  WATCHLIST_ITEM: (roomId: number | string, itemId: number) => `/rooms/${roomId}/items/${itemId}/status`,
   
   // Search
   SEARCH: '/search',

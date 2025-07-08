@@ -500,7 +500,7 @@ const MediaItemCard = ({
       </Animated.View>
 
       <TouchableOpacity
-        activeOpacity={0.7}
+        activeOpacity={0.8}
         onPress={() => onViewDetails(item)}
         style={styles.touchableContent}
       >
@@ -508,7 +508,7 @@ const MediaItemCard = ({
         
         <View style={styles.mediaContent}>
           <Text style={styles.title}>{item.media.title}</Text>
-          <Text style={styles.meta}>{item.media.year} {item.media.genre}</Text>
+          <Text style={styles.meta}>{item.media.genre}</Text>
           
           <View style={styles.footer}>
             <View style={[styles.badge, { backgroundColor: statusBadge.color }]}>
@@ -784,11 +784,19 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const loadWatchlistItems = async () => {
     try {
       console.log('Loading watchlist items for roomId:', roomId);
-      const response = await apiService.getWatchlist(parseInt(roomId));
+      console.log('RoomId type:', typeof roomId);
+      
+      const response = await apiService.getWatchlist(roomId);
       console.log('Watchlist loaded successfully:', response.data.length, 'items');
       setWatchlistItems(response.data);
     } catch (error) {
       console.error('Error loading watchlist:', error);
+      console.error('Error details:', {
+        message: (error as any)?.message,
+        status: (error as any)?.response?.status,
+        data: (error as any)?.response?.data,
+        roomId: roomId
+      });
       Alert.alert(t('common.error'), t('room.errorLoadingWatchlist'));
     }
   };
@@ -1036,25 +1044,18 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     return filtered;
   };
 
-  // Fonction pour rendre un élément de média
+  // Fonction pour rendre un élément de média avec gestures
   const renderMediaItem = (item: WatchlistItem) => (
-    <TouchableOpacity
+    <MediaItemCard
       key={item.id}
-      style={styles.mediaItem}
-      onPress={() => handleViewMediaDetails(item)}
-      activeOpacity={0.7}
-    >
-      {renderMediaPoster(item)}
-      <View style={styles.mediaContent}>
-        <Text style={styles.title}>{item.media.title}</Text>
-        <Text style={styles.meta}>
-          {item.media.year || t('common.notAvailable')}
-        </Text>
-        <Text style={styles.meta}>
-          {item.media.genre || ''}
-        </Text>
-      </View>
-    </TouchableOpacity>
+      item={item}
+      onSwipe={handleSwipe}
+      statusOrder={['planned', 'watching', 'completed']}
+      renderMediaPoster={renderMediaPoster}
+      currentTab={currentTab}
+      onViewDetails={handleViewMediaDetails}
+      currentLanguage={currentLanguage}
+    />
   );
 
   // Fonction pour rendre l'état vide
@@ -1090,6 +1091,48 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
   const handleApplyFilters = (filters: FilterOptions) => {
     setAppliedFilters(filters);
     setFilterSidebarVisible(false);
+  };
+
+  // Fonction pour gérer les changements de statut via glissement
+  const handleSwipe = async (itemId: number, direction: 'left' | 'right') => {
+    try {
+      const item = watchlistItems.find(i => i.id === itemId);
+      if (!item) return;
+
+      const statusOrder = ['planned', 'watching', 'completed'] as const;
+      const currentIndex = statusOrder.indexOf(item.status as any);
+      
+      let newStatus: 'planned' | 'watching' | 'completed';
+      
+      if (direction === 'right' && currentIndex < statusOrder.length - 1) {
+        newStatus = statusOrder[currentIndex + 1];
+      } else if (direction === 'left' && currentIndex > 0) {
+        newStatus = statusOrder[currentIndex - 1];
+      } else {
+        return; // Pas de changement valide
+      }
+
+      console.log('Swipe detected:', { itemId, direction, currentStatus: item.status, newStatus });
+
+      // Mettre à jour optimistiquement l'interface
+      setWatchlistItems(prev => 
+        prev.map(i => 
+          i.id === itemId ? { ...i, status: newStatus } : i
+        )
+      );
+
+      // Appeler l'API pour persister le changement (utiliser le roomId du screen, pas de l'item)
+      await apiService.updateWatchlistItem(roomId, itemId, { status: newStatus });
+      
+      console.log('Status updated successfully via swipe');
+    } catch (error) {
+      console.error('Error updating status via swipe:', error);
+      
+      // En cas d'erreur, recharger les données pour revenir à l'état cohérent
+      loadWatchlistItems();
+      
+      Alert.alert(t('common.error'), t('room.errorUpdatingStatus'));
+    }
   };
 
   if (isLoading) {
@@ -1352,67 +1395,96 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: SPACING.md,
+    paddingTop: SPACING.sm, // Légèrement réduit pour les cartes plus espacées
   },
   mediaItem: {
     flexDirection: 'row',
     backgroundColor: COLORS.surface,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: SPACING.md,
-    marginBottom: SPACING.md,
+    marginBottom: SPACING.sm,
+    marginHorizontal: 2, // Pour laisser de la place aux ombres
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    elevation: 6,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
   },
   poster: {
     width: 60,
     height: 90,
     backgroundColor: COLORS.border,
-    borderRadius: 8,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: SPACING.md,
+    marginRight: SPACING.lg,
     overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
   },
   posterImage: {
     width: '100%',
     height: '100%',
   },
   posterEmoji: {
-    fontSize: 24,
+    fontSize: 28,
+    opacity: 0.7,
   },
   mediaContent: {
     flex: 1,
+    justifyContent: 'space-between',
+    paddingVertical: 2,
+    paddingLeft: SPACING.sm,
   },
   title: {
-    fontSize: FONT_SIZES.lg,
-    fontWeight: 'bold',
+    fontSize: FONT_SIZES.md,
+    fontWeight: '600',
     color: COLORS.onSurface,
     marginBottom: SPACING.xs,
+    lineHeight: 20,
+    letterSpacing: 0.1,
   },
   meta: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.xs,
     color: COLORS.placeholder,
     marginBottom: SPACING.sm,
+    lineHeight: 16,
+    opacity: 0.8,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 'auto',
   },
   badge: {
     paddingHorizontal: SPACING.sm,
-    paddingVertical: 4,
+    paddingVertical: 3,
     borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 1,
   },
   badgeText: {
-    fontSize: FONT_SIZES.xs,
-    fontWeight: 'bold',
+    fontSize: 10,
+    fontWeight: '600',
     color: COLORS.onPrimary,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   swipeHint: {
-    fontSize: FONT_SIZES.sm,
+    fontSize: FONT_SIZES.lg,
     color: COLORS.placeholder,
-    fontWeight: '600',
-    marginLeft: SPACING.xs,
+    fontWeight: '300',
+    marginLeft: SPACING.sm,
+    opacity: 0.6,
   },
   emptyState: {
     alignItems: 'center',
@@ -1522,6 +1594,7 @@ const styles = StyleSheet.create({
   touchableContent: {
     flexDirection: 'row',
     flex: 1,
+    borderRadius: 12,
   },
   retryButton: {
     position: 'absolute',
@@ -1541,45 +1614,61 @@ const styles = StyleSheet.create({
   },
   swipeIndicatorLeft: {
     position: 'absolute',
-    left: 12,
+    left: 16,
     top: '50%',
     transform: [{ translateY: -30 }],
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minWidth: 60,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minWidth: 80,
     zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   swipeIndicatorRight: {
     position: 'absolute',
-    right: 12,
+    right: 16,
     top: '50%',
     transform: [{ translateY: -30 }],
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    minWidth: 60,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    borderRadius: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minWidth: 80,
     zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
   },
   swipeIndicatorIcon: {
-    fontSize: 28,
+    fontSize: 32,
     color: '#FFFFFF',
-    fontWeight: 'bold',
-    marginBottom: 2,
+    fontWeight: '300',
+    marginBottom: 4,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   swipeIndicatorText: {
-    fontSize: 11,
+    fontSize: 12,
     color: '#FFFFFF',
     fontWeight: '600',
     textAlign: 'center',
-    maxWidth: 70,
-    lineHeight: 12,
+    maxWidth: 80,
+    lineHeight: 14,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
 });
 

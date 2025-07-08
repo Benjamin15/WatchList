@@ -197,7 +197,7 @@ export const mockApiService = {
     return room;
   },
 
-  getWatchlist: async (roomId: number, filters?: any) => {
+  getWatchlist: async (roomId: number | string, filters?: any) => {
     await delay(1000);
     let items = mockWatchlistItems.filter(item => item.roomId === roomId);
     

@@ -165,7 +165,7 @@ const CreateVoteScreen: React.FC = () => {
               {item.media.title}
             </Text>
             <Text style={styles.mediaMeta}>
-              {item.media.year} • {item.media.genre}
+              {item.media.genre}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
               <Text style={styles.statusText}>{getStatusText(item.status)}</Text>

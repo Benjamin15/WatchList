@@ -349,7 +349,7 @@ class ApiService {
   // === WATCHLIST ===
 
   async getWatchlist(
-    roomId: number,
+    roomId: number | string,
     filters?: {
       type?: string;
       status?: string;
@@ -375,10 +375,77 @@ class ApiService {
       params.append('limit', filters.limit.toString());
     }
 
-    const response = await this.client.get<PaginatedResponse<WatchlistItem>>(
-      `${API_ENDPOINTS.WATCHLIST(roomId)}?${params.toString()}`
-    );
-    return response.data;
+    const url = `${API_ENDPOINTS.WATCHLIST(roomId)}?${params.toString()}`;
+    console.log('API: DEBUG - API_ENDPOINTS.WATCHLIST function:', API_ENDPOINTS.WATCHLIST);
+    console.log('API: DEBUG - API_ENDPOINTS.WATCHLIST(roomId) result:', API_ENDPOINTS.WATCHLIST(roomId));
+    console.log('API: getWatchlist URL:', this.client.defaults.baseURL + url);
+    console.log('API: getWatchlist roomId:', roomId, 'type:', typeof roomId);
+
+    // L'API backend retourne { room: {...}, items: [...] }
+    // Nous devons l'adapter au format PaginatedResponse attendu
+    const response = await this.client.get<{ room: any; items: any[] }>(url);
+    console.log('API: getWatchlist response structure:', { 
+      hasRoom: !!response.data.room, 
+      itemsCount: response.data.items?.length || 0 
+    });
+
+    // Fonction pour transformer les statuts backend vers frontend
+    const transformStatus = (backendStatus: string): 'planned' | 'watching' | 'completed' | 'dropped' => {
+      const statusMap: { [key: string]: 'planned' | 'watching' | 'completed' | 'dropped' } = {
+        'a_voir': 'planned',
+        'en_cours': 'watching', 
+        'terminé': 'completed',
+        'abandonne': 'dropped',
+        // Ajout des statuts déjà corrects au cas où
+        'planned': 'planned',
+        'watching': 'watching',
+        'completed': 'completed',
+        'dropped': 'dropped'
+      };
+      return statusMap[backendStatus] || 'planned'; // Valeur par défaut
+    };
+
+    // Transformer les items pour avoir les bons statuts et la bonne structure
+    const transformedItems: WatchlistItem[] = (response.data.items || []).map(item => {
+      console.log('API: Transforming item status:', item.status, '→', transformStatus(item.status));
+      return {
+        id: item.id,
+        roomId: parseInt(roomId.toString()), // S'assurer que c'est un number
+        mediaId: item.id,
+        status: transformStatus(item.status),
+        addedAt: item.added_to_room_at || item.created_at,
+        media: {
+          id: item.id,
+          title: item.title,
+          type: item.type === 'tv' ? 'series' : item.type, // Normaliser tv → series
+          year: item.release_date ? new Date(item.release_date).getFullYear() : undefined,
+          genre: item.genre,
+          description: item.description,
+          posterUrl: item.image_url,
+          rating: item.note,
+          tmdbId: item.external_id ? parseInt(item.external_id.replace(/^tmdb_[^_]+_/, '')) : undefined,
+          createdAt: item.created_at,
+          updatedAt: item.updated_at || item.created_at
+        }
+      };
+    });
+
+    console.log('API: Transformed items with correct statuses:', transformedItems.map(item => ({ 
+      id: item.id, 
+      title: item.media.title, 
+      status: item.status 
+    })));
+
+    // Adapter la réponse au format attendu par l'application
+    return {
+      data: transformedItems,
+      pagination: {
+        page: filters?.page || 1,
+        limit: filters?.limit || 20,
+        total: transformedItems.length,
+        totalPages: Math.ceil(transformedItems.length / (filters?.limit || 20))
+      }
+    };
   }
 
   async addToWatchlist(
@@ -411,21 +478,60 @@ class ApiService {
   }
 
   async updateWatchlistItem(
-    roomId: number,
+    roomId: number | string,
     itemId: number,
     updates: {
       status?: 'watching' | 'completed' | 'planned' | 'dropped';
     }
   ): Promise<WatchlistItem> {
     if (USE_MOCK_DATA) {
-      return mockApiService.updateWatchlistItem(roomId, itemId, updates);
+      const numericRoomId = typeof roomId === 'string' ? parseInt(roomId) : roomId;
+      return mockApiService.updateWatchlistItem(numericRoomId, itemId, updates);
     }
     
-    const response = await this.client.put<ApiResponse<WatchlistItem>>(
+    // Transformer les statuts frontend vers backend
+    const transformStatusToBackend = (frontendStatus: string): string => {
+      const statusMap: { [key: string]: string } = {
+        'planned': 'a_voir',
+        'watching': 'en_cours',
+        'completed': 'vu',
+        'dropped': 'abandonne'
+      };
+      return statusMap[frontendStatus] || frontendStatus;
+    };
+
+    // Préparer les données pour l'API backend
+    const backendUpdates: any = {};
+    if (updates.status) {
+      backendUpdates.status = transformStatusToBackend(updates.status);
+    }
+
+    console.log('API: updateWatchlistItem - Frontend status:', updates.status, '-> Backend status:', backendUpdates.status);
+    console.log('API: updateWatchlistItem - RoomId:', roomId, 'type:', typeof roomId);
+    console.log('API: updateWatchlistItem URL:', this.client.defaults.baseURL + API_ENDPOINTS.WATCHLIST_ITEM(roomId, itemId));
+
+    const response = await this.client.put<any>(
       API_ENDPOINTS.WATCHLIST_ITEM(roomId, itemId),
-      updates
+      backendUpdates
     );
-    return response.data.data;
+    
+    // Le serveur retourne juste un message de succès, on retourne l'item mis à jour
+    // avec le nouveau statut (transformé en statut frontend)
+    const numericRoomId = typeof roomId === 'string' ? parseInt(roomId) : roomId;
+    return {
+      id: itemId,
+      roomId: numericRoomId,
+      mediaId: itemId,
+      status: updates.status!,
+      addedAt: new Date().toISOString(),
+      media: {
+        id: itemId,
+        title: 'Updated Item',
+        type: 'movie' as const,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    };
   }
 
   async removeFromWatchlist(roomId: number, itemId: number): Promise<void> {

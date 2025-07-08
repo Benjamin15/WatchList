@@ -160,7 +160,7 @@ const VoteDetailScreen: React.FC = () => {
               {option.media.title}
             </Text>
             <Text style={styles.optionMeta}>
-              {option.media.year} • {option.media.genre}
+              {option.media.genre}
             </Text>
             <View style={styles.voteStats}>
               <Text style={styles.voteCount}>
@@ -288,7 +288,7 @@ const VoteDetailScreen: React.FC = () => {
                     {selectedOption.media.title}
                   </Text>
                   <Text style={styles.selectedOptionMeta}>
-                    {selectedOption.media.year} • {selectedOption.media.genre}
+                    {selectedOption.media.genre}
                   </Text>
                 </View>
               </View>

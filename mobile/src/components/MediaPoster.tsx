@@ -6,7 +6,7 @@ import { COLORS } from '../constants';
 interface MediaPosterProps {
   posterUrl?: string;
   mediaType: 'movie' | 'series' | 'manga';
-  size?: 'small' | 'medium' | 'large';
+  size?: 'small' | 'medium' | 'large' | 'xlarge';
 }
 
 const MediaPoster: React.FC<MediaPosterProps> = ({ 
@@ -32,26 +32,30 @@ const MediaPoster: React.FC<MediaPosterProps> = ({
   const getSizeStyles = (size: string) => {
     switch (size) {
       case 'small':
-        return { width: 40, height: 60 };
+        return { width: 60, height: 90 };
       case 'medium':
-        return { width: 60, height: 90 };
+        return { width: 70, height: 105 };
       case 'large':
-        return { width: 80, height: 120 };
+        return { width: 90, height: 135 };
+      case 'xlarge':
+        return { width: 110, height: 165 };
       default:
-        return { width: 60, height: 90 };
+        return { width: 70, height: 105 };
     }
   };
 
   const getEmojiSize = (size: string) => {
     switch (size) {
       case 'small':
-        return 16;
+        return 24;
       case 'medium':
-        return 24;
+        return 28;
       case 'large':
-        return 32;
+        return 36;
+      case 'xlarge':
+        return 44;
       default:
-        return 24;
+        return 28;
     }
   };
 
@@ -84,9 +88,14 @@ const MediaPoster: React.FC<MediaPosterProps> = ({
 
 const styles = StyleSheet.create({
   posterContainer: {
-    borderRadius: 8,
+    borderRadius: 12,
     overflow: 'hidden',
     backgroundColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 3,
   },
   posterImage: {
     width: '100%',
@@ -99,6 +108,7 @@ const styles = StyleSheet.create({
   },
   fallbackEmoji: {
     textAlign: 'center',
+    opacity: 0.7,
   },
 });
 
