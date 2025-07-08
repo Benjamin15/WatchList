@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 // Mode de développement - utiliser les données de test quand le backend n'est pas disponible
 export const DEV_MODE = __DEV__;
-export const USE_MOCK_DATA = true; // Changer à true pour utiliser les données de test
+export const USE_MOCK_DATA = false; // Changer à true pour utiliser les données de test
 
 // URL du backend - à adapter selon l'environnement
 export const getApiBaseUrl = () => {

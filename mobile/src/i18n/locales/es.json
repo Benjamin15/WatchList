@@ -121,7 +121,14 @@
     "endsTomorrow": "Termina mañana a las {{time}}",
     "endsOn": "Termina el {{date}} a las {{time}}",
     "proposeMoviesToGroup": "Propón películas a tu grupo",
-    "enterNameOrVoteAnonymously": "Por favor, introduce tu nombre o vota anónimamente"
+    "enterNameOrVoteAnonymously": "Por favor, introduce tu nombre o vota anónimamente",
+    "endOn": "Termina el",
+    "createdBy": "Por",
+    "options": "Opciones",
+    "created": "Creado",
+    "alreadyVoted": "Ya has votado",
+    "voteLabel": "Voto",
+    "optionLabel": "Opción"
   },
   "filter": {
     "all": "Todo",

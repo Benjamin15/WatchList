@@ -56,12 +56,9 @@ const VoteOptionItem: React.FC<{
           <Text style={styles.optionTitle} numberOfLines={2}>
             {translatedTitle}
           </Text>
-          <Text style={styles.optionMeta}>
-            {option.media.genre}
-          </Text>
           <View style={styles.voteStats}>
             <Text style={styles.voteCount}>
-              {option.voteCount} vote{option.voteCount !== 1 ? 's' : ''}
+              {t('vote.votes', { count: option.voteCount })}
             </Text>
             <Text style={styles.votePercentage}>
               {option.percentage}%
@@ -95,9 +92,6 @@ const SelectedOptionPreview: React.FC<{
       <View style={styles.selectedOptionInfo}>
         <Text style={styles.selectedOptionTitle}>
           {translatedTitle}
-        </Text>
-        <Text style={styles.selectedOptionMeta}>
-          {selectedOption.media.genre}
         </Text>
       </View>
     </View>
@@ -141,7 +135,7 @@ const VoteDetailScreen: React.FC = () => {
 
   const handleVotePress = (option: VoteOption) => {
     if (vote?.userHasVoted) {
-      Alert.alert('Déjà voté', 'Vous avez déjà voté pour ce sondage');
+      Alert.alert(t('vote.alreadyVoted'), t('vote.alreadyVoted'));
       return;
     }
 
@@ -194,7 +188,7 @@ const VoteDetailScreen: React.FC = () => {
     switch (vote.status) {
       case 'active':
         return vote.endsAt ? 
-          `Se termine le ${new Date(vote.endsAt).toLocaleDateString()}` : 
+          `${t('vote.endOn')} ${new Date(vote.endsAt).toLocaleDateString()}` : 
           'Vote permanent';
       case 'completed':
         return t('vote.voteCompleted');
@@ -283,7 +277,7 @@ const VoteDetailScreen: React.FC = () => {
             <Text style={styles.description}>{vote.description}</Text>
           )}
           <View style={styles.voteInfo}>
-            <Text style={styles.creator}>Par {vote.createdBy}</Text>
+            <Text style={styles.creator}>{t('vote.createdBy')} {vote.createdBy}</Text>
             <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
               <Text style={styles.statusText}>{getVoteStatus()}</Text>
             </View>
@@ -294,31 +288,31 @@ const VoteDetailScreen: React.FC = () => {
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{vote.totalVotes}</Text>
             <Text style={styles.statLabel}>
-              Vote{vote.totalVotes !== 1 ? 's' : ''}
+              {t('vote.voteLabel')}{vote.totalVotes !== 1 ? 's' : ''}
             </Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{vote.options.length}</Text>
             <Text style={styles.statLabel}>
-              Option{vote.options.length !== 1 ? 's' : ''}
+              {t('vote.optionLabel')}{vote.options.length !== 1 ? 's' : ''}
             </Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>
               {new Date(vote.createdAt).toLocaleDateString()}
             </Text>
-            <Text style={styles.statLabel}>Créé</Text>
+            <Text style={styles.statLabel}>{t('vote.created')}</Text>
           </View>
         </View>
 
         <View style={styles.optionsContainer}>
-          <Text style={styles.sectionTitle}>Options</Text>
+          <Text style={styles.sectionTitle}>{t('vote.options')}</Text>
           {vote.options.map((option, index) => renderVoteOption(option, index))}
         </View>
 
         {vote.userHasVoted && (
           <View style={styles.votedMessage}>
-            <Text style={styles.votedText}>✓ Vous avez déjà voté</Text>
+            <Text style={styles.votedText}>✓ {t('vote.alreadyVoted')}</Text>
           </View>
         )}
       </ScrollView>

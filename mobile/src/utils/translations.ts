@@ -93,14 +93,14 @@ const CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 
 /**
  * Récupère le titre traduit d'un média via son TMDB ID
- * @param {number} tmdbId - ID TMDB du média
+ * @param {number | string | undefined} tmdbId - ID TMDB du média (peut être un numéro ou une chaîne avec préfixe)
  * @param {'movie' | 'series' | 'tv'} type - Type de média
  * @param {string} language - Code de langue (fr, en, es, pt)
  * @param {string} fallbackTitle - Titre de fallback si la traduction échoue
  * @returns {Promise<string>} Titre traduit ou titre de fallback
  */
 export const getTranslatedTitle = async (
-  tmdbId: number | undefined,
+  tmdbId: number | string | undefined,
   type: 'movie' | 'series' | 'tv',
   language: string,
   fallbackTitle: string
@@ -110,11 +110,26 @@ export const getTranslatedTitle = async (
     return fallbackTitle;
   }
 
+  // Extraire le numéro du TMDB ID si c'est une chaîne avec préfixe
+  let cleanTmdbId: number;
+  if (typeof tmdbId === 'string') {
+    // Extraire le numéro de formats comme "tmdb_tv_69629" ou "tmdb_movie_12345"
+    const match = tmdbId.match(/(\d+)$/);
+    if (match) {
+      cleanTmdbId = parseInt(match[1], 10);
+    } else {
+      console.warn(`Format TMDB ID invalide: ${tmdbId}`);
+      return fallbackTitle;
+    }
+  } else {
+    cleanTmdbId = tmdbId;
+  }
+
   // Normaliser le type pour TMDB
   const tmdbType = type === 'tv' ? 'series' : type;
   
   // Créer une clé unique pour le cache
-  const cacheKey = `${tmdbId}-${tmdbType}-${language}`;
+  const cacheKey = `${cleanTmdbId}-${tmdbType}-${language}`;
   
   // Vérifier le cache
   const cached = translatedTitlesCache.get(cacheKey);
@@ -127,7 +142,7 @@ export const getTranslatedTitle = async (
     const { apiService } = await import('../services/api');
     
     // Récupérer les détails traduits depuis TMDB
-    const details = await apiService.getMediaDetailsFromTMDB(tmdbId, tmdbType);
+    const details = await apiService.getMediaDetailsFromTMDB(cleanTmdbId, tmdbType);
     const translatedTitle = details.title || fallbackTitle;
     
     // Mettre en cache le résultat
@@ -138,7 +153,7 @@ export const getTranslatedTitle = async (
     
     return translatedTitle;
   } catch (error) {
-    console.warn(`Erreur lors de la récupération du titre traduit pour TMDB ID ${tmdbId}:`, error);
+    console.warn(`Erreur lors de la récupération du titre traduit pour TMDB ID ${cleanTmdbId}:`, error);
     return fallbackTitle;
   }
 };

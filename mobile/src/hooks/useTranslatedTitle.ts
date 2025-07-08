@@ -4,13 +4,13 @@ import { getTranslatedTitle } from '../utils/translations';
 
 /**
  * Hook personnalisé pour récupérer le titre traduit d'un média
- * @param tmdbId - ID TMDB du média
+ * @param tmdbId - ID TMDB du média (peut être un numéro ou une chaîne avec préfixe)
  * @param type - Type de média
  * @param fallbackTitle - Titre de fallback
  * @returns Titre traduit et état de chargement
  */
 export const useTranslatedTitle = (
-  tmdbId: number | undefined,
+  tmdbId: number | string | undefined,
   type: 'movie' | 'series' | 'tv',
   fallbackTitle: string
 ) => {
