@@ -1,6 +1,22 @@
 {
   "app": {
     "name": "WatchList",
+   "room": {
+    "title": "Room: {{name}}",
+    "members": "{{count}} member(s)",
+    "addMedia": "Add media",
+    "createVote": "Create a poll",
+    "noItems": "No media in this room",
+    "loading": "Connecting...",
+    "noMedia": "No media",
+    "emptyPlanned": "Add media to your watchlist!",
+    "emptyWatching": "Start watching media!",
+    "emptyCompleted": "Complete media to see them here!",
+    "shareMessage": "Join my WatchList \"{{roomName}}\" with code: {{roomCode}}",
+    "shareTitle": "Share my WatchList"
+  },
+  "app": {
+    "name": "WatchList",
     "loading": "Loading...",
     "error": "An error occurred",
     "retry": "Retry",
@@ -24,12 +40,7 @@
     "proposeMovies": "Propose movies",
     "addMoviesForVote": "Add movies to create a vote",
     "notAvailable": "Not available",
-    "yourName": "Your name",
-    "error": "Error",
-    "nameRequired": "Your name is required",
-    "days": "d",
-    "hours": "h",
-    "minutes": "m"
+    "yourName": "Your name"
   },
   "home": {
     "title": "WatchList",
@@ -54,9 +65,7 @@
     "emptyWatching": "Start watching media!",
     "emptyCompleted": "Complete media to see them here!",
     "shareMessage": "Join my WatchList \"{{roomName}}\" with code: {{roomCode}}",
-    "shareTitle": "Share my WatchList",
-    "errorLoadingRoom": "Unable to load room data",
-    "errorLoadingWatchlist": "Unable to load watchlist"
+    "shareTitle": "Share my WatchList"
   },
   "media": {
     "movie": "Movie",
@@ -67,6 +76,9 @@
     "mangas": "Manga",
     "type": "Type",
     "status": "Status",
+    "rating": "Rating",
+    "year": "Year",
+    "genre": "Genre",
     "duration": "Duration",
     "episodes": "Episodes",
     "seasons": "Seasons",
@@ -89,7 +101,7 @@
   },
   "vote": {
     "title": "Poll",
-    "createVote": "Create a poll",
+    "createVote": "Create poll",
     "voteTitle": "Poll title",
     "description": "Description",
     "duration": "Duration",
@@ -102,7 +114,6 @@
     "active": "Active",
     "completed": "Completed",
     "expired": "Expired",
-    "permanent": "Permanent",
     "timeLeft": "Time left",
     "ended": "Ended",
     "votes": "{{count}} vote(s)",
@@ -117,8 +128,7 @@
     "endsToday": "Ends today at {{time}}",
     "endsTomorrow": "Ends tomorrow at {{time}}",
     "endsOn": "Ends on {{date}} at {{time}}",
-    "proposeMoviesToGroup": "Propose movies to your group",
-    "enterNameOrVoteAnonymously": "Please enter your name or vote anonymously"
+    "proposeMoviesToGroup": "Propose movies to your group"
   },
   "filter": {
     "all": "All",
@@ -149,7 +159,7 @@
     "testNotification": "Test notifications"
   },
   "search": {
-    "placeholder": "Search for movies, series, manga...",
+    "placeholder": "Search movies, TV shows, manga...",
     "noResults": "No results found",
     "searchResults": "Search results",
     "addToRoom": "Add to room"
@@ -165,7 +175,7 @@
   "error": {
     "roomNotFound": "Room not found",
     "invalidCode": "Invalid code",
-    "networkError": "Connection error",
+    "networkError": "Network error",
     "serverError": "Server error",
     "unknownError": "Unknown error"
   },

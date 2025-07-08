@@ -75,7 +75,7 @@ const CreateVoteScreen: React.FC = () => {
     }
 
     if (!creatorName.trim()) {
-      Alert.alert('Erreur', 'Votre nom est requis');
+      Alert.alert(t('common.error'), t('common.nameRequired'));
       return;
     }
 
@@ -135,6 +135,16 @@ const CreateVoteScreen: React.FC = () => {
     const isSelected = selectedMediaIds.includes(item.media.id);
     const status = MEDIA_STATUS[item.status];
     
+    const getStatusText = (status: string) => {
+      switch (status) {
+        case 'watching': return t('status.watching');
+        case 'completed': return t('status.completed');
+        case 'planned': return t('status.planned');
+        case 'dropped': return t('status.abandoned');
+        default: return status;
+      }
+    };
+    
     return (
       <TouchableOpacity
         key={item.id}
@@ -147,7 +157,7 @@ const CreateVoteScreen: React.FC = () => {
         <View style={styles.mediaContent}>
           <MediaPoster 
             posterUrl={item.media.posterUrl}
-            mediaType={item.media.type}
+            mediaType={item.media.type === 'tv' ? 'series' : item.media.type}
             size="small"
           />
           <View style={styles.mediaInfo}>
@@ -158,7 +168,7 @@ const CreateVoteScreen: React.FC = () => {
               {item.media.year} • {item.media.genre}
             </Text>
             <View style={[styles.statusBadge, { backgroundColor: status.color }]}>
-              <Text style={styles.statusText}>{status.label}</Text>
+              <Text style={styles.statusText}>{getStatusText(item.status)}</Text>
             </View>
           </View>
         </View>
@@ -179,15 +189,15 @@ const CreateVoteScreen: React.FC = () => {
       >
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.title}>Créer un vote</Text>
+            <Text style={styles.title}>{t('vote.createVote')}</Text>
             <Text style={styles.subtitle}>
-              Proposez des films à votre groupe
+              {t('vote.proposeMoviesToGroup')}
             </Text>
           </View>
 
           <View style={styles.form}>
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Votre nom</Text>
+              <Text style={styles.label}>{t('common.yourName')}</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Entrez votre nom"

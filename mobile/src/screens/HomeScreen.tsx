@@ -15,6 +15,7 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../hooks/useLanguage';
 import { RootStackParamList } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import { apiService } from '../services/api';
@@ -29,6 +30,7 @@ interface HomeScreenProps {
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { currentLanguage } = useLanguage();
   const [roomName, setRoomName] = useState('');
   const [roomCode, setRoomCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -261,7 +263,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                           </View>
                         </View>
                         <Text style={styles.historyLastJoined}>
-                          Dernière connexion: {new Date(item.last_joined).toLocaleDateString('fr-FR', {
+                          {t('home.lastConnection')}: {new Date(item.last_joined).toLocaleDateString(currentLanguage === 'fr' ? 'fr-FR' : 'en-US', {
                             day: 'numeric',
                             month: 'short',
                             year: 'numeric'

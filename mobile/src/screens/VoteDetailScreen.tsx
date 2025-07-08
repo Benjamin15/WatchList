@@ -73,7 +73,7 @@ const VoteDetailScreen: React.FC = () => {
     if (!selectedOption) return;
 
     if (!anonymousVote && !voterName.trim()) {
-      Alert.alert('Erreur', 'Veuillez entrer votre nom ou voter anonymement');
+      Alert.alert(t('common.error'), t('vote.enterNameOrVoteAnonymously'));
       return;
     }
 
@@ -152,7 +152,7 @@ const VoteDetailScreen: React.FC = () => {
         <View style={styles.optionContent}>
           <MediaPoster 
             posterUrl={option.media.posterUrl}
-            mediaType={option.media.type}
+            mediaType={option.media.type === 'tv' ? 'series' : option.media.type}
             size="small"
           />
           <View style={styles.optionInfo}>
@@ -280,7 +280,7 @@ const VoteDetailScreen: React.FC = () => {
               <View style={styles.selectedOptionPreview}>
                 <MediaPoster 
                   posterUrl={selectedOption.media.posterUrl}
-                  mediaType={selectedOption.media.type}
+                  mediaType={selectedOption.media.type === 'tv' ? 'series' : selectedOption.media.type}
                   size="small"
                 />
                 <View style={styles.selectedOptionInfo}>
@@ -308,7 +308,7 @@ const VoteDetailScreen: React.FC = () => {
               {!anonymousVote && (
                 <TextInput
                   style={styles.nameInput}
-                  placeholder="Votre nom"
+                  placeholder={t('common.yourName')}
                   placeholderTextColor={COLORS.placeholder}
                   value={voterName}
                   onChangeText={setVoterName}

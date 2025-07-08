@@ -13,6 +13,7 @@ import LoadingScreen from './LoadingScreen';
 import FilterButton from '../components/FilterButton';
 import FilterSidebar from '../components/FilterSidebar';
 import SettingsSidebar from '../components/SettingsSidebar';
+import MediaPoster from '../components/MediaPoster';
 import { translateStatus } from '../utils/translations';
 import { useLanguage } from '../hooks/useLanguage';
 
@@ -63,6 +64,7 @@ const VoteNotificationCard: React.FC<VoteNotificationCardProps> = ({
   getVoteTimeRemaining,
   getVoteEndTime
 }) => {
+  const { t } = useTranslation();
   const translateX = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(1)).current;
 
@@ -144,7 +146,7 @@ const VoteNotificationCard: React.FC<VoteNotificationCardProps> = ({
             </View>
           </View>
           <Text style={styles.voteDescription}>
-            <Text style={styles.voteDescriptionBold}>{vote.title}</Text> - {vote.createdBy} propose {vote.options.length} films
+            <Text style={styles.voteDescriptionBold}>{vote.title}</Text> - {vote.createdBy} {t('vote.proposesMovies', { count: vote.options.length })}
           </Text>
           <View style={styles.voteNotificationMeta}>
             <View style={styles.voteTimeInfo}>
@@ -161,9 +163,6 @@ const VoteNotificationCard: React.FC<VoteNotificationCardProps> = ({
         </TouchableOpacity>
         
         {/* Indicateur de swipe */}
-        <View style={styles.swipeIndicator}>
-          <Text style={styles.voteSwipeIndicatorText}>← Glisser pour supprimer</Text>
-        </View>
       </Animated.View>
     </PanGestureHandler>
   );
@@ -677,79 +676,44 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     navigation.navigate('Detail', { media: item.media, roomId });
   };
 
-  const renderMediaPoster = (item: WatchlistItem) => {
-    const hasImageError = imageErrors.has(item.id);
-    const posterUrl = item.media.posterUrl;
-    
-    // Debug logs
-    console.log(`[RoomScreen] renderMediaPoster for ${item.media.title}:`);
-    console.log(`  - posterUrl: ${posterUrl}`);
-    console.log(`  - hasImageError: ${hasImageError}`);
-    console.log(`  - item.id: ${item.id}`);
-    
-    // Si on a une URL d'image et qu'il n'y a pas d'erreur, afficher l'image
-    if (posterUrl && !hasImageError) {
-      return (
-        <View style={styles.poster}>
-          <Image
-            source={{ uri: posterUrl }}
-            style={styles.posterImage}
-            onError={() => handleImageError(item.id)}
-            contentFit="cover"
-          />
-        </View>
-      );
+  // Fonction pour rendre l'affiche du média
+  const renderMediaPoster = (item: WatchlistItem) => (
+    <MediaPoster
+      mediaType={item.media.type === 'tv' ? 'series' : item.media.type}
+      posterUrl={item.media.posterUrl}
+      size="small"
+    />
+  );
+
+  /**
+   * Formate l'heure de fin d'un vote avec traductions
+   */
+  const getVoteEndTimeFormatted = (vote: Vote) => {
+    if (!vote.endsAt) {
+      return null;
     }
 
-    // Sinon, afficher le fallback emoji avec option de réessayer
-    return (
-      <View style={styles.poster}>
-        <Text style={styles.posterEmoji}>
-          {item.media.type === 'movie' ? '🎬' : 
-           (item.media.type === 'series' || item.media.type === 'tv') ? '📺' : '📚'}
-        </Text>
-        {hasImageError && posterUrl && (
-          <TouchableOpacity 
-            style={styles.retryButton}
-            onPress={() => retryImage(item.id)}
-          >
-            <Text style={styles.retryText}>↻</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
+    const endsAt = new Date(vote.endsAt);
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const timeString = endsAt.toLocaleTimeString(currentLanguage === 'fr' ? 'fr-FR' : 'en-US', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+
+    if (endsAt.toDateString() === today.toDateString()) {
+      return t('vote.endsToday', { time: timeString });
+    } else if (endsAt.toDateString() === tomorrow.toDateString()) {
+      return t('vote.endsTomorrow', { time: timeString });
+    } else {
+      return t('vote.endsOn', { 
+        date: endsAt.toLocaleDateString(currentLanguage === 'fr' ? 'fr-FR' : 'en-US'), 
+        time: timeString 
+      });
+    }
   };
-
-  useEffect(() => {
-    loadRoomData();
-  }, [roomId]);
-
-  // Charger les votes supprimés sauvegardés au démarrage
-  useEffect(() => {
-    const loadSavedDismissedVotes = async () => {
-      try {
-        const savedDismissedVotes = await loadDismissedVotes(roomId);
-        setDismissedVotes(savedDismissedVotes);
-        console.log(`[RoomScreen] ${savedDismissedVotes.size} votes supprimés chargés depuis AsyncStorage pour room ${roomId}`);
-      } catch (error) {
-        console.error('[RoomScreen] Erreur lors du chargement des votes supprimés:', error);
-      }
-    };
-    
-    loadSavedDismissedVotes();
-    
-    // Réinitialiser les votes temporairement cachés à chaque changement de room
-    setTemporarilyHiddenVotes(new Set());
-    console.log(`[RoomScreen] Votes temporairement cachés réinitialisés pour room ${roomId}`);
-  }, [roomId]); // Ajouter roomId en dépendance pour recharger lors du changement
-
-  // Utiliser useFocusEffect pour recharger les données quand on revient sur cet écran
-  useFocusEffect(
-    useCallback(() => {
-      loadWatchlistItems();
-      loadVotes();
-    }, [roomId])
-  );
 
   // Configuration des boutons du header
   useLayoutEffect(() => {
@@ -770,8 +734,8 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
             }}
             onPress={() => {
               const shareContent = {
-                message: `Rejoins ma WatchList "${roomName}" avec le code: ${roomCode}`,
-                title: 'Partager ma WatchList',
+                message: t('room.shareMessage', { roomName, roomCode }),
+                title: t('room.shareTitle'),
               };
               
               Share.share(shareContent).catch((error) => {
@@ -813,72 +777,68 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
       setRoomCode(room.room_id);
     } catch (error) {
       console.error('Error loading room:', error);
-      Alert.alert('Erreur', 'Impossible de charger les données de la room');
-    }
-  };
-
-  // Nettoyer les votes supprimés anciens (votes qui ne sont plus affichables)
-  const cleanupOldDismissedVotes = async (currentVotes: Vote[]) => {
-    try {
-      const currentDismissed = await loadDismissedVotes(roomId);
-      const currentVoteIds = new Set(currentVotes.map(vote => vote.id));
-      
-      // Garder seulement les votes supprimés qui existent encore
-      const validDismissedVotes = new Set(
-        Array.from(currentDismissed).filter(voteId => currentVoteIds.has(voteId))
-      );
-      
-      // Si des votes ont été nettoyés, sauvegarder la nouvelle liste
-      if (validDismissedVotes.size !== currentDismissed.size) {
-        await saveDismissedVotes(roomId, validDismissedVotes);
-        setDismissedVotes(validDismissedVotes);
-        console.log(`[RoomScreen] Nettoyage: ${currentDismissed.size - validDismissedVotes.size} votes supprimés anciens retirés pour room ${roomId}`);
-      } else {
-        setDismissedVotes(currentDismissed);
-      }
-    } catch (error) {
-      console.error('[RoomScreen] Erreur lors du nettoyage des votes supprimés:', error);
+      Alert.alert(t('common.error'), t('room.errorLoadingRoom'));
     }
   };
 
   const loadWatchlistItems = async () => {
     try {
       console.log('Loading watchlist items for roomId:', roomId);
-      const items = await apiService.getRoomItems(roomId);
-      console.log('Watchlist items loaded successfully:', items);
-      setWatchlistItems(items);
-      // Réinitialiser les erreurs d'image quand on recharge les données
-      setImageErrors(new Set());
+      const response = await apiService.getWatchlist(parseInt(roomId));
+      console.log('Watchlist loaded successfully:', response.data.length, 'items');
+      setWatchlistItems(response.data);
     } catch (error) {
-      console.error('Error loading watchlist items:', error);
-      // En cas d'erreur, utiliser les données mock comme fallback
-      console.log('Using mock data as fallback');
-      setWatchlistItems(mockWatchlistItems);
-    } finally {
-      setIsLoading(false);
+      console.error('Error loading watchlist:', error);
+      Alert.alert(t('common.error'), t('room.errorLoadingWatchlist'));
     }
   };
 
   const loadVotes = async () => {
     try {
+      console.log('Loading votes for roomId:', roomId);
       setLoadingVotes(true);
       const votesData = await apiService.getVotesByRoom(roomId);
+      console.log('Votes loaded successfully:', votesData.length, 'votes');
       setVotes(votesData);
       
-      // Réinitialiser les votes cachés temporairement (ils réapparaissent)
-      setTemporarilyHiddenVotes(new Set());
-      console.log('[RoomScreen] Votes cachés temporairement réinitialisés - ils réapparaissent');
-      
-      // Nettoyer les votes supprimés anciens après chargement
-      await cleanupOldDismissedVotes(votesData);
+      // Charger les votes supprimés depuis le stockage local
+      const dismissed = await loadDismissedVotes(roomId);
+      setDismissedVotes(dismissed);
     } catch (error) {
       console.error('Error loading votes:', error);
-      // En cas d'erreur, on continue sans votes
-      setVotes([]);
+      // Ne pas afficher d'erreur pour les votes car ce n'est pas critique
     } finally {
       setLoadingVotes(false);
     }
   };
+
+  const loadAllData = async () => {
+    setIsLoading(true);
+    try {
+      await Promise.all([
+        loadRoomData(),
+        loadWatchlistItems(),
+        loadVotes()
+      ]);
+    } catch (error) {
+      console.error('Error loading room data:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadAllData();
+  }, [roomId]);
+
+  // Recharger les données quand l'écran retrouve le focus
+  useFocusEffect(
+    useCallback(() => {
+      // Recharger seulement les votes et la watchlist, pas les données de base de la room
+      loadWatchlistItems();
+      loadVotes();
+    }, [roomId])
+  );
 
   // Fonctions pour le FAB avec appui long
   const handleFabPress = () => {
@@ -931,298 +891,173 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     navigation.navigate('VoteDetail', { voteId: vote.id, roomId });
   };
 
-  // Vérifier si un média est dans un vote actif
-  const isMediaInActiveVote = (mediaId: number) => {
-    return votes.some(vote => 
-      vote.status === 'active' && 
-      vote.options.some(option => option.mediaId === mediaId)
+  /**
+   * Calcule le temps restant pour un vote
+   */
+  const getVoteTimeRemaining = (vote: Vote) => {
+    if (!vote.endsAt) {
+      return t('vote.permanent');
+    }
+
+    const now = new Date();
+    const endsAt = new Date(vote.endsAt);
+    const diffMs = endsAt.getTime() - now.getTime();
+
+    if (diffMs <= 0) {
+      return t('vote.expired');
+    }
+
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (diffHours > 24) {
+      const diffDays = Math.floor(diffHours / 24);
+      return `${diffDays}${t('common.days')} ${diffHours % 24}${t('common.hours')}`;
+    } else if (diffHours > 0) {
+      return `${diffHours}${t('common.hours')} ${diffMinutes}${t('common.minutes')}`;
+    } else {
+      return `${diffMinutes}${t('common.minutes')}`;
+    }
+  };
+
+  // Fonction pour vérifier s'il y a un vote actif
+  const hasActiveVote = () => {
+    return votes.some(vote => {
+      if (!vote.endsAt) return true; // Vote permanent
+      const now = new Date();
+      const endsAt = new Date(vote.endsAt);
+      return endsAt.getTime() > now.getTime();
+    });
+  };
+
+  // Fonction pour obtenir les votes affichables (non supprimés)
+  const getDisplayableVotes = () => {
+    return votes.filter(vote => 
+      !dismissedVotes.has(vote.id) && 
+      !temporarilyHiddenVotes.has(vote.id)
     );
   };
 
-  // Vérifier s'il y a un vote actif dans la room
-  const hasActiveVote = () => {
-    const now = new Date();
-    return votes.some(vote => {
-      // Vérifier le statut
-      if (vote.status !== 'active') {
-        return false;
-      }
-      
-      // Si le vote a une date de fin, vérifier qu'elle n'est pas passée
-      if (vote.endsAt) {
-        const endsAt = new Date(vote.endsAt);
-        return endsAt > now;
-      }
-      
-      // Pas de date de fin = vote permanent actif
-      return true;
-    });
-  };
-
-  // Obtenir les votes à afficher (actifs et récemment terminés, non supprimés)
-  const getDisplayableVotes = () => {
-    return votes.filter(vote => {
-      // Ne pas afficher les votes supprimés définitivement (expirés)
-      if (dismissedVotes.has(vote.id)) return false;
-      
-      // Ne pas afficher les votes cachés temporairement
-      if (temporarilyHiddenVotes.has(vote.id)) return false;
-      
-      // Afficher les votes actifs
-      if (vote.status === 'active') return true;
-      
-      // Afficher les votes récemment terminés (moins de 24h)
-      if (vote.status === 'completed' || vote.status === 'expired') {
-        const voteEndTime = vote.endsAt ? new Date(vote.endsAt) : new Date(vote.createdAt);
-        const now = new Date();
-        const diffHours = (now.getTime() - voteEndTime.getTime()) / (1000 * 60 * 60);
-        return diffHours < 24; // Afficher pendant 24h après la fin
-      }
-      
-      return false;
-    });
-  };
-
-  // Supprimer une notification de vote (logique différenciée selon le statut)
+  // Fonction pour supprimer une notification de vote
   const dismissVoteNotification = async (voteId: number) => {
-    // Trouver le vote correspondant
-    const vote = votes.find(v => v.id === voteId);
-    if (!vote) return;
+    console.log(`[RoomScreen] Suppression du vote ${voteId}`);
     
-    // Si le vote est expiré, le supprimer définitivement
-    if (vote.status === 'expired') {
-      const newDismissedVotes = new Set([...dismissedVotes, voteId]);
-      setDismissedVotes(newDismissedVotes);
-      
+    // Ajouter aux votes supprimés localement
+    const newDismissedVotes = new Set(dismissedVotes);
+    newDismissedVotes.add(voteId);
+    setDismissedVotes(newDismissedVotes);
+    
+    try {
       // Sauvegarder dans AsyncStorage pour persistance
       await saveDismissedVotes(roomId, newDismissedVotes);
-      
-      console.log(`[RoomScreen] ${t('vote.voteExpired')} ${voteId} supprimé définitivement pour room ${roomId}`);
-    } else {
-      // Pour les votes actifs ou terminés, les cacher temporairement (réapparaîtront au reload)
-      const newTemporarilyHidden = new Set([...temporarilyHiddenVotes, voteId]);
-      setTemporarilyHiddenVotes(newTemporarilyHidden);
-      
-      console.log(`[RoomScreen] Vote ${vote.status} ${voteId} caché temporairement dans room ${roomId} (réapparaîtra au reload)`);
-    }
-  };
-
-  // Obtenir le texte de statut du vote
-  const getVoteStatusText = (vote: Vote) => {
-    switch (vote.status) {
-      case 'active':
-        return t('vote.voteInProgress');
-      case 'completed':
-        return t('vote.voteCompleted');
-      case 'expired':
-        return t('vote.voteExpired');
-      default:
-        return t('vote.voteInProgress');
-    }
-  };
-
-  // Obtenir la couleur du badge selon le statut
-  const getVoteBadgeInfo = (vote: Vote) => {
-    switch (vote.status) {
-      case 'active':
-        return { text: t('vote.activeLabel'), color: '#4CAF50' };
-      case 'completed':
-        return { text: t('vote.completedLabel'), color: '#2196F3' };
-      case 'expired':
-        return { text: t('vote.expiredLabel'), color: '#FF9800' };
-      default:
-        return { text: t('vote.activeLabel'), color: '#4CAF50' };
-    }
-  };
-
-  const handleSwipe = (itemId: number, direction: 'left' | 'right') => {
-    const item = watchlistItems.find(item => item.id === itemId);
-    if (!item) return;
-
-    const currentIndex = statusOrder.indexOf(item.status as any);
-    let newIndex = currentIndex;
-
-    if (direction === 'right' && currentIndex < statusOrder.length - 1) {
-      newIndex = currentIndex + 1;
-    } else if (direction === 'left' && currentIndex > 0) {
-      newIndex = currentIndex - 1;
-    }
-
-    if (newIndex !== currentIndex) {
-      const newStatus = statusOrder[newIndex];
-      updateItemStatus(itemId, newStatus);
-    }
-  };
-
-  const updateItemStatus = async (itemId: number, newStatus: 'planned' | 'watching' | 'completed') => {
-    try {
-      // Mise à jour optimiste de l'interface
-      setWatchlistItems(prevItems =>
-        prevItems.map(item =>
-          item.id === itemId ? { ...item, status: newStatus } : item
-        )
-      );
-
-      // Appel API pour persister le changement
-      await apiService.updateItemStatus(roomId, itemId, newStatus);
-
-      // Log du changement sans modal
-      const item = watchlistItems.find(item => item.id === itemId);
-      if (item) {
-        // Mapper les statuts mobiles vers les statuts backend pour la traduction
-        const statusMapping: Record<string, string> = {
-          'planned': 'a_voir',
-          'watching': 'en_cours',
-          'completed': 'vu'
-        };
-        const backendStatus = statusMapping[newStatus] || newStatus;
-        const translatedStatus = translateStatus(backendStatus, currentLanguage);
-        console.log(`[RoomScreen] Statut modifié: "${item.media.title}" déplacé vers "${translatedStatus}"`);
-      }
     } catch (error) {
-      console.error('Error updating item status:', error);
-      
-      // Rollback en cas d'erreur
-      setWatchlistItems(prevItems =>
-        prevItems.map(item =>
-          item.id === itemId ? { ...item, status: item.status } : item
-        )
-      );
-      
-      Alert.alert(
-        'Erreur',
-        'Impossible de modifier le statut. Veuillez réessayer.'
-      );
+      console.error('[RoomScreen] Erreur lors de la sauvegarde des votes supprimés:', error);
     }
   };
 
-  const getFilteredItems = () => {
-    let filteredItems = watchlistItems.filter(item => item.status === currentTab);
-
-    // Filtrer par type
-    if (appliedFilters.type !== 'all') {
-      // Mapper le type de filtre vers le type de données stockées
-      const typeToMatch = appliedFilters.type === 'series' ? 'tv' : appliedFilters.type;
-      filteredItems = filteredItems.filter(item => item.media.type === typeToMatch);
+  // Fonction pour obtenir le texte de statut d'un vote
+  const getVoteStatusText = (vote: Vote) => {
+    if (!vote.endsAt) {
+      return t('vote.active');
     }
+    
+    const now = new Date();
+    const endsAt = new Date(vote.endsAt);
+    
+    if (endsAt.getTime() <= now.getTime()) {
+      return t('vote.completed');
+    }
+    
+    return t('vote.active');
+  };
 
-    // Filtrer par genres (si des genres sont sélectionnés)
-    if (appliedFilters.genres.length > 0) {
-      filteredItems = filteredItems.filter(item => {
-        if (!item.media.genre) return false;
-        const itemGenres = item.media.genre.toLowerCase();
-        return appliedFilters.genres.some(genre => itemGenres.includes(genre));
+  // Fonction pour obtenir les informations de badge d'un vote
+  const getVoteBadgeInfo = (vote: Vote) => {
+    if (!vote.endsAt) {
+      return { text: t('vote.activeLabel'), color: '#4CAF50' };
+    }
+    
+    const now = new Date();
+    const endsAt = new Date(vote.endsAt);
+    
+    if (endsAt.getTime() <= now.getTime()) {
+      return { text: t('vote.completedLabel'), color: '#FF9800' };
+    }
+    
+    return { text: t('vote.activeLabel'), color: '#4CAF50' };
+  };
+
+  // Fonction pour filtrer les éléments de la watchlist
+  const getFilteredItems = () => {
+    let filtered = watchlistItems.filter(item => item.status === currentTab);
+
+    // Appliquer les filtres
+    if (appliedFilters.type !== 'all') {
+      filtered = filtered.filter(item => {
+        if (appliedFilters.type === 'movie') return item.media.type === 'movie';
+        if (appliedFilters.type === 'series') return item.media.type === 'tv' || item.media.type === 'series';
+        return true;
       });
     }
 
-    // Trier seulement si un tri est sélectionné
-    if (appliedFilters.sortBy !== 'none') {
-      filteredItems.sort((a, b) => {
-        let comparison = 0;
+    if (appliedFilters.genres && appliedFilters.genres.length > 0) {
+      filtered = filtered.filter(item => 
+        item.media.genre && 
+        appliedFilters.genres?.includes(item.media.genre)
+      );
+    }
 
+    // Appliquer le tri
+    if (appliedFilters.sortBy !== 'none') {
+      filtered.sort((a, b) => {
+        let comparison = 0;
+        
         switch (appliedFilters.sortBy) {
           case 'title':
             comparison = a.media.title.localeCompare(b.media.title);
             break;
           case 'year':
-            const yearA = a.media.year || 0;
-            const yearB = b.media.year || 0;
-            comparison = yearA - yearB;
+            comparison = (a.media.year || 0) - (b.media.year || 0);
             break;
           case 'rating':
-            const ratingA = a.media.rating || 0;
-            const ratingB = b.media.rating || 0;
-            comparison = ratingA - ratingB;
+            comparison = (a.media.rating || 0) - (b.media.rating || 0);
             break;
           case 'date_added':
-            const dateA = new Date(a.addedAt).getTime();
-            const dateB = new Date(b.addedAt).getTime();
-            comparison = dateA - dateB;
-            break;
-          case 'duration':
-            // Durée : on peut estimer selon le type de média
-            // Films: ~120min, Séries: ~45min par épisode
-            const getDuration = (item: WatchlistItem) => {
-              if (item.media.type === 'movie') {
-                return 120; // Minutes par défaut pour un film
-              } else if (item.media.type === 'series' || item.media.type === 'tv') {
-                return 45; // Minutes par épisode pour une série
-              }
-              return 30; // Défaut pour autres types
-            };
-            const durationA = getDuration(a);
-            const durationB = getDuration(b);
-            comparison = durationA - durationB;
-            break;
-          case 'popularity':
-            // Popularité : on peut utiliser la note comme proxy
-            // ou implémenter un vrai système de popularité plus tard
-            const popA = a.media.rating || 0;
-            const popB = b.media.rating || 0;
-            comparison = popA - popB;
+            comparison = new Date(a.addedAt).getTime() - new Date(b.addedAt).getTime();
             break;
           default:
-            // Pas de tri pour 'none' ou cas non géré
-            comparison = 0;
+            break;
         }
-
+        
         return appliedFilters.sortDirection === 'asc' ? comparison : -comparison;
       });
     }
 
-    return filteredItems;
+    return filtered;
   };
 
-  // Compter le nombre de filtres actifs pour le badge
-  const getActiveFiltersCount = (): number => {
-    let count = 0;
-    if (appliedFilters.type !== 'all') count++;
-    count += appliedFilters.genres.length;
-    if (appliedFilters.sortBy !== 'none') count++; // Compter le tri seulement s'il est actif
-    return count;
-  };
-
-  // Gestionnaire pour ouvrir le sidebar de filtrage
-  const handleOpenFilterSidebar = () => {
-    console.log('[RoomScreen] Ouverture du sidebar de filtrage...');
-    setFilterSidebarVisible(true);
-  };
-
-  // Gestionnaires pour le sidebar de filtrage
-  const handleCloseFilterSidebar = () => {
-    setFilterSidebarVisible(false);
-  };
-
-  const handleApplyFilters = (newFilters: FilterOptions) => {
-    console.log('[RoomScreen] Application des filtres:', newFilters);
-    setAppliedFilters(newFilters);
-    setFilterSidebarVisible(false);
-  };
-
-  const handleResetFilters = () => {
-    console.log('[RoomScreen] Réinitialisation des filtres');
-    const defaultFilters: FilterOptions = {
-      type: 'all',
-      genres: [],
-      sortBy: 'none',
-      sortDirection: 'desc',
-    };
-    setAppliedFilters(defaultFilters);
-  };
-
+  // Fonction pour rendre un élément de média
   const renderMediaItem = (item: WatchlistItem) => (
-    <MediaItemCard 
-      key={item.id} 
-      item={item} 
-      onSwipe={handleSwipe} 
-      statusOrder={statusOrder} 
-      renderMediaPoster={renderMediaPoster} 
-      currentTab={currentTab}
-      onViewDetails={handleViewMediaDetails}
-      currentLanguage={currentLanguage}
-    />
+    <TouchableOpacity
+      key={item.id}
+      style={styles.mediaItem}
+      onPress={() => handleViewMediaDetails(item)}
+      activeOpacity={0.7}
+    >
+      {renderMediaPoster(item)}
+      <View style={styles.mediaContent}>
+        <Text style={styles.title}>{item.media.title}</Text>
+        <Text style={styles.meta}>
+          {item.media.year || t('common.notAvailable')}
+        </Text>
+        <Text style={styles.meta}>
+          {item.media.genre || ''}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 
+  // Fonction pour rendre l'état vide
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
       <Text style={styles.emptyIcon}>📱</Text>
@@ -1235,8 +1070,30 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
     </View>
   );
 
+  // Fonctions pour la gestion des filtres
+  const getActiveFiltersCount = () => {
+    let count = 0;
+    if (appliedFilters.type !== 'all') count++;
+    if (appliedFilters.genres && appliedFilters.genres.length > 0) count++;
+    if (appliedFilters.sortBy !== 'none') count++;
+    return count;
+  };
+
+  const handleOpenFilterSidebar = () => {
+    setFilterSidebarVisible(true);
+  };
+
+  const handleCloseFilterSidebar = () => {
+    setFilterSidebarVisible(false);
+  };
+
+  const handleApplyFilters = (filters: FilterOptions) => {
+    setAppliedFilters(filters);
+    setFilterSidebarVisible(false);
+  };
+
   if (isLoading) {
-    return <LoadingScreen message="Chargement de la room..." />;
+    return <LoadingScreen message={t('room.loading')} />;
   }
 
   const filteredItems = getFilteredItems();
@@ -1255,7 +1112,7 @@ const RoomScreen: React.FC<RoomScreenProps> = ({ route }) => {
               getVoteStatusText={getVoteStatusText}
               getVoteBadgeInfo={getVoteBadgeInfo}
               getVoteTimeRemaining={getVoteTimeRemaining}
-              getVoteEndTime={getVoteEndTime}
+              getVoteEndTime={getVoteEndTimeFormatted}
             />
           ))}
         </View>
@@ -1725,61 +1582,5 @@ const styles = StyleSheet.create({
     lineHeight: 12,
   },
 });
-
-/**
- * Calcule le temps restant pour un vote
- */
-const getVoteTimeRemaining = (vote: Vote) => {
-  if (!vote.endsAt) {
-    return 'Permanent';
-  }
-
-  const now = new Date();
-  const endsAt = new Date(vote.endsAt);
-  const diffMs = endsAt.getTime() - now.getTime();
-
-  if (diffMs <= 0) {
-    return 'Expiré';
-  }
-
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (diffHours > 24) {
-    const diffDays = Math.floor(diffHours / 24);
-    return `${diffDays}j ${diffHours % 24}h`;
-  } else if (diffHours > 0) {
-    return `${diffHours}h ${diffMinutes}m`;
-  } else {
-    return `${diffMinutes}m`;
-  }
-};
-
-/**
- * Formate l'heure de fin d'un vote
- */
-const getVoteEndTime = (vote: Vote) => {
-  if (!vote.endsAt) {
-    return null;
-  }
-
-  const endsAt = new Date(vote.endsAt);
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(tomorrow.getDate() + 1);
-
-  const timeString = endsAt.toLocaleTimeString('fr-FR', { 
-    hour: '2-digit', 
-    minute: '2-digit' 
-  });
-
-  if (endsAt.toDateString() === today.toDateString()) {
-    return `Fin aujourd'hui à ${timeString}`;
-  } else if (endsAt.toDateString() === tomorrow.toDateString()) {
-    return `Fin demain à ${timeString}`;
-  } else {
-    return `Fin le ${endsAt.toLocaleDateString('fr-FR')} à ${timeString}`;
-  }
-};
 
 export default RoomScreen;

@@ -22,7 +22,14 @@
     "addToList": "Ajouter à ma liste",
     "statusInList": "Statut dans ma liste",
     "proposeMovies": "Proposer des films",
-    "addMoviesForVote": "Ajoutez des films pour créer un vote"
+    "addMoviesForVote": "Ajoutez des films pour créer un vote",
+    "notAvailable": "Non disponible",
+    "yourName": "Votre nom",
+    "error": "Erreur",
+    "nameRequired": "Votre nom est requis",
+    "days": "j",
+    "hours": "h",
+    "minutes": "m"
   },
   "home": {
     "title": "WatchList",
@@ -32,7 +39,8 @@
     "roomCode": "Code de la room",
     "create": "Créer",
     "join": "Rejoindre",
-    "recentRooms": "Rooms récentes"
+    "recentRooms": "Rooms récentes",
+    "lastConnection": "Dernière connexion"
   },
   "room": {
     "title": "Room: {{name}}",
@@ -44,7 +52,11 @@
     "noMedia": "Aucun média",
     "emptyPlanned": "Ajoutez des médias à votre watchlist !",
     "emptyWatching": "Commencez à regarder des médias !",
-    "emptyCompleted": "Terminez des médias pour les voir ici !"
+    "emptyCompleted": "Terminez des médias pour les voir ici !",
+    "shareMessage": "Rejoins ma WatchList \"{{roomName}}\" avec le code: {{roomCode}}",
+    "shareTitle": "Partager ma WatchList",
+    "errorLoadingRoom": "Impossible de charger les données de la room",
+    "errorLoadingWatchlist": "Impossible de charger la watchlist"
   },
   "media": {
     "movie": "Film",
@@ -93,6 +105,7 @@
     "active": "Actif",
     "completed": "Terminé",
     "expired": "Expiré",
+    "permanent": "Permanent",
     "timeLeft": "Temps restant",
     "ended": "Terminé",
     "votes": "{{count}} vote(s)",
@@ -102,7 +115,13 @@
     "activeLabel": "EN COURS",
     "completedLabel": "TERMINÉ",
     "expiredLabel": "EXPIRÉ",
-    "alreadyInProgress": "Vote déjà en cours"
+    "alreadyInProgress": "Vote déjà en cours",
+    "proposesMovies": "propose {{count}} films",
+    "endsToday": "Fin aujourd'hui à {{time}}",
+    "endsTomorrow": "Fin demain à {{time}}",
+    "endsOn": "Fin le {{date}} à {{time}}",
+    "proposeMoviesToGroup": "Proposez des films à votre groupe",
+    "enterNameOrVoteAnonymously": "Veuillez entrer votre nom ou voter anonymement"
   },
   "filter": {
     "all": "Tout",
@@ -122,6 +141,7 @@
     "title": "Paramètres",
     "notifications": "Notifications",
     "voteNotifications": "Notifications de vote",
+    "voteNotificationsDescription": "Recevoir des alertes pour les nouveaux votes",
     "language": "Langue",
     "theme": "Thème",
     "dark": "Sombre",

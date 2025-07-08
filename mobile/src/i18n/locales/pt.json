@@ -22,7 +22,14 @@
     "addToList": "Adicionar à minha lista",
     "statusInList": "Status na minha lista",
     "proposeMovies": "Propor filmes",
-    "addMoviesForVote": "Adicione filmes para criar uma votação"
+    "addMoviesForVote": "Adicione filmes para criar uma votação",
+    "notAvailable": "Não disponível",
+    "yourName": "Seu nome",
+    "error": "Erro",
+    "nameRequired": "Seu nome é obrigatório",
+    "days": "d",
+    "hours": "h",
+    "minutes": "m"
   },
   "home": {
     "title": "WatchList",
@@ -32,7 +39,8 @@
     "roomCode": "Código da sala",
     "create": "Criar",
     "join": "Entrar",
-    "recentRooms": "Salas recentes"
+    "recentRooms": "Salas recentes",
+    "lastConnection": "Última conexão"
   },
   "room": {
     "title": "Sala: {{name}}",
@@ -44,7 +52,11 @@
     "noMedia": "Nenhuma mídia",
     "emptyPlanned": "Adicione mídias à sua lista!",
     "emptyWatching": "Comece a assistir algumas mídias!",
-    "emptyCompleted": "Complete mídias para vê-las aqui!"
+    "emptyCompleted": "Complete mídias para vê-las aqui!",
+    "shareMessage": "Junte-se à minha WatchList \"{{roomName}}\" com o código: {{roomCode}}",
+    "shareTitle": "Compartilhar minha WatchList",
+    "errorLoadingRoom": "Não é possível carregar os dados da sala",
+    "errorLoadingWatchlist": "Não é possível carregar a lista de acompanhamento"
   },
   "media": {
     "movie": "Filme",
@@ -93,6 +105,7 @@
     "active": "Ativa",
     "completed": "Concluída",
     "expired": "Expirada",
+    "permanent": "Permanente",
     "timeLeft": "Tempo restante",
     "ended": "Finalizada",
     "votes": "{{count}} voto(s)",
@@ -102,7 +115,13 @@
     "activeLabel": "ATIVO",
     "completedLabel": "CONCLUÍDO",
     "expiredLabel": "EXPIRADO",
-    "alreadyInProgress": "Votação já em andamento"
+    "alreadyInProgress": "Votação já em andamento",
+    "proposesMovies": "propõe {{count}} filmes",
+    "endsToday": "Termina hoje às {{time}}",
+    "endsTomorrow": "Termina amanhã às {{time}}",
+    "endsOn": "Termina em {{date}} às {{time}}",
+    "proposeMoviesToGroup": "Proponha filmes ao seu grupo",
+    "enterNameOrVoteAnonymously": "Por favor, digite seu nome ou vote anonimamente"
   },
   "filter": {
     "all": "Tudo",
@@ -129,7 +148,8 @@
     "auto": "Automático",
     "about": "Sobre",
     "version": "Versão",
-    "testNotification": "Testar notificações"
+    "testNotification": "Testar notificações",
+    "voteNotificationsDescription": "Receber alertas de novas enquetes"
   },
   "search": {
     "placeholder": "Pesquisar filmes, séries, mangás...",

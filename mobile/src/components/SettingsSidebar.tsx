@@ -141,7 +141,7 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>⚙️ Paramètres</Text>
+            <Text style={styles.title}>⚙️ {t('settings.title')}</Text>
             <Text style={styles.subtitle}>{roomName}</Text>
           </View>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
@@ -160,8 +160,8 @@ const SettingsSidebar: React.FC<SettingsSidebarProps> = ({
               <View style={styles.settingInfo}>
                 <Text style={styles.settingName}>Notifications push</Text>
                 <Text style={styles.settingDescription}>
-                  Recevoir des alertes pour les nouveaux votes
-                  {!notificationsInitialized && ' (Non disponible)'}
+                  {t('settings.voteNotificationsDescription')}
+                  {!notificationsInitialized && ` (${t('common.notAvailable')})`}
                 </Text>
               </View>
               <Switch
