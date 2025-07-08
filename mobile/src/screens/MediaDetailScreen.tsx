@@ -271,7 +271,7 @@ const MediaDetailScreen: React.FC = () => {
     
     return (
       <View style={styles.trailerSection}>
-        <Text style={styles.sectionTitle}>Bandes-annonces</Text>
+        <Text style={styles.sectionTitle}>{t('media.trailers')}</Text>
         
         {/* Onglets des trailers */}
         <ScrollView
@@ -464,18 +464,18 @@ const MediaDetailScreen: React.FC = () => {
           {/* Synopsis */}
           {getProperty('overview') && (
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Synopsis</Text>
+              <Text style={styles.sectionTitle}>{t('media.synopsis')}</Text>
               <Text style={styles.synopsisText}>{safeText(getProperty('overview'))}</Text>
             </View>
           )}
           
           {/* Détails */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Détails</Text>
+            <Text style={styles.sectionTitle}>{t('media.details')}</Text>
             
             {getProperty('production_companies') && getProperty('production_companies').length > 0 && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Production :</Text>
+                <Text style={styles.detailLabel}>{t('media.production')}</Text>
                 <Text style={styles.detailValue}>
                   {getProperty('production_companies').slice(0, 2).map((c: any) => c.name).join(', ')}
                 </Text>
@@ -484,21 +484,21 @@ const MediaDetailScreen: React.FC = () => {
             
             {mediaType === 'series' && getProperty('number_of_seasons') && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Saisons :</Text>
+                <Text style={styles.detailLabel}>{t('media.seasons')}:</Text>
                 <Text style={styles.detailValue}>{safeText(getProperty('number_of_seasons'))}</Text>
               </View>
             )}
             
             {mediaType === 'series' && getProperty('number_of_episodes') && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Épisodes :</Text>
+                <Text style={styles.detailLabel}>{t('media.episodes')}:</Text>
                 <Text style={styles.detailValue}>{safeText(getProperty('number_of_episodes'))}</Text>
               </View>
             )}
             
             {mediaType === 'series' && getProperty('networks') && getProperty('networks').length > 0 && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Chaînes :</Text>
+                <Text style={styles.detailLabel}>{t('media.networks')}</Text>
                 <Text style={styles.detailValue}>
                   {getProperty('networks').slice(0, 2).map((n: any) => n.name).join(', ')}
                 </Text>
@@ -507,14 +507,14 @@ const MediaDetailScreen: React.FC = () => {
             
             {mediaType === 'series' && getProperty('status') && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Statut :</Text>
+                <Text style={styles.detailLabel}>{t('media.status')}:</Text>
                 <Text style={styles.detailValue}>{safeText(getProperty('status'))}</Text>
               </View>
             )}
             
             {mediaType === 'movie' && getProperty('budget') && getProperty('budget') > 0 && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Budget :</Text>
+                <Text style={styles.detailLabel}>{t('media.budget')}</Text>
                 <Text style={styles.detailValue}>
                   ${getProperty('budget').toLocaleString()}
                 </Text>
@@ -523,7 +523,7 @@ const MediaDetailScreen: React.FC = () => {
             
             {mediaType === 'movie' && getProperty('revenue') && getProperty('revenue') > 0 && (
               <View style={styles.detailRow}>
-                <Text style={styles.detailLabel}>Recettes :</Text>
+                <Text style={styles.detailLabel}>{t('media.revenue')}</Text>
                 <Text style={styles.detailValue}>
                   ${getProperty('revenue').toLocaleString()}
                 </Text>

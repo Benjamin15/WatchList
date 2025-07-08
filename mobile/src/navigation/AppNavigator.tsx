@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 import { RootStackParamList } from '../types';
 import HomeScreen from '../screens/HomeScreen';
 import RoomScreen from '../screens/RoomScreen';
@@ -15,6 +16,8 @@ import { COLORS } from '../constants';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const AppNavigator: React.FC = () => {
+  const { t } = useTranslation();
+  
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NavigationContainer>
@@ -78,7 +81,7 @@ const AppNavigator: React.FC = () => {
           name="VoteDetail"
           component={VoteDetailScreen}
           options={{
-            title: 'Détails du vote',
+            title: t('vote.voteDetails'),
           }}
         />
       </Stack.Navigator>

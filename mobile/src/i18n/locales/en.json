@@ -29,7 +29,13 @@
     "nameRequired": "Your name is required",
     "days": "d",
     "hours": "h",
-    "minutes": "m"
+    "minutes": "m",
+    "all": "All",
+    "movies": "Movies",
+    "series": "Series",
+    "apply": "Apply",
+    "reset": "Reset",
+    "results": "results"
   },
   "home": {
     "title": "WatchList",
@@ -75,7 +81,13 @@
     "cast": "Cast",
     "synopsis": "Synopsis",
     "releaseDate": "Release date",
-    "originalTitle": "Original title"
+    "originalTitle": "Original title",
+    "details": "Details",
+    "trailers": "Trailers",
+    "production": "Production:",
+    "networks": "Networks:",
+    "budget": "Budget:",
+    "revenue": "Revenue:"
   },
   "status": {
     "a_voir": "To watch",
@@ -125,21 +137,9 @@
     "created": "Created",
     "alreadyVoted": "You have already voted",
     "voteLabel": "Vote",
-    "optionLabel": "Option"
-  },
-  "filter": {
-    "all": "All",
-    "movies": "Movies",
-    "series": "TV Shows",
-    "mangas": "Manga",
-    "sortBy": "Sort by",
-    "title": "Title",
-    "dateAdded": "Date added",
-    "rating": "Rating",
-    "year": "Year",
-    "status": "Status",
-    "ascending": "Ascending",
-    "descending": "Descending"
+    "optionLabel": "Option",
+    "voteDetails": "Vote Details",
+    "confirmVote": "Confirm your vote"
   },
   "settings": {
     "title": "Settings",
@@ -181,5 +181,95 @@
     "voteCreated": "{{creator}} created a new poll: \"{{title}}\"",
     "testNotification": "Test notification",
     "testMessage": "Your notification system is working correctly!"
+  },
+  "filter": {
+    "title": "Filters",
+    "contentType": "Content type",
+    "sortBy": "Sort by",
+    "genres": "Genres",
+    "type": {
+      "all": "All",
+      "movie": "Movies",
+      "series": "Series"
+    },
+    "sort": {
+      "none": "No sort",
+      "date_added": "Date added",
+      "title": "Title",
+      "year": "Year",
+      "rating": "Rating",
+      "duration": "Duration",
+      "popularity": "Popularity"
+    },
+    "direction": {
+      "asc": "Ascending",
+      "desc": "Descending",
+      "title_asc": "A-Z",
+      "title_desc": "Z-A",
+      "year_asc": "Oldest",
+      "year_desc": "Newest",
+      "date_added_asc": "Oldest",
+      "date_added_desc": "Newest",
+      "rating_asc": "Lowest",
+      "rating_desc": "Highest",
+      "duration_asc": "Shortest",
+      "duration_desc": "Longest",
+      "popularity_asc": "Less",
+      "popularity_desc": "More"
+    },
+    "actions": {
+      "apply": "Apply",
+      "reset": "Reset",
+      "close": "Close"
+    },
+    "alternatives": {
+      "title": "Filter alternatives test",
+      "header": {
+        "name": "Header Bar",
+        "description": "Filters integrated in header",
+        "pros": ["Always visible", "Quick access", "Compact"],
+        "cons": ["Limited space", "Can clutter"]
+      },
+      "sidebar": {
+        "name": "Sidebar",
+        "description": "Sliding panel from left",
+        "pros": ["More space", "Familiar navigation", "Stable"],
+        "cons": ["Takes space", "One more click"],
+        "open": "Open sidebar"
+      },
+      "actionsheet": {
+        "name": "Action Sheet",
+        "description": "Native iOS/Android menus",
+        "pros": ["Native interface", "Very reliable", "Familiar"],
+        "cons": ["Limited to lists", "Less visual"],
+        "filterContent": "Filter content",
+        "changeSort": "Change sort"
+      },
+      "status": {
+        "title": "Current filter state:",
+        "type": "Type:",
+        "sort": "Sort:",
+        "results": "Results:"
+      },
+      "advantages": "Advantages:",
+      "disadvantages": "Disadvantages:"
+    },
+    "actionSheet": {
+      "filterTitle": "Filter content",
+      "filterMessage": "Choose the type of content to display",
+      "sortTitle": "Sort movies",
+      "sortMessage": "Choose sort order",
+      "currently": "Currently:",
+      "cancel": "Cancel",
+      "options": {
+        "all": "All content",
+        "movie": "Movies only",
+        "series": "Series only",
+        "dateAdded": "Most recent first",
+        "title": "By title (A-Z)",
+        "rating": "Best rated first",
+        "popularity": "Most popular first"
+      }
+    }
   }
 }

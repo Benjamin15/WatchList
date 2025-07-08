@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 
@@ -20,21 +21,22 @@ const FilterHeaderBar: React.FC<FilterHeaderBarProps> = ({
   onUpdate,
   resultsCount,
 }) => {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
 
   const typeOptions = [
-    { id: 'all', name: 'Tous', emoji: '🎯' },
-    { id: 'movie', name: 'Films', emoji: '🎬' },
-    { id: 'series', name: 'Séries', emoji: '📺' },
+    { id: 'all', name: t('filter.type.all'), emoji: '🎯' },
+    { id: 'movie', name: t('filter.type.movie'), emoji: '🎬' },
+    { id: 'series', name: t('filter.type.series'), emoji: '📺' },
   ];
 
   const sortOptions = [
-    { id: 'date_added', name: 'Récent', emoji: '📅' },
-    { id: 'title', name: 'Titre', emoji: '🔤' },
-    { id: 'year', name: 'Année', emoji: '📆' },
-    { id: 'rating', name: 'Note', emoji: '⭐' },
-    { id: 'duration', name: 'Durée', emoji: '⏱️' },
-    { id: 'popularity', name: 'Populaire', emoji: '🔥' },
+    { id: 'date_added', name: t('filter.sort.date_added'), emoji: '📅' },
+    { id: 'title', name: t('filter.sort.title'), emoji: '🔤' },
+    { id: 'year', name: t('filter.sort.year'), emoji: '📆' },
+    { id: 'rating', name: t('filter.sort.rating'), emoji: '⭐' },
+    { id: 'duration', name: t('filter.sort.duration'), emoji: '⏱️' },
+    { id: 'popularity', name: t('filter.sort.popularity'), emoji: '🔥' },
   ];
 
   const updateType = (type: FilterOptions['type']) => {
@@ -58,7 +60,7 @@ const FilterHeaderBar: React.FC<FilterHeaderBarProps> = ({
       {/* Barre principale toujours visible */}
       <View style={styles.mainBar}>
         <View style={styles.leftSection}>
-          <Text style={styles.resultsText}>{resultsCount} films</Text>
+          <Text style={styles.resultsText}>{resultsCount} {t('common.results')}</Text>
         </View>
 
         <View style={styles.centerSection}>
@@ -101,7 +103,7 @@ const FilterHeaderBar: React.FC<FilterHeaderBarProps> = ({
       {/* Section étendue pour tri et genres */}
       {expanded && (
         <View style={styles.expandedSection}>
-          <Text style={styles.sectionTitle}>🔀 Tri</Text>
+          <Text style={styles.sectionTitle}>🔀 {t('filter.sortBy')}</Text>
           <ScrollView 
             horizontal 
             showsHorizontalScrollIndicator={false}

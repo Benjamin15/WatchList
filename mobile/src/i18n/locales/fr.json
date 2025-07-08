@@ -29,7 +29,13 @@
     "nameRequired": "Votre nom est requis",
     "days": "j",
     "hours": "h",
-    "minutes": "m"
+    "minutes": "m",
+    "all": "Tous",
+    "movies": "Films",
+    "series": "Séries",
+    "apply": "Appliquer",
+    "reset": "Réinitialiser",
+    "results": "résultats"
   },
   "home": {
     "title": "WatchList",
@@ -78,7 +84,13 @@
     "cast": "Distribution",
     "synopsis": "Synopsis",
     "releaseDate": "Date de sortie",
-    "originalTitle": "Titre original"
+    "originalTitle": "Titre original",
+    "details": "Détails",
+    "trailers": "Bandes-annonces",
+    "production": "Production :",
+    "networks": "Chaînes :",
+    "budget": "Budget :",
+    "revenue": "Recettes :"
   },
   "status": {
     "a_voir": "À voir",
@@ -128,21 +140,9 @@
     "created": "Créé",
     "alreadyVoted": "Vous avez déjà voté",
     "voteLabel": "Vote",
-    "optionLabel": "Option"
-  },
-  "filter": {
-    "all": "Tout",
-    "movies": "Films",
-    "series": "Séries", 
-    "mangas": "Mangas",
-    "sortBy": "Trier par",
-    "title": "Titre",
-    "dateAdded": "Date d'ajout",
-    "rating": "Note",
-    "year": "Année",
-    "status": "Statut",
-    "ascending": "Croissant",
-    "descending": "Décroissant"
+    "optionLabel": "Option",
+    "voteDetails": "Détails du vote",
+    "confirmVote": "Confirmer votre vote"
   },
   "settings": {
     "title": "Paramètres",
@@ -184,5 +184,95 @@
     "voteCreated": "{{creator}} a créé un nouveau sondage : \"{{title}}\"",
     "testNotification": "Test de notification",
     "testMessage": "Votre système de notifications fonctionne correctement !"
+  },
+  "filter": {
+    "title": "Filtres",
+    "contentType": "Type de contenu",
+    "sortBy": "Trier par",
+    "genres": "Genres",
+    "type": {
+      "all": "Tous",
+      "movie": "Films",
+      "series": "Séries"
+    },
+    "sort": {
+      "none": "Aucun tri",
+      "date_added": "Date d'ajout",
+      "title": "Titre",
+      "year": "Année",
+      "rating": "Note",
+      "duration": "Durée",
+      "popularity": "Popularité"
+    },
+    "direction": {
+      "asc": "Croissant",
+      "desc": "Décroissant",
+      "title_asc": "A-Z",
+      "title_desc": "Z-A",
+      "year_asc": "Ancien",
+      "year_desc": "Récent",
+      "date_added_asc": "Ancien",
+      "date_added_desc": "Récent",
+      "rating_asc": "Faible",
+      "rating_desc": "Élevé",
+      "duration_asc": "Court",
+      "duration_desc": "Long",
+      "popularity_asc": "Moins",
+      "popularity_desc": "Plus"
+    },
+    "actions": {
+      "apply": "Appliquer",
+      "reset": "Réinitialiser",
+      "close": "Fermer"
+    },
+    "alternatives": {
+      "title": "Test des alternatives de filtrage",
+      "header": {
+        "name": "Header Bar",
+        "description": "Filtres intégrés dans l'en-tête",
+        "pros": ["Toujours visible", "Accès rapide", "Compact"],
+        "cons": ["Espace limité", "Peut encombrer"]
+      },
+      "sidebar": {
+        "name": "Sidebar",
+        "description": "Panel coulissant depuis la gauche",
+        "pros": ["Plus d'espace", "Navigation familière", "Stable"],
+        "cons": ["Prend de l'espace", "Un clic de plus"],
+        "open": "Ouvrir le sidebar"
+      },
+      "actionsheet": {
+        "name": "Action Sheet",
+        "description": "Menus natifs iOS/Android",
+        "pros": ["Interface native", "Très fiable", "Familier"],
+        "cons": ["Limité aux listes", "Moins visuel"],
+        "filterContent": "Filtrer le contenu",
+        "changeSort": "Changer le tri"
+      },
+      "status": {
+        "title": "État actuel des filtres:",
+        "type": "Type:",
+        "sort": "Tri:",
+        "results": "Résultats:"
+      },
+      "advantages": "Avantages:",
+      "disadvantages": "Inconvénients:"
+    },
+    "actionSheet": {
+      "filterTitle": "Filtrer le contenu",
+      "filterMessage": "Choisissez le type de contenu à afficher",
+      "sortTitle": "Trier les films",
+      "sortMessage": "Choisissez l'ordre de tri",
+      "currently": "Actuellement:",
+      "cancel": "Annuler",
+      "options": {
+        "all": "Tous les contenus",
+        "movie": "Films uniquement",
+        "series": "Séries uniquement",
+        "dateAdded": "Plus récents d'abord",
+        "title": "Par titre (A-Z)",
+        "rating": "Mieux notés d'abord",
+        "popularity": "Plus populaires d'abord"
+      }
+    }
   }
 }

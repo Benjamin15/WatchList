@@ -326,7 +326,7 @@ const VoteDetailScreen: React.FC = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Confirmer votre vote</Text>
+            <Text style={styles.modalTitle}>{t('vote.confirmVote')}</Text>
             
             {selectedOption && (
               <SelectedOptionPreview selectedOption={selectedOption} />

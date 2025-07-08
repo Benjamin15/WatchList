@@ -1,5 +1,6 @@
 import React from 'react';
 import { ActionSheetIOS, Alert, Platform } from 'react-native';
+import i18next from 'i18next';
 import { FilterOptions } from '../types';
 
 interface FilterActionSheetProps {
@@ -10,31 +11,31 @@ interface FilterActionSheetProps {
 
 export const showFilterActionSheet = ({ options, onUpdate }: Omit<FilterActionSheetProps, 'onShow'>) => {
   const typeOptions = [
-    { id: 'all', name: '🎯 Tous les contenus' },
-    { id: 'movie', name: '🎬 Films uniquement' },
-    { id: 'series', name: '📺 Séries uniquement' },
+    { id: 'all', name: i18next.t('filter.actionSheet.options.all') },
+    { id: 'movie', name: i18next.t('filter.actionSheet.options.movie') },
+    { id: 'series', name: i18next.t('filter.actionSheet.options.series') },
   ];
 
   const sortOptions = [
-    { id: 'date_added', name: '📅 Plus récents d\'abord' },
-    { id: 'title', name: '🔤 Par titre (A-Z)' },
-    { id: 'rating', name: '⭐ Mieux notés d\'abord' },
-    { id: 'popularity', name: '🔥 Plus populaires d\'abord' },
+    { id: 'date_added', name: i18next.t('filter.actionSheet.options.dateAdded') },
+    { id: 'title', name: i18next.t('filter.actionSheet.options.title') },
+    { id: 'rating', name: i18next.t('filter.actionSheet.options.rating') },
+    { id: 'popularity', name: i18next.t('filter.actionSheet.options.popularity') },
   ];
 
   if (Platform.OS === 'ios') {
     // Action Sheet iOS natif
     const buttons = [
       ...typeOptions.map(type => type.name),
-      'Annuler'
+      i18next.t('filter.actionSheet.cancel')
     ];
 
     ActionSheetIOS.showActionSheetWithOptions(
       {
         options: buttons,
         cancelButtonIndex: buttons.length - 1,
-        title: 'Filtrer le contenu',
-        message: `Actuellement: ${typeOptions.find(t => t.id === options.type)?.name}`,
+        title: i18next.t('filter.actionSheet.filterTitle'),
+        message: `${i18next.t('filter.actionSheet.currently')} ${typeOptions.find(t => t.id === options.type)?.name}`,
       },
       (buttonIndex) => {
         if (buttonIndex < typeOptions.length) {
@@ -45,14 +46,14 @@ export const showFilterActionSheet = ({ options, onUpdate }: Omit<FilterActionSh
   } else {
     // Alert Android avec options
     Alert.alert(
-      'Filtrer le contenu',
-      'Choisissez le type de contenu à afficher',
+      i18next.t('filter.actionSheet.filterTitle'),
+      i18next.t('filter.actionSheet.filterMessage'),
       [
         ...typeOptions.map(type => ({
           text: type.name,
           onPress: () => onUpdate({ ...options, type: type.id as FilterOptions['type'] })
         })),
-        { text: 'Annuler', style: 'cancel' }
+        { text: i18next.t('filter.actionSheet.cancel'), style: 'cancel' }
       ]
     );
   }
@@ -60,24 +61,24 @@ export const showFilterActionSheet = ({ options, onUpdate }: Omit<FilterActionSh
 
 export const showSortActionSheet = ({ options, onUpdate }: Omit<FilterActionSheetProps, 'onShow'>) => {
   const sortOptions = [
-    { id: 'date_added', name: '📅 Plus récents d\'abord' },
-    { id: 'title', name: '🔤 Par titre (A-Z)' },
-    { id: 'rating', name: '⭐ Mieux notés d\'abord' },
-    { id: 'popularity', name: '🔥 Plus populaires d\'abord' },
+    { id: 'date_added', name: i18next.t('filter.actionSheet.options.dateAdded') },
+    { id: 'title', name: i18next.t('filter.actionSheet.options.title') },
+    { id: 'rating', name: i18next.t('filter.actionSheet.options.rating') },
+    { id: 'popularity', name: i18next.t('filter.actionSheet.options.popularity') },
   ];
 
   if (Platform.OS === 'ios') {
     const buttons = [
       ...sortOptions.map(sort => sort.name),
-      'Annuler'
+      i18next.t('filter.actionSheet.cancel')
     ];
 
     ActionSheetIOS.showActionSheetWithOptions(
       {
         options: buttons,
         cancelButtonIndex: buttons.length - 1,
-        title: 'Trier les films',
-        message: `Actuellement: ${sortOptions.find(s => s.id === options.sortBy)?.name}`,
+        title: i18next.t('filter.actionSheet.sortTitle'),
+        message: `${i18next.t('filter.actionSheet.currently')} ${sortOptions.find(s => s.id === options.sortBy)?.name}`,
       },
       (buttonIndex) => {
         if (buttonIndex < sortOptions.length) {
@@ -92,8 +93,8 @@ export const showSortActionSheet = ({ options, onUpdate }: Omit<FilterActionShee
     );
   } else {
     Alert.alert(
-      'Trier les films',
-      'Choisissez l\'ordre de tri',
+      i18next.t('filter.actionSheet.sortTitle'),
+      i18next.t('filter.actionSheet.sortMessage'),
       [
         ...sortOptions.map(sort => ({
           text: sort.name,
@@ -106,7 +107,7 @@ export const showSortActionSheet = ({ options, onUpdate }: Omit<FilterActionShee
             });
           }
         })),
-        { text: 'Annuler', style: 'cancel' }
+        { text: i18next.t('filter.actionSheet.cancel'), style: 'cancel' }
       ]
     );
   }

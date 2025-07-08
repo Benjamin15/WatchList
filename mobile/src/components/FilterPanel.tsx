@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { ScrollView, TouchableOpacity } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 import { FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 
@@ -29,6 +30,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   onReset,
   resultsCount,
 }) => {
+  const { t } = useTranslation();
   const [localOptions, setLocalOptions] = useState<FilterOptions>(options);
   const [panY] = useState(new Animated.Value(0));
   const [scaleValue] = useState(new Animated.Value(0));

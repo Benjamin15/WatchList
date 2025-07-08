@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 import FilterHeaderBar from './FilterHeaderBar';
@@ -24,30 +25,31 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
   onUpdate,
   resultsCount,
 }) => {
+  const { t } = useTranslation();
   const [currentMode, setCurrentMode] = useState<'header' | 'sidebar' | 'actionsheet'>('header');
   const [sidebarVisible, setSidebarVisible] = useState(false);
 
   const modes = [
     {
       id: 'header',
-      name: '📋 Header Bar',
-      description: 'Filtres intégrés dans l\'en-tête',
-      pros: ['Toujours visible', 'Accès rapide', 'Compact'],
-      cons: ['Espace limité', 'Peut encombrer'],
+      name: `📋 ${t('filter.alternatives.header.name')}`,
+      description: t('filter.alternatives.header.description'),
+      pros: t('filter.alternatives.header.pros', { returnObjects: true }) as string[],
+      cons: t('filter.alternatives.header.cons', { returnObjects: true }) as string[],
     },
     {
       id: 'sidebar',
-      name: '📱 Sidebar',
-      description: 'Panel coulissant depuis la gauche',
-      pros: ['Plus d\'espace', 'Navigation familière', 'Stable'],
-      cons: ['Prend de l\'espace', 'Un clic de plus'],
+      name: `📱 ${t('filter.alternatives.sidebar.name')}`,
+      description: t('filter.alternatives.sidebar.description'),
+      pros: t('filter.alternatives.sidebar.pros', { returnObjects: true }) as string[],
+      cons: t('filter.alternatives.sidebar.cons', { returnObjects: true }) as string[],
     },
     {
       id: 'actionsheet',
-      name: '📋 Action Sheet',
-      description: 'Menus natifs iOS/Android',
-      pros: ['Interface native', 'Très fiable', 'Familier'],
-      cons: ['Limité aux listes', 'Moins visuel'],
+      name: `📋 ${t('filter.alternatives.actionsheet.name')}`,
+      description: t('filter.alternatives.actionsheet.description'),
+      pros: t('filter.alternatives.actionsheet.pros', { returnObjects: true }) as string[],
+      cons: t('filter.alternatives.actionsheet.cons', { returnObjects: true }) as string[],
     },
   ];
 
@@ -71,7 +73,7 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
     <View style={styles.container}>
       {/* Sélecteur de mode */}
       <View style={styles.modeSelector}>
-        <Text style={styles.selectorTitle}>🧪 Test des alternatives de filtrage</Text>
+        <Text style={styles.selectorTitle}>🧪 {t('filter.alternatives.title')}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           {modes.map((mode) => (
             <TouchableOpacity
@@ -102,13 +104,13 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
               <Text style={styles.descriptionText}>{mode.description}</Text>
               <View style={styles.prosConsContainer}>
                 <View style={styles.prosContainer}>
-                  <Text style={styles.prosTitle}>✅ Avantages:</Text>
+                  <Text style={styles.prosTitle}>✅ {t('filter.alternatives.advantages')}</Text>
                   {mode.pros.map((pro, index) => (
                     <Text key={index} style={styles.proText}>• {pro}</Text>
                   ))}
                 </View>
                 <View style={styles.consContainer}>
-                  <Text style={styles.consTitle}>❌ Inconvénients:</Text>
+                  <Text style={styles.consTitle}>❌ {t('filter.alternatives.disadvantages')}</Text>
                   {mode.cons.map((con, index) => (
                     <Text key={index} style={styles.conText}>• {con}</Text>
                   ))}
@@ -135,7 +137,7 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
               style={styles.sidebarTrigger}
               onPress={handleSidebarOpen}
             >
-              <Text style={styles.sidebarTriggerText}>📱 Ouvrir le sidebar</Text>
+              <Text style={styles.sidebarTriggerText}>📱 {t('filter.alternatives.sidebar.open')}</Text>
             </TouchableOpacity>
             <FilterSidebar
               visible={sidebarVisible}
@@ -153,13 +155,13 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
               style={styles.actionButton}
               onPress={handleActionSheetFilter}
             >
-              <Text style={styles.actionButtonText}>🎬 Filtrer le contenu</Text>
+              <Text style={styles.actionButtonText}>🎬 {t('filter.alternatives.actionsheet.filterContent')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.actionButton}
               onPress={handleActionSheetSort}
             >
-              <Text style={styles.actionButtonText}>🔀 Changer le tri</Text>
+              <Text style={styles.actionButtonText}>🔀 {t('filter.alternatives.actionsheet.changeSort')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -167,10 +169,10 @@ const FilterAlternatives: React.FC<FilterAlternativesProps> = ({
 
       {/* Statut actuel */}
       <View style={styles.statusContainer}>
-        <Text style={styles.statusTitle}>📊 État actuel des filtres:</Text>
-        <Text style={styles.statusText}>Type: {options.type}</Text>
-        <Text style={styles.statusText}>Tri: {options.sortBy} ({options.sortDirection})</Text>
-        <Text style={styles.statusText}>Résultats: {resultsCount}</Text>
+        <Text style={styles.statusTitle}>📊 {t('filter.alternatives.status.title')}</Text>
+        <Text style={styles.statusText}>{t('filter.alternatives.status.type')} {options.type}</Text>
+        <Text style={styles.statusText}>{t('filter.alternatives.status.sort')} {options.sortBy} ({options.sortDirection})</Text>
+        <Text style={styles.statusText}>{t('filter.alternatives.status.results')} {resultsCount}</Text>
       </View>
     </View>
   );

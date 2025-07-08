@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
+import { useTranslation } from 'react-i18next';
 import { FilterOptions } from '../types';
 import { COLORS, SPACING, FONT_SIZES } from '../constants';
 
@@ -27,6 +28,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   onApply,
   resultsCount,
 }) => {
+  const { t } = useTranslation();
   const [localOptions, setLocalOptions] = useState<FilterOptions>(options);
   const [slideAnim] = useState(new Animated.Value(-300)); // Commence hors écran à gauche
   const [opacityAnim] = useState(new Animated.Value(0));
@@ -88,18 +90,18 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
   });
 
   const typeOptions = [
-    { id: 'all', name: 'Tous', emoji: '🎯' },
-    { id: 'movie', name: 'Films', emoji: '🎬' },
-    { id: 'series', name: 'Séries', emoji: '📺' },
+    { id: 'all', name: t('filter.type.all'), emoji: '🎯' },
+    { id: 'movie', name: t('filter.type.movie'), emoji: '🎬' },
+    { id: 'series', name: t('filter.type.series'), emoji: '📺' },
   ];
 
   const sortOptions = [
-    { id: 'date_added', name: 'Date d\'ajout', emoji: '📅' },
-    { id: 'title', name: 'Titre', emoji: '🔤' },
-    { id: 'year', name: 'Année', emoji: '📆' },
-    { id: 'rating', name: 'Note', emoji: '⭐' },
-    { id: 'duration', name: 'Durée', emoji: '⏱️' },
-    { id: 'popularity', name: 'Popularité', emoji: '🔥' },
+    { id: 'date_added', name: t('filter.sort.date_added'), emoji: '📅' },
+    { id: 'title', name: t('filter.sort.title'), emoji: '🔤' },
+    { id: 'year', name: t('filter.sort.year'), emoji: '📆' },
+    { id: 'rating', name: t('filter.sort.rating'), emoji: '⭐' },
+    { id: 'duration', name: t('filter.sort.duration'), emoji: '⏱️' },
+    { id: 'popularity', name: t('filter.sort.popularity'), emoji: '🔥' },
   ];
 
   const updateType = (type: FilterOptions['type']) => {
@@ -125,16 +127,17 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
   // Fonction pour obtenir les labels de direction
   const getDirectionLabel = (sortBy: FilterOptions['sortBy'], direction: 'asc' | 'desc'): string => {
-    const labels = {
-      title: { asc: 'A-Z', desc: 'Z-A' },
-      year: { asc: 'Ancien', desc: 'Récent' },
-      date_added: { asc: 'Ancien', desc: 'Récent' },
-      rating: { asc: 'Faible', desc: 'Élevé' },
-      duration: { asc: 'Court', desc: 'Long' },
-      popularity: { asc: 'Moins', desc: 'Plus' },
-    };
+    const directionKey = `${sortBy}_${direction}` as keyof typeof t;
+    const fallbackKey = direction === 'asc' ? 'filter.direction.asc' : 'filter.direction.desc';
     
-    return labels[sortBy as keyof typeof labels]?.[direction] || (direction === 'asc' ? 'Croiss.' : 'Décroiss.');
+    // Essayer d'abord la clé spécifique (ex: title_asc, year_desc)
+    const specificKey = `filter.direction.${directionKey}`;
+    if (t(specificKey) !== specificKey) {
+      return t(specificKey);
+    }
+    
+    // Sinon utiliser la clé générique
+    return t(fallbackKey);
   };
 
   const handleApply = () => {
@@ -180,8 +183,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
-            <Text style={styles.title}>Filtres</Text>
-            <Text style={styles.subtitle}>{resultsCount} résultats</Text>
+            <Text style={styles.title}>{t('filter.title')}</Text>
+            <Text style={styles.subtitle}>{resultsCount} {t('common.results')}</Text>
           </View>
           <TouchableOpacity style={styles.closeButton} onPress={onClose}>
             <Text style={styles.closeIcon}>✕</Text>
@@ -192,7 +195,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           {/* Type de contenu */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎬 Type de contenu</Text>
+            <Text style={styles.sectionTitle}>🎬 {t('filter.contentType')}</Text>
             <View style={styles.optionsGrid}>
               {typeOptions.map((type) => (
                 <TouchableOpacity
@@ -217,7 +220,7 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
 
           {/* Tri */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🔀 Trier par</Text>
+            <Text style={styles.sectionTitle}>🔀 {t('filter.sortBy')}</Text>
             <View style={styles.sortOptions}>
               {sortOptions.map((sort) => (
                 <TouchableOpacity
@@ -255,10 +258,10 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({
         {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
-            <Text style={styles.resetButtonText}>Réinitialiser</Text>
+            <Text style={styles.resetButtonText}>{t('filter.actions.reset')}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.applyButton} onPress={handleApply}>
-            <Text style={styles.applyButtonText}>Appliquer</Text>
+            <Text style={styles.applyButtonText}>{t('filter.actions.apply')}</Text>
           </TouchableOpacity>
         </View>
       </Animated.View>
