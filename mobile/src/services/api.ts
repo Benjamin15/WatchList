@@ -414,7 +414,8 @@ class ApiService {
       const statusMap: { [key: string]: 'planned' | 'watching' | 'completed' | 'dropped' } = {
         'a_voir': 'planned',
         'en_cours': 'watching', 
-        'terminé': 'completed',
+        'vu': 'completed',          // Le backend utilise 'vu' pour les films terminés
+        'terminé': 'completed',     // Garder pour compatibilité
         'abandonne': 'dropped',
         // Ajout des statuts déjà corrects au cas où
         'planned': 'planned',

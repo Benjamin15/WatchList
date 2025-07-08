@@ -89,11 +89,8 @@ class ItemController {
 
           if (existingItem) {
             itemId = existingItem.id;
-            // Reset status to default when adding to a new room
-            await this.prisma.item.update({
-              where: { id: itemId },
-              data: { status: 'a_voir' }
-            });
+            // Ne pas modifier le statut d'un item existant
+            // Le statut actuel est conservé
           }
         }
 
@@ -108,7 +105,7 @@ class ItemController {
               imageUrl: image_url,
               releaseDate: release_date,
               note,
-              status: 'a_voir' // Explicitly set default status
+              status: 'a_voir' // Statut par défaut uniquement pour les nouveaux items
             }
           });
           itemId = newItem.id;
@@ -128,6 +125,11 @@ class ItemController {
       if (existingItemInRoom) {
         return res.status(409).json({ error: 'Item already in room' });
       }
+
+      // Si l'item existait déjà dans la base mais pas dans cette room,
+      // on peut choisir de réinitialiser le statut pour cette nouvelle room
+      // Décommentez la ligne suivante si vous voulez ce comportement :
+      // await this.prisma.item.update({ where: { id: itemId }, data: { status: 'a_voir' } });
 
       // Add item to room
       await this.prisma.itemInRoom.create({
